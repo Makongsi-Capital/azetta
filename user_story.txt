@@ -1,0 +1,24 @@
+azetta adalah developer property
+    - ingin dibuatkan marketplace
+    - ingin disediakan halaman untuk memanggil investor
+    - ingin disediakan halaman untuk memanggil pemilik lahan
+
+secara garis besar, azetta menjual gambar desain property. Orang-orang akan mengadakan kerja sama dengan azetta.
+Orang-orang memiliki lahan, azetta mengajukan kerja sama untuk mengolah lahan tersebut.
+Bersamaan itu juga, azetta juga mencari investor untuk memodali pengembangan lahan tersebut.
+
+Yang diharapkan datang ke website azetta adalah 
+    - yang ingin beli property
+    - yang ingin berinvestasi
+    - yang ingin mendaftarkan lahannya
+
+
+referensi website seperti https://ruma.id/
+akan menggunakan 
+    - elysiajs sebagai backend
+    - mengimplementasikan better-auth
+    - prisma dengan postgresql sebagai database
+    - sveltekit untuk halaman admin
+    - sveltekit untuk halaman website customer
+    - daisyui dan tailwind untuk css
+    - iconify untuk icon-icon
