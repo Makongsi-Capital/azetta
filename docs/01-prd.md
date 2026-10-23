@@ -17,6 +17,7 @@
 | G3 | Menstandarkan presentasi penawaran | 100% penawaran memakai materi dari website |
 | G4 | Membuat proses follow-up dapat diaudit | 100% lead punya status & pemilik |
 | G5 | Membangun otoritas konten | 8 artikel + 12 desain terindeks pada bulan ke-3 |
+| G6 | Memberi ketenangan setelah pengajuan | ≥ 30% lead memiliki akun; ≥ 40% pemilik akun membuka halaman status ≥ 2× |
 
 **Non-tujuan (bukan alasan website ini dibuat):**
 
@@ -31,8 +32,10 @@
 - **Konteks:** punya lahan 120 m², ingin bangun rumah, sedang mengumpulkan referensi desain.
 - **Masalah:** bingung memilih desain; tidak tahu kisaran biaya bangun; ragu menghubungi karena takut dipaksa beli.
 - **Perilaku:** mencari lewat Google ("desain rumah 2 lantai 6x12"), melihat banyak gambar di ponsel, menyimpan screenshot.
-- **Yang meyakinkan:** render realistis, denah jelas, estimasi biaya transparan, harga mulai dari, testimoni.
-- **Aksi sukses:** mengirim form "Tanya desain ini" dengan nomor WhatsApp aktif.
+- **Yang meyakinkan:** render realistis, denah jelas, harga paket mulai dari, testimoni, dan kemungkinan memantau pengajuan setelah mendaftar akun.
+- **Aksi sukses:** mengirim form "Tanya desain ini" dengan nomor WhatsApp aktif (opsional membuat akun untuk memantau progres).
+
+> Catatan: akun **tidak wajib** untuk mengirim form. Akun ditawarkan *setelah* submit ("Buat akun untuk memantau progres") agar tidak menambah gesekan di awal.
 
 ### P2 — Pemilik lahan ("Bu Sari", 52, pemilik tanah warisan)
 
@@ -57,6 +60,8 @@
 - **Kebutuhan:** satu daftar lead dengan status, prioritas, catatan, dan pengingat sederhana.
 - **Aksi sukses:** mengubah status lead dan mencatat aktivitas dalam < 1 menit.
 
+> Pada MVP **semua lead ditangani oleh peran `admin`** (keputusan Q6). Tidak ada peran `staff` terpisah dan tidak ada routing otomatis per tipe lead.
+
 ### P5 — Pemilik/pengelola Azetta
 
 - **Kebutuhan:** melihat performa kanal, kualitas lead, dan konten yang tayang tanpa bertanya ke tim.
@@ -74,10 +79,22 @@ Google/IG Ads ──► Home ──► Katalog (filter) ──► Detail desain
                                                     ▼
                                     Halaman terima kasih + tombol WA
                                                     ▼
+                        (opsional) "Buat akun untuk memantau progres"
+                                                    ▼
                                   Sales menerima notifikasi & menindaklanjuti
 ```
 
-Titik gesek yang harus dihilangkan: form lebih dari 5 field pada alur ini, permintaan membuat akun, dan harga yang disembunyikan total.
+Titik gesek yang harus dihilangkan: form lebih dari 5 field pada alur ini, **permintaan membuat akun sebelum submit**, dan harga yang disembunyikan total.
+
+### 3.1a Setelah membuat akun (pemantauan)
+
+```text
+/daftar ──► verifikasi email ──► /akun
+                                   │
+                                   ├─ Daftar pengajuan (desain/lahan/investasi)
+                                   │      └─ status ringkas + catatan terbaru dari tim
+                                   └─ Profil (nama, WhatsApp, kota, kata sandi)
+```
 
 ### 3.2 Pemilik lahan
 
@@ -107,17 +124,19 @@ Terima kasih + jadwal diskusi
 Sales mengirim deck & mengatur pertemuan
 ```
 
-### 3.4 Staf sales (harian)
+### 3.4 Admin (harian)
 
 ```text
 Login admin ──► Dashboard (lead baru, belum dihubungi)
    ▼
-Daftar lead (filter: baru / tipe / milik saya)
+Daftar lead (filter: baru / tipe / prioritas / assignee)
    ▼
 Detail lead ──► [WhatsApp] template pesan ──► catat aktivitas ──► ubah status
    ▼
-Lead qualified ──► diteruskan ke tim proyek/investasi
+Lead qualified ──► diteruskan ke tim proyek/investasi (di luar sistem)
 ```
+
+Semua pengguna internal memakai peran `admin`; `super_admin` hanya untuk mengelola akun pengguna.
 
 ## 4. Ruang lingkup
 
@@ -126,35 +145,43 @@ Lead qualified ──► diteruskan ke tim proyek/investasi
 | Modul | Fitur | MVP | Fase 2 | Catatan |
 |-------|-------|:---:|:------:|---------|
 | **Katalog desain** | Daftar desain + filter + pencarian | ✅ | | Server-side filter, URL shareable |
-| | Detail desain (galeri, denah, spesifikasi, estimasi biaya) | ✅ | | |
+| | Detail desain (galeri, denah, spesifikasi, CTA) | ✅ | | **Estimasi biaya bangun tidak ditampilkan** (Q8) |
 | | Desain terkait | ✅ | | 4 item, berbasis kategori/gaya |
-| | Simpan/favorit | ❌ | ✅ | Butuh akun publik |
-| **Lead** | Form tanya desain | ✅ | | Guest, tanpa akun |
+| | Harga paket "mulai dari" | ✅ | | Bila `priceFrom` kosong → "Hubungi kami" (Q5) |
+| | Simpan/favorit | ❌ | ✅ | Bisa menyusul setelah akun publik ada |
+| **Proyek** | Halaman portofolio `/proyek` + detail | ✅ | | Proyek dari CMS, hanya yang `isPublished` (Q4) |
+| | CMS proyek + galeri | ✅ | | Tanpa angka keuangan sensitif |
+| **Lead** | Form tanya desain | ✅ | | Guest atau akun; akun tidak wajib |
 | | Form pengajuan lahan (3 langkah + foto) | ✅ | | Maks 5 foto, 5 MB/foto |
 | | Form minat investasi | ✅ | | |
 | | Form kontak umum | ✅ | | `type = GENERAL` |
-| | Notifikasi ke sales (email + WhatsApp gateway opsional) | ✅ | | Lihat [05 §8](./05-spesifikasi-api.md#8-notifikasi) |
-| | Auto-reply email ke pemohon | ❌ | ✅ | Butuh domain email terverifikasi |
-| | Status lead untuk pemohon | ❌ | ✅ | Butuh akun publik |
-| **Panel admin** | Login & manajemen sesi | ✅ | | Better Auth admin plugin |
-| | CRM lead (list, filter, detail, aktivitas, assignment, ekspor) | ✅ | | |
-| | Pipeline status + alasan lost | ✅ | | |
+| | Notifikasi lead baru ke admin (email) | ✅ | | Tanpa WhatsApp gateway (Q7) — lihat [05 §8](./05-spesifikasi-api.md#8-notifikasi) |
+| | Auto-reply email ke pemohon | ❌ | ✅ | Butuh domain email terverifikasi & template transaksional |
+| | Tautan lead ke akun pemohon | ✅ | | Bila pengunjung login saat submit |
+| **Akun publik** | Registrasi, login, verifikasi email, reset kata sandi | ✅ | | Better Auth; verifikasi wajib (Q1) |
+| | Halaman "Akun saya": profil + daftar pengajuan | ✅ | | Melihat status & catatan dari tim |
+| | Detail pengajuan + riwayat status | ✅ | | Terbatas pada pengajuan milik sendiri |
+| | Hapus akun mandiri | ❌ | ✅ | MVP: permintaan manual ≤ 30 hari |
+| | Favorit, notifikasi, chat | ❌ | ✅ | — |
+| **Panel admin** | Login & manajemen sesi | ✅ | | Peran `admin` / `super_admin` |
+| | CRM lead (list, filter, detail, aktivitas, assignment, ekspor) | ✅ | | Semua lead ditangani admin (Q6) |
+| | Pipeline status + alasan lost + catatan untuk pemohon | ✅ | | Catatan tampil di akun pemohon |
 | | Deteksi duplikat (nomor WA) | ✅ | | Peringatan, bukan blokir |
 | | Template pesan WhatsApp | ✅ | | Disimpan sebagai setting |
 | | Pengingat follow-up otomatis | ❌ | ✅ | |
 | | CMS desain + media manager | ✅ | | |
 | | CMS artikel, FAQ, testimoni | ✅ | | |
-| | Pengaturan situs (kontak, teks beranda) | ✅ | | |
-| | Manajemen pengguna admin | ✅ | | Hanya super admin |
+| | CMS proyek + galeri | ✅ | | |
+| | Pengaturan situs: kontak, hero, template WA, brand, dokumen legal | ✅ | | Dapat diubah saat produksi (Q3, Q10) |
+| | Manajemen pengguna internal | ✅ | | Hanya `super_admin` |
 | | Audit log | ✅ | | Aksi tulis admin |
 | | Dashboard statistik | ✅ | | 4 kartu + grafik 30 hari |
 | **Transaksi** | Pembayaran online | ❌ | ✅ | Di luar MVP |
 | | Unduhan file desain otomatis | ❌ | ✅ | |
 | | Kontrak digital / e-sign | ❌ | ✅ | |
-| **Akun publik** | Registrasi customer/investor | ❌ | ✅ | |
 | **Investor** | Dashboard proyek & laporan | ❌ | ✅ | |
 | **Lain-lain** | Multi-bahasa | ❌ | ✅ | Struktur i18n disiapkan, konten ID saja |
-| | Blog/kategori/tag | ✅ | | Tag sederhana |
+| | Blog/tag | ✅ | | Tag sederhana |
 | | Newsletter | ❌ | ✅ | |
 
 ### 4.2 Definisi "selesai" untuk MVP
@@ -163,11 +190,13 @@ MVP dinyatakan selesai bila seluruh butir berikut benar:
 
 1. Ketiga formulir lead berhasil mengirim data dan muncul di panel admin < 5 detik.
 2. Lead dapat diubah status, diberi catatan, dan diekspor CSV.
-3. Seluruh konten desain/artikel dapat dikelola dari panel admin tanpa deploy ulang.
-4. Tidak ada halaman publik yang menampilkan data placeholder.
-5. Lighthouse mobile ≥ 90 untuk Performance, Accessibility, Best Practices, SEO pada 4 halaman utama.
-6. Checklist keamanan di [09 §7](./09-qa-test-plan.md#7-checklist-keamanan) lulus.
-7. UAT oleh perwakilan sales dan manajemen disetujui.
+3. Pengunjung dapat mendaftar akun, memverifikasi email, dan melihat **hanya** pengajuannya sendiri beserta status terbaru.
+4. Halaman `/proyek` menampilkan proyek yang dipublikasikan dari CMS.
+5. Seluruh konten desain/artikel/proyek dapat dikelola dari panel admin tanpa deploy ulang.
+6. Tidak ada halaman publik yang menampilkan data placeholder.
+7. Lighthouse mobile ≥ 90 untuk Performance, Accessibility, Best Practices, SEO pada 4 halaman utama.
+8. Checklist keamanan di [09 §7](./09-qa-test-plan.md#7-checklist-keamanan) lulus.
+9. UAT oleh perwakilan sales dan manajemen disetujui.
 
 ## 5. Kebutuhan fungsional
 
@@ -182,11 +211,14 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | FR-PUB-03 | Pencarian teks pada judul, deskripsi, tag | M | Hasil relevan; minimal 1 karakter → debounce 300 ms |
 | FR-PUB-04 | Urutan: terbaru, terpopuler, harga terendah, harga tertinggi | S | Default terbaru/featured |
 | FR-PUB-05 | Pagination 12 item/halaman | M | Navigasi tetap accessible |
-| FR-PUB-06 | Detail desain menampilkan galeri, denah, spesifikasi, estimasi biaya, CTA | M | Semua field kosong disembunyikan, bukan ditampilkan kosong |
+| FR-PUB-06 | Detail desain menampilkan galeri, denah, spesifikasi, dan CTA | M | Semua field kosong disembunyikan; **estimasi biaya bangun tidak ditampilkan** (internal saja) |
 | FR-PUB-07 | Desain terkait (maks 4) | S | Fallback ke desain terbaru bila tidak ada yang cocok |
 | FR-PUB-08 | Halaman artikel & detail artikel | M | Konten dari CMS, slug unik |
 | FR-PUB-09 | Halaman FAQ, tentang, kontak, kebijakan privasi, syarat & ketentuan | M | Dapat diedit lewat CMS/settings |
 | FR-PUB-10 | Tombol WhatsApp mengambang | S | Membuka `wa.me` dengan pesan pembuka berisi judul desain (bila di halaman detail) |
+| FR-PUB-11 | Halaman `/proyek` menampilkan proyek `isPublished` | M | Urut `sortOrder` lalu tahun terbaru; kosong → section disembunyikan |
+| FR-PUB-12 | Detail proyek `/proyek/[slug]` | M | Galeri, lokasi, tahun, ringkasan; proyek tidak publish → 404 |
+| FR-PUB-13 | Halaman proyek memuat CTA ke lahan/investasi | S | Maks 2 CTA, tidak mengganggu bacaan |
 
 ### 5.2 Modul lead
 
@@ -200,10 +232,12 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | FR-LEAD-06 | Anti-spam: honeypot, Turnstile, rate limit, waktu isi minimum | M | Bot honeypot ditolak diam-diam (200 palsu) dan dicatat sebagai `SPAM` |
 | FR-LEAD-07 | Nomor telepon dinormalisasi ke format `+62…` | M | Input `0812…`, `+62812…`, `62812…` menghasilkan nilai sama |
 | FR-LEAD-08 | Halaman terima kasih dengan nomor referensi & tombol WhatsApp | M | Referensi tampil dan dapat dipakai sales untuk mencari lead |
-| FR-LEAD-09 | Notifikasi lead baru ke tim (email; opsional WhatsApp) | M | Terkirim < 60 detik; kegagalan notifikasi tidak membatalkan penyimpanan lead |
+| FR-LEAD-09 | Notifikasi lead baru ke tim (email) | M | Terkirim < 60 detik; kegagalan notifikasi tidak membatalkan penyimpanan lead |
 | FR-LEAD-10 | Deduplikasi: peringatan bila nomor sama dalam 24 jam | S | Lead tetap dibuat; admin melihat badge "duplikat" |
 | FR-LEAD-11 | Form kontak umum | C | Menghasilkan `type = GENERAL` |
 | FR-LEAD-12 | Simpan draf form di `sessionStorage` | C | Dihapus setelah submit sukses |
+| FR-LEAD-13 | Bila pengunjung sedang login, lead ditautkan ke akunnya | M | `Lead.userId` terisi; muncul di halaman "Akun saya" |
+| FR-LEAD-14 | Setelah submit, tawarkan pembuatan akun (opsional) | S | Tautan "Buat akun untuk memantau progres"; tidak menghalangi |
 
 ### 5.3 Modul admin
 
@@ -215,7 +249,7 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | FR-ADM-04 | Detail lead: kontak, data spesifik tipe, lampiran, riwayat aktivitas | M | Data lahan/investasi tampil terstruktur, bukan JSON mentah |
 | FR-ADM-05 | Ubah status via pipeline dengan validasi transisi | M | Transisi ilegal ditolak dengan pesan jelas |
 | FR-ADM-06 | Catat aktivitas (telepon, WA, email, meeting, catatan) | M | Tercatat dengan aktor & waktu |
-| FR-ADM-07 | Tetapkan lead ke staf | M | Assignee hanya pengguna berperan staf/admin |
+| FR-ADM-07 | Tetapkan lead ke admin | M | Assignee hanya pengguna berperan `admin`/`super_admin` |
 | FR-ADM-08 | Ekspor CSV sesuai filter aktif | S | Maks 5.000 baris; kolom terdokumentasi |
 | FR-ADM-09 | Deteksi duplikat nomor | S | Badge + tautan ke lead lain |
 | FR-ADM-10 | CRUD desain + unggah media + atur urutan + cover | M | Simpan sebagai draft; publish manual |
@@ -225,6 +259,9 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | FR-ADM-14 | Kelola pengguna admin (undang, ubah peran, nonaktifkan) | S | Hanya `super_admin`; tidak bisa menonaktifkan diri sendiri |
 | FR-ADM-15 | Audit log aksi tulis | S | Menyimpan aktor, aksi, entitas, waktu |
 | FR-ADM-16 | Template pesan WhatsApp siap pakai per tipe lead | C | Tombol menyalin/membuka WA dengan isi terisi |
+| FR-ADM-17 | CRUD proyek + galeri gambar | M | Publish manual; proyek tidak publish tidak tampil di web |
+| FR-ADM-18 | Unggah aset merek & dokumen legal di Pengaturan | M | Logo, dokumen PDF; URL tersimpan di setting; hanya `admin` |
+| FR-ADM-19 | Tulis catatan untuk pemohon pada lead | M | Tampil di halaman akun pemohon; tanpa data internal |
 
 ### 5.4 Modul analitik
 
@@ -234,6 +271,20 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | FR-AN-02 | Atribusi `utm_*` & referrer disimpan pada lead | M |
 | FR-AN-03 | Integrasi alat pihak ketiga (GA4/Umami) | S |
 | FR-AN-04 | Laporan konversi per sumber | C |
+
+### 5.5 Modul akun publik
+
+| ID | Kebutuhan | Prioritas | Kriteria penerimaan ringkas |
+|----|-----------|:---------:|------------------------------|
+| FR-ACC-01 | Registrasi dengan email + kata sandi | M | Kata sandi min. 8 karakter; email unik; Turnstile aktif; pesan error tidak mengungkap apakah email terdaftar |
+| FR-ACC-02 | Verifikasi email sebelum dapat melihat pengajuan | M | Tautan verifikasi berlaku 24 jam; dapat kirim ulang maks 3×/jam |
+| FR-ACC-03 | Login, logout, lupa kata sandi | M | Reset via email, token sekali pakai berlaku 1 jam |
+| FR-ACC-04 | Halaman `Akun saya` berisi profil & daftar pengajuan | M | Hanya menampilkan `Lead.userId = user.id` |
+| FR-ACC-05 | Detail pengajuan menampilkan status ramah pengguna & catatan tim | M | Status internal dipetakan (lihat [05 §4.7](./05-spesifikasi-api.md#47-akun-saya)); tanpa catatan internal |
+| FR-ACC-06 | Ubah profil (nama, WhatsApp, kota) & kata sandi | M | Perubahan tercatat di audit ringan; email tidak dapat diubah sendiri di MVP |
+| FR-ACC-07 | Pengajuan tanpa akun tetap dapat ditautkan nanti | S | Setelah verifikasi email yang sama, pengajuan dengan email tersebut otomatis tertaut |
+| FR-ACC-08 | Permintaan hapus akun lewat halaman bantuan | S | Membuat tiket manual; diproses ≤ 30 hari |
+| FR-ACC-09 | Sesi akun 30 hari, dapat dilihat & diakhiri dari perangkat lain | C | Daftar sesi sederhana |
 
 ## 6. Kebutuhan non-fungsional
 
@@ -255,6 +306,9 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | NFR-14 | Maintainability | Type-safety end-to-end | `tsc --noEmit` bersih; tidak ada `any` di kontrak API |
 | NFR-15 | Backup | Data hilang maksimum | RPO ≤ 24 jam, RTO ≤ 4 jam |
 | NFR-16 | Lokalisasi | Format tanggal & angka | `id-ID`, zona `Asia/Jakarta`, Rupiah tanpa desimal |
+| NFR-17 | Keamanan akun | Perlindungan kredensial | Rate limit login/registrasi/reset; pesan error seragam; sesi di DB dapat dicabut |
+| NFR-18 | Privasi akun | Isolasi data antar pengguna | Setiap query pengajuan difilter `userId`; tidak ada IDOR (diuji otomatis) |
+| NFR-19 | Ketersediaan email | Pengiriman verifikasi & reset | Retry 3×; kegagalan tercatat & terlihat di admin |
 
 ## 7. Aturan bisnis
 
@@ -271,7 +325,14 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | BR-09 | Data pribadi dihapus/dianonimkan 24 bulan setelah `closedAt`, kecuali ada kewajiban hukum. |
 | BR-10 | Lampiran lahan hanya dapat diakses pengguna admin terautentikasi melalui URL bertanda tangan (kedaluwarsa 15 menit). |
 | BR-11 | Harga desain ditampilkan sebagai "mulai dari" bila `priceFrom` diisi; bila kosong, tampil "Hubungi kami". |
-| BR-12 | Estimasi biaya bangun selalu disertai disclaimer "bukan penawaran resmi". |
+| BR-12 | Estimasi biaya bangun **tidak ditampilkan** di halaman publik maupun dikirim endpoint publik; hanya untuk internal sales. |
+| BR-13 | Akun publik hanya dapat melihat pengajuan dengan `userId` miliknya; tidak ada akses berdasarkan nomor referensi saja. |
+| BR-14 | Pengajuan tanpa akun otomatis tertaut ke akun ketika email yang sama diverifikasi (bila email diisi). |
+| BR-15 | Email harus terverifikasi sebelum data pengajuan ditampilkan. |
+| BR-16 | Proyek hanya tampil publik bila `isPublished = true`; persetujuan publikasi diperoleh di luar sistem. |
+| BR-17 | Catatan untuk pemohon (`customerNote`) tidak boleh memuat data lead lain, angka internal, atau penilaian internal. |
+| BR-18 | Registrasi publik selalu menghasilkan peran `customer`; akun internal hanya dibuat `super_admin`. |
+| BR-19 | Akun dengan peran `customer` tidak dapat mengakses `/admin/*` meskipun memiliki sesi valid. |
 
 ## 8. Asumsi & dependensi
 
@@ -284,22 +345,31 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | A5 | Layanan email transaksional tersedia untuk notifikasi | Notifikasi jatuh ke alternatif WhatsApp/grup |
 | A6 | Data wilayah Indonesia (provinsi/kabupaten) tersedia (statis atau API) | Dropdown wilayah harus disederhanakan jadi input bebas |
 | A7 | Tidak ada kebutuhan audit keamanan formal (ISO/PCI) di fase MVP | Pengerasan & dokumentasi tambahan |
+| A8 | Verifikasi email dipakai untuk semua akun publik (Q11) | Tanpa verifikasi, spam akun naik & reset kata sandi tidak aman |
+| A9 | Proyek yang dipublikasikan telah mendapat persetujuan pemilik proyek | Risiko kerahasiaan & relasi (R21) |
 
 ## 9. Pertanyaan yang sudah dijawab
 
 | Pertanyaan | Jawaban | Dimana diimplementasikan |
 |------------|---------|--------------------------|
 | Apakah ada transaksi online? | Tidak — lead-gen, kontak di luar aplikasi | [02 §4](./02-model-bisnis-funnel.md#4-titik-handover-di-luar-aplikasi), [06](./06-ux-sitemap-wireframe.md) |
+| Apakah pengunjung punya akun? | Ya, untuk memantau progres pengajuan | [01 §5.5](#55-modul-akun-publik), [06 §4.12](./06-ux-sitemap-wireframe.md#412-akun-saya) |
+| Domain? | `azetta.id` + subdomain `admin`, `api`, `media` | [11 §1](./11-deployment-operations.md#1-environment) |
+| Nomor kontak & jam kerja? | Dikelola lewat halaman Pengaturan admin | [04 §3.5](./04-data-model.md#35-article-faq-testimonial-sitesetting) |
+| Ada proyek yang boleh dipublikasikan? | Ya — halaman `/proyek` | [01 §5.1](#51-modul-publik--katalog) FR-PUB-11..13 |
+| Estimasi biaya bangun ditampilkan? | Tidak, hanya internal | BR-12, [06 §4.3](./06-ux-sitemap-wireframe.md#43-detail-desain-desainslug) |
+| WhatsApp gateway? | Tidak dipakai; email saja | [05 §8](./05-spesifikasi-api.md#8-notifikasi) |
+| Siapa menangani lead? | Semua admin, tanpa routing per tipe | BR-03, [05 §3.2](./05-spesifikasi-api.md#32-matriks-otorisasi) |
 | Bahasa? | Indonesia saja | [10 §3](./10-seo-konten.md#3-peta-url) |
 | Pasar? | Indonesia | Aturan BR-04 |
 | Repo? | Monorepo | [03 §3](./03-arsitektur-teknis.md#3-struktur-monorepo) |
 
-Pertanyaan yang **belum** terjawab ada di [12 §2](./12-risiko-asumsi-keputusan.md#2-pertanyaan-terbuka).
+Dua pertanyaan lanjutan (Q11, Q12) beserta asumsinya ada di [12 §2](./12-risiko-asumsi-keputusan.md#2-keputusan-atas-pertanyaan-terbuka).
 
 ## 10. Referensi produk
 
 | Referensi | Yang diambil | Yang sengaja tidak diambil |
 |-----------|--------------|----------------------------|
-| [ruma.id](https://ruma.id/) | Struktur katalog desain, filter, halaman detail dengan render + denah + estimasi biaya, CTA konsultasi | Model transaksi dan akun pengguna |
+| [ruma.id](https://ruma.id/) | Struktur katalog desain, filter, halaman detail dengan render + denah, CTA konsultasi | Model transaksi, akun penuh, dan tampilan estimasi biaya per desain |
 | Portal properti besar (99.co, Rumah123) | Pola filter & kartu listing | Volume listing pihak ketiga, iklan |
 | Situs developer/kontraktor | Halaman "tentang", portofolio proyek, formulir kontak | — |

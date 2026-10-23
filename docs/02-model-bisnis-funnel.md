@@ -94,6 +94,8 @@ Ambang indikatif per aliran:
 | Cost per lead (berbayar) | biaya iklan / lead dari kanal berbayar | Manual (input di laporan) |
 | Content yield | lead dari halaman artikel / artikel publish | `Lead.landingPath` |
 | Stale lead | lead `NEW` > 24 jam | DB |
+| Akun conversion | `jumlah User role=customer / jumlah Lead` | DB |
+| Status view rate | kunjungan `/akun` ÷ pemilik akun aktif | DB + analitik |
 
 Dashboard admin menampilkan metrik yang dapat dihitung dari DB; metrik berbayar tetap dihitung manual sampai ada integrasi iklan.
 
@@ -144,7 +146,8 @@ Nilai ekonominya bergantung pada harga internal Azetta, sehingga tidak dicantumk
 |---------|-------------|------------|
 | Tidak ada transaksi di situs | Tidak bisa mengukur pendapatan langsung | Kolom `estimatedValue` + rekap manual bulanan |
 | Kualitas lead bergantung sales | Data funnel bisa menyesatkan bila status tidak diperbarui | Status wajib diperbarui; audit mingguan |
-| Tidak ada akun publik | Pengunjung tidak bisa memantau status | Halaman terima kasih + nomor referensi + komunikasi via WA |
+| Tidak ada akun publik | — | **Sudah tidak berlaku**: akun tersedia untuk memantau progres (Q1) |
+| Akun publik tanpa transaksi | Pengguna bisa memantau tetapi tidak bisa membeli | Arahkan ke WhatsApp/sales dari halaman akun |
 | Kebocoran lead ke kanal pribadi | Riwayat hilang bila sales resign | Kebijakan: semua kontak via nomor perusahaan, aktivitas wajib dicatat |
 
 ## 11. Kesiapan fase berikutnya
@@ -154,6 +157,6 @@ Desain sistem saat ini sudah menyiapkan jalur menuju transaksi tanpa migrasi bes
 | Fase 2 | Perubahan yang diperlukan |
 |--------|---------------------------|
 | Checkout desain | Tambah `Order`, `OrderItem`, `Payment`; status lead `WON` memicu order |
-| Akun publik | Aktifkan role `customer`, halaman `/akun`, tautkan `Lead.userId` |
-| Dashboard investor | Tambah `Project`, `Investment`, `Distribution`; investor login untuk laporan |
+| Akun lanjutan | Favorit, notifikasi email/WA, hapus akun mandiri, ubah email |
+| Dashboard investor | Tambah `Investment`, `Distribution`; laporan proyek per investor (model `Project` sudah ada di MVP) |
 | Kontrak digital | Tambah `Agreement` + penyimpanan dokumen |

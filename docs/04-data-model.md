@@ -22,6 +22,7 @@ erDiagram
     USER ||--o{ LEAD : "menangani"
     USER ||--o{ LEAD_ACTIVITY : "mencatat"
     USER ||--o{ ARTICLE : "menulis"
+    USER ||--o{ PROJECT : "mengelola"
     USER ||--o{ AUDIT_LOG : "melakukan"
 
     PROPERTY_DESIGN ||--o{ DESIGN_MEDIA : "memiliki"
@@ -37,7 +38,7 @@ erDiagram
     SITE_SETTING }o--|| USER : "diubah oleh"
 ```
 
-Relasi `Lead ↔ User` ada dua (pembuat dan penangan), karenanya memakai nama relasi eksplisit di Prisma.
+Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya memakai nama relasi eksplisit di Prisma.
 
 ## 3. Kamus data inti
 
@@ -63,7 +64,7 @@ Relasi `Lead ↔ User` ada dua (pembuat dan penangan), karenanya memakai nama re
 | `utmSource` … `utmTerm` | text | ✓ | — | Atribusi kampanye |
 | `ipHash` | text | ✓ | — | SHA-256(IP + salt), untuk anti-abuse. **Bukan** IP mentah |
 | `userAgent` | text | ✓ | — | Maks 300 char |
-| `userId` | text | ✓ | — | Bila pengunjung login (fase 2) |
+| `userId` | text | ✓ | — | Pemilik akun; wajib agar pengajuan tampil di `/akun` |
 | `assignedToId` | text | ✓ | — | Staf penanggung jawab |
 | `estimatedValue` | bigint | ✓ | — | Estimasi nilai deal (diisi sales) |
 | `lostReason` | text | ✓ | — | Wajib saat status `LOST` |
@@ -73,6 +74,8 @@ Relasi `Lead ↔ User` ada dua (pembuat dan penangan), karenanya memakai nama re
 | `closedAt` | timestamptz | ✓ | — | Saat `WON`/`LOST` |
 | `spamScore` | int | ✗ | 0 | Akumulasi sinyal (honeypot=100, waktu isi < 3 s=40, dsb.) |
 | `idempotencyKey` | text | ✓ | — | Unik; mencegah duplikat saat submit diulang (lihat [05 §2.5](./05-spesifikasi-api.md#25-idempotensi--deduplikasi)) |
+| `customerNote` | text | ✓ | — | Catatan untuk pemohon, tampil di `/akun` (bukan catatan internal) |
+| `customerNoteUpdatedAt` | timestamptz | ✓ | — | Kapan catatan terakhir diperbarui |
 | `createdAt` / `updatedAt` | timestamptz | ✗ | now | — |
 
 **Index:** `(status, createdAt)`, `(type, status)`, `(assignedToId, status)`, `(phoneNormalized)`, `(createdAt)`, `(designId)`.
@@ -151,12 +154,17 @@ Kunci `SiteSetting` yang dipakai MVP:
 | Key | Isi |
 |-----|-----|
 | `contact` | `{ phone, whatsapp, email, address, mapsUrl, operatingHours }` |
+| `brand` | `{ logoUrl, faviconUrl, primaryColor, legalName }` |
 | `hero` | `{ title, subtitle, ctaLabel, ctaHref, imageUrl }` |
 | `offer.land` | `{ headline, schemeBullets[], steps[], faqs[] }` |
 | `offer.invest` | `{ headline, highlights[], riskNotes[], faqs[] }` |
+| `about` | `{ story, vision, values[], team[], legalEntityNote }` |
+| `legal` | `{ privacyUpdatedAt, termsUpdatedAt, documents: [{ label, url, uploadedAt }] }` |
 | `wa.templates` | `{ design, land, invest, followUp }` |
 | `analytics` | `{ ga4Id, umamiId, metaPixelId }` |
 | `seo.default` | `{ titleTemplate, defaultDescription, ogImageUrl }` |
+
+Key `brand` dan `legal` menyimpan URL hasil unggah melalui presign (gambar/PDF) — halaman Pengaturan menyediakan unggah, ganti, dan hapus. Ini memungkinkan dokumen legal ditambahkan kapan pun tanpa deploy (Q10).
 
 ### 3.6 Pipeline status
 
@@ -181,6 +189,46 @@ Transisi yang diizinkan (divalidasi server):
 | `WON` | — (final) |
 | `LOST` | `NEW` (reaktivasi, tercatat di aktivitas) |
 | `SPAM` | `NEW` (bila salah klasifikasi) |
+
+**Pemetaan ke status yang dilihat pemohon** (dihitung saat runtime, tidak disimpan):
+
+| Status internal | Label di `/akun` | Warna |
+|-----------------|------------------|-------|
+| `NEW` | Diterima | netral |
+| `CONTACTED` | Sedang dihubungi | info |
+| `QUALIFIED` | Sedang ditinjau | info |
+| `PROPOSAL` | Penawaran disiapkan | info |
+| `NEGOTIATION` | Dalam diskusi | perhatian |
+| `WON` | Selesai | sukses |
+| `LOST` | Ditutup | netral |
+| `SPAM` | *tidak ditampilkan* | — |
+
+### 3.7 Project
+
+Portofolio proyek (Q4). Tidak memiliki relasi ke `Lead` pada MVP — atribusi tetap lewat `landingPath`.
+
+| Kolom | Tipe | Null | Keterangan |
+|-------|------|:----:|------------|
+| `id` | text | ✗ | PK |
+| `slug` | text | ✗ | Unik, `kebab-case` |
+| `title` | text | ✗ | 5–120 |
+| `summary` | text | ✓ | Ringkasan 1–2 kalimat (kartu & meta) |
+| `description` | text | ✓ | Markdown, maks 10.000 |
+| `location` | text | ✗ | Nama lokasi yang aman dipublikasikan |
+| `city` / `province` | text | ✗/✗ | Untuk filter & SEO |
+| `status` | enum | ✗ | `PLANNED` / `ONGOING` / `COMPLETED` |
+| `yearStarted` / `yearCompleted` | int | ✓ | 2000–2100 |
+| `landAreaM2` | int | ✓ | Opsional |
+| `unitCount` | int | ✓ | Opsional |
+| `coverImageUrl` | text | ✓ | Wajib sebelum publish |
+| `galleryUrls` | text[] | ✗ | 0–10 URL, urutan dipertahankan |
+| `isPublished` | bool | ✗ | Default `false` |
+| `sortOrder` | int | ✗ | 0 |
+| `seoTitle` / `seoDescription` | text | ✓ | — |
+| `createdById` | text | ✓ | Admin pembuat |
+| `createdAt` / `updatedAt` / `deletedAt` | timestamptz | ✗/✗/✓ | — |
+
+> Galeri memakai array URL (bukan tabel media terpisah) karena portofolio jarang berubah dan tidak memerlukan `alt` per gambar di MVP. Bila kebutuhan ini tumbuh, migrasi ke tabel media dapat dilakukan tanpa mengubah URL publik.
 
 ## 4. Skema Prisma lengkap
 
@@ -246,6 +294,7 @@ model User {
   activities    LeadActivity[]
   attachments   LeadAttachment[] @relation("AttachmentUploader")
   articles      Article[]        @relation("ArticleAuthor")
+  projects      Project[]        @relation("ProjectAuthor")
   auditLogs     AuditLog[]
   settings      SiteSetting[]    @relation("SettingUpdatedBy")
 
@@ -554,6 +603,8 @@ model Lead {
   closedAt         DateTime?
   spamScore        Int       @default(0)
   idempotencyKey   String?   @unique
+  customerNote     String?   @db.Text
+  customerNoteUpdatedAt DateTime?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -658,6 +709,54 @@ model LeadAttachment {
 
   @@index([leadId])
   @@map("lead_attachment")
+}
+
+// ============================================================
+// Portofolio proyek
+// ============================================================
+
+enum ProjectStatus {
+  PLANNED
+  ONGOING
+  COMPLETED
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  summary     String?
+  description String?       @db.Text
+
+  location String
+  city     String
+  province String
+
+  status        ProjectStatus @default(ONGOING)
+  yearStarted   Int?
+  yearCompleted Int?
+  landAreaM2    Int?
+  unitCount     Int?
+
+  coverImageUrl String?
+  galleryUrls   String[]
+  isPublished   Boolean @default(false)
+  sortOrder     Int     @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdById String?
+  createdBy   User?   @relation("ProjectAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([isPublished, sortOrder])
+  @@index([status, yearCompleted])
+  @@index([deletedAt])
+  @@map("project")
 }
 
 // ============================================================
@@ -829,6 +928,12 @@ Beberapa aturan tidak dapat dinyatakan di Prisma, jadi ditegakkan di service lay
 | Hanya satu cover per desain | Service menormalkan `isCover` |
 | `slug` unik & `kebab-case` | Validasi + unique index |
 | Nomor telepon valid Indonesia | Normalisasi + regex |
+| Registrasi publik selalu `role = customer` | Nilai peran tidak diterima dari input klien |
+| Pengajuan hanya tampil untuk pemiliknya | Setiap query customer difilter `userId` (diuji IDOR) |
+| Pengajuan tanpa akun tertaut saat email diverifikasi | Service mencocokkan `email` setelah `emailVerified = true` |
+| `customerNote` tidak boleh kosong bila diubah | Validasi service; `customerNoteUpdatedAt` diisi otomatis |
+| Proyek publish wajib `coverImageUrl` | Validasi service `publish()` |
+| Nama proyek tidak boleh memuat data keuangan sensitif | Review konten manual sebelum `isPublished = true` |
 
 ## 7. Retensi & pembersihan data
 
@@ -837,6 +942,8 @@ Beberapa aturan tidak dapat dinyatakan di Prisma, jadi ditegakkan di service lay
 | Lead `WON`/`LOST` | 24 bulan sejak `closedAt` | Anonimkan `name`, `phone`, `email`, `message`; pertahankan agregat |
 | Lead `SPAM` | 90 hari | Hapus permanen |
 | Lead `NEW` tanpa aktivitas | Tidak dihapus | Masuk laporan "stale" setelah 24 jam |
+| Akun `customer` tidak aktif | 36 bulan sejak login terakhir | Anonimkan profil; akun dinonaktifkan, pengajuan tetap dianonimkan sesuai aturan lead |
+| Permintaan hapus akun | ≤ 30 hari sejak permintaan | Anonimkan `User` + `Lead` terkait; cabut semua sesi |
 | Lampiran lead | Mengikuti lead | Hapus objek storage saat lead dianonimkan |
 | `FunnelEvent` | 13 bulan | Agregasi bulanan disimpan, event mentah dihapus |
 | `AuditLog` | 24 bulan | Hapus |
@@ -852,12 +959,14 @@ Job retensi berjalan harian pukul 03.00 WIB dan mencatat jumlah baris terdampak 
 | Data | Jumlah | Catatan |
 |------|--------|---------|
 | Pengguna admin | 2 | `super_admin@azetta.id`, `sales@azetta.id` (kata sandi dari env, wajib diganti saat deploy) |
+| Pengguna customer | 2 | Akun uji dengan pengajuan tertaut (khusus non-produksi) |
 | Desain | 12 | 8 residential, 2 commercial, 2 renovation; media placeholder dari `packages/db/seed-assets` |
+| Proyek | 4 | 1 `COMPLETED`, 2 `ONGOING`, 1 `PLANNED`; hanya 3 dipublikasikan |
 | Tag | 8 | Minimalis, Modern, Tropis, Skandinavia, Industrial, Klasik, Kecil, Mewah |
 | Artikel | 4 | Draf contoh |
 | FAQ | 10 | Tersebar di kategori umum/lahan/investasi |
 | Testimoni | 3 | Fiktif, ditandai `isPublished=false` |
-| SiteSetting | 7 kunci | Nilai default |
+| SiteSetting | 10 kunci | Nilai default |
 
 Seed **idempoten** (`upsert` berdasarkan slug/email) agar aman dijalankan berulang.
 
@@ -882,6 +991,9 @@ Seed **idempoten** (`upsert` berdasarkan slug/email) agar aman dijalankan berula
 | `lead_attachment` | 3.000 | Metadata kecil; objek di R2 |
 | `property_design` | 50–200 | Kecil |
 | `property_design_media` | 1.000–4.000 | Kecil |
+| `project` | 10–40 | Kecil; galeri sebagai array URL |
+| `user` (customer) | 300–1.500 | Kecil; index pada `email` |
+| `session` | 1.000–5.000 | Kecil; pembersihan berkala wajib |
 | `funnel_event` | 500.000–2.000.000 | Terbesar; wajib retensi 13 bulan + index `(name, created_at)` |
 
 Bila `funnel_event` tumbuh di luar kendali, pindahkan ke tabel partisi bulanan atau kirim langsung ke alat analitik tanpa menyimpan di DB.

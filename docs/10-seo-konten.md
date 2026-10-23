@@ -57,7 +57,7 @@ Dikelompokkan per niat pencarian agar setiap klaster punya halaman tujuan yang j
 
 | Kata kunci | Niat | Halaman tujuan |
 |------------|------|----------------|
-| estimasi biaya bangun rumah 2 lantai | Informasi | artikel + kalkulasi di detail desain |
+| estimasi biaya bangun rumah 2 lantai | Informasi | artikel (panduan umum, bukan angka per desain) |
 | harga jasa desain rumah per meter | Komersial | artikel + `/desain` |
 | RAB rumah type 45 | Informasi | artikel |
 | berapa lama bangun rumah 2 lantai | Informasi | artikel/FAQ |
@@ -81,11 +81,15 @@ Dikelompokkan per niat pencarian agar setiap klaster punya halaman tujuan yang j
 | `/desain?category=…&floors=…` | Katalog terfilter | ⚠️ | Diindeks hanya bila ≤ 2 parameter dan ada ≥ 1 hasil |
 | `/desain?q=…` | Hasil pencarian | ❌ | `noindex` |
 | `/desain/[slug]` | Detail desain | ✅ | Satu-satunya URL kanonis per desain |
+| `/proyek` | Daftar proyek | ✅ | |
+| `/proyek/[slug]` | Detail proyek | ✅ | |
 | `/kerjasama-lahan` | Landing | ✅ | |
 | `/investasi` | Landing | ✅ | |
 | `/artikel` | Daftar artikel | ✅ | Pagination `?page=2` `noindex,follow` |
 | `/artikel/[slug]` | Artikel | ✅ | |
 | `/tentang`, `/kontak`, `/faq` | Statis | ✅ | |
+| `/masuk`, `/daftar`, `/lupa-sandi`, `/reset-sandi`, `/verifikasi-email` | Auth | ❌ | `noindex,nofollow` |
+| `/akun`, `/akun/*` | Area pengguna | ❌ | `noindex,nofollow`; wajib login |
 | `/terima-kasih/*` | Konfirmasi | ❌ | `noindex,nofollow` |
 | `/kebijakan-privasi`, `/syarat-ketentuan` | Legal | ✅ | |
 | `/404` | Error | ❌ | Status 404 |
@@ -101,8 +105,10 @@ Dikelompokkan per niat pencarian agar setiap klaster punya halaman tujuan yang j
 | Halaman | `<title>` | Meta description | H1 |
 |---------|-----------|------------------|-----|
 | Beranda | `Azetta — Desain Properti, Kerja Sama Lahan & Investasi` | 150–160 char, memuat 3 aliran | `Desain siap bangun, lahan diolah bersama, modal tumbuh bersama` |
-| Katalog | `Katalog Desain Rumah & Properti — Azetta` | `Jelajahi {n} desain rumah, ruko, dan interior dengan denah lengkap dan estimasi biaya. Filter sesuai luas lahan Anda.` | `Katalog Desain` |
+| Katalog | `Katalog Desain Rumah & Properti — Azetta` | `Jelajahi {n} desain rumah, ruko, dan interior dengan denah lengkap. Filter sesuai luas lahan Anda.` | `Katalog Desain` |
 | Detail desain | `{Judul} — Desain {Kategori} {Gaya} \| Azetta` | 150–160 char dari ringkasan + spesifikasi | `{Judul}` |
+| Proyek | `Proyek Azetta — Portofolio Pengembangan Lahan` | `Lihat proyek yang sedang berjalan dan telah selesai dikembangkan Azetta, lengkap dengan lokasi dan spesifikasinya.` | `Proyek Azetta` |
+| Detail proyek | `{Judul Proyek} — Proyek Azetta di {Kota}` | 150–160 char dari ringkasan proyek | `{Judul Proyek}` |
 | Kerja sama lahan | `Kerja Sama Lahan dengan Developer — Tanpa Modal, Bagi Hasil \| Azetta` | `Punya lahan tapi tidak punya modal? Azetta mengolah lahan Anda dengan skema bagi hasil yang transparan. Ajukan lahan Anda.` | `Kerja Sama Lahan` |
 | Investasi | `Investasi Properti Bersama Azetta — Skema & Proyek` | `Kenali skema investasi properti Azetta: bagi hasil, ekuitas, dan imbal tetap, beserta risiko dan tata kelolanya.` | `Investasi Properti` |
 | Artikel | `{Judul Artikel} \| Azetta` | 150–160 char dari excerpt | `{Judul Artikel}` |
@@ -159,6 +165,7 @@ Aturan:
 | `WebSite` | Beranda | `name`, `url`, `potentialAction` (SearchAction ke `/desain?q=`) |
 | `BreadcrumbList` | Semua kecuali beranda | `itemListElement` |
 | `CreativeWork` (subtipe `House` bila sesuai) | Detail desain | `name`, `description`, `image`, `creator`, `datePublished` |
+| `CreativeWork` | Detail proyek | `name`, `description`, `image`, `dateCreated`, `locationCreated` |
 | `Article` | Detail artikel | `headline`, `image`, `datePublished`, `dateModified`, `author` |
 | `FAQPage` | `/faq` dan FAQ di landing | `mainEntity[]` |
 | `Service` | `/kerjasama-lahan`, `/investasi` | `name`, `description`, `provider` |
@@ -189,9 +196,20 @@ Aturan:
 | 11 | Renovasi Rumah Lama Jadi Modern | Renovation | Modern | 90 m² | 3/2 | renovasi rumah jadi modern |
 | 12 | Interior Ruang Tamu Minimalis 4×5 | Interior | Minimalis | — | — | desain interior ruang tamu minimalis |
 
-Setiap desain wajib memiliki: 5–8 gambar (eksterior, interior, denah per lantai), deskripsi 300–600 kata, spesifikasi lengkap, estimasi biaya, dan 1 CTA.
+Setiap desain wajib memiliki: 5–8 gambar (eksterior, interior, denah per lantai), deskripsi 300–600 kata, spesifikasi lengkap, harga paket "mulai dari", dan 1 CTA. **Estimasi biaya bangun tidak dicantumkan** (Q8) — angka biaya hanya ada di artikel panduan umum.
 
-### 7.2 8 artikel (konten pendukung)
+### 7.2 4 proyek (bukti sosial)
+
+| # | Judul | Status | Lokasi | Kata kunci pendukung |
+|---|-------|--------|--------|----------------------|
+| 1 | Cluster Ngaglik | Selesai | Sleman, DIY | proyek perumahan sleman |
+| 2 | Rumah Tropis Kaliurang | Sedang berjalan | Sleman, DIY | developer rumah jogja |
+| 3 | Ruko Modern Maguwo | Sedang berjalan | Sleman, DIY | ruko modern jogja |
+| 4 | Kavling Terpadu Bantul | Direncanakan | Bantul, DIY | kavling bantul |
+
+Proyek hanya dipublikasikan setelah ada persetujuan tertulis (R21). Tanpa foto & persetujuan, section proyek tidak ditampilkan.
+
+### 7.3 8 artikel (konten pendukung)
 
 | # | Judul | Klaster | Kata kunci | Funnel |
 |---|-------|---------|------------|--------|
@@ -206,7 +224,7 @@ Setiap desain wajib memiliki: 5–8 gambar (eksterior, interior, denah per lanta
 
 Aturan artikel: 900–1.500 kata, minimal 1 tabel/gambar orisinal, 3 internal link (1 ke halaman penawaran), CTA di tengah dan akhir, penulis bernama (E-E-A-T), tanggal update terlihat.
 
-### 7.3 FAQ (10 pertanyaan awal)
+### 7.4 FAQ (10 pertanyaan awal)
 
 Umum (3), Desain (3), Lahan (2), Investasi (2). Contoh: "Apakah bisa konsultasi sebelum membeli desain?", "Apakah harga desain termasuk RAB?", "Bagaimana skema bagi hasil lahan?", "Apakah investasi dijamin untung?" (jawaban jujur: tidak ada jaminan).
 
@@ -214,12 +232,14 @@ Umum (3), Desain (3), Lahan (2), Investasi (2). Contoh: "Apakah bisa konsultasi 
 
 | Minggu | Konten | Pemilik |
 |--------|--------|---------|
-| 1–2 | 6 desain pertama (foto + deskripsi), halaman statis | Marketing + fotografer |
-| 3–4 | 6 desain berikutnya, artikel #4 & #5 | Marketing |
-| 5–6 | Artikel #1 & #2 (klaster lahan), FAQ lahan | Marketing + sales |
-| 7–8 | Artikel #3 & #6 | Marketing |
-| 9–10 | Artikel #7 & #8, FAQ investasi | Marketing + manajemen |
-| 11–12 | Optimasi konten berdasarkan data GSC | Marketing |
+| 1–2 | 6 desain pertama (foto + deskripsi), 2 proyek, halaman statis | Tim internal (no dedicated PIC) + fotografer |
+| 3–4 | 6 desain berikutnya, 2 proyek, artikel #4 & #5 | Tim internal |
+| 5–6 | Artikel #1 & #2 (klaster lahan), FAQ lahan | Tim internal + sales |
+| 7–8 | Artikel #3 & #6 | Tim internal |
+| 9–10 | Artikel #7 & #8, FAQ investasi | Tim internal + manajemen |
+| 11–12 | Optimasi konten berdasarkan data GSC | Tim internal |
+
+Karena belum ada PIC konten khusus (Q9), jadwalkan blok waktu tetap 2×/minggu (mis. Selasa & Kamis, 2 jam). Tanpa jadwal tetap, risiko R1 (konten terlambat) sangat tinggi.
 
 Setiap artikel baru dipublikasikan **setelah** halaman tujuannya siap (jangan mengirim trafik ke halaman kosong).
 
@@ -258,7 +278,7 @@ Hindari: beli backlink, PBN, komentar spam, dan pertukaran link massal.
 ## 12. Guardrail konten
 
 1. **Tidak ada klaim hasil investasi pasti.** Selalu sertakan bagian risiko.
-2. **Estimasi biaya** selalu berlabel "estimasi", dengan tanggal dan asumsi.
+2. **Artikel biaya** memakai label "estimasi" dengan tanggal & asumsi; **halaman desain tidak menampilkan angka biaya** (Q8).
 3. **Tidak menyalin** deskripsi desain dari sumber lain; setiap desain punya penjelasan orisinal.
 4. **Tidak membuat halaman kota** tanpa konten unik.
 5. **Tidak mengubah slug** tanpa 301.
@@ -271,6 +291,8 @@ Hindari: beli backlink, PBN, komentar spam, dan pertukaran link massal.
 - [ ] Semua halaman publik punya `title` + `description` unik.
 - [ ] Canonical self-referencing; filter > 2 parameter `noindex`.
 - [ ] Halaman terima kasih & staging `noindex`.
+- [ ] Halaman auth (`/masuk`, `/daftar`, `/lupa-sandi`, `/reset-sandi`, `/verifikasi-email`) dan `/akun*` `noindex,nofollow`.
+- [ ] Sitemap memuat desain, proyek, artikel, dan halaman statis yang publish.
 - [ ] JSON-LD valid (Rich Results Test) tanpa error.
 - [ ] Gambar punya `alt` + dimensi; hero di-preload.
 - [ ] Redirect 301 untuk slug yang berubah.

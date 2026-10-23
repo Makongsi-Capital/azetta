@@ -21,11 +21,20 @@
 /
 ├─ /desain                          katalog + filter
 │  └─ /desain/[slug]                detail desain
+├─ /proyek                          portofolio proyek
+│  └─ /proyek/[slug]                detail proyek
 ├─ /kerjasama-lahan                 penawaran untuk pemilik lahan
 ├─ /investasi                       penawaran untuk investor
-├─ /proyek                          (opsional MVP+) portofolio proyek
 ├─ /artikel                         daftar artikel
 │  └─ /artikel/[slug]               detail artikel
+├─ /masuk                           login akun                (noindex)
+├─ /daftar                          registrasi akun           (noindex)
+├─ /lupa-sandi                      minta tautan reset        (noindex)
+├─ /reset-sandi                     form kata sandi baru      (noindex)
+├─ /verifikasi-email                konfirmasi verifikasi     (noindex)
+├─ /akun                            ringkasan & daftar pengajuan  (noindex, wajib login)
+│  ├─ /akun/pengajuan/[id]          detail status pengajuan
+│  └─ /akun/profil                  ubah profil & kata sandi
 ├─ /tentang
 ├─ /kontak
 ├─ /faq
@@ -47,32 +56,38 @@
 /desain
 /desain/baru
 /desain/[id]
+/proyek
+/proyek/baru
+/proyek/[id]
 /artikel
 /artikel/[id]
 /konten/faq
 /konten/testimoni
 /pengguna
+/pelanggan
 /pengaturan
 /audit
 ```
 
-> `/pengguna` hanya tampil untuk `super_admin`. Menu lain tampil untuk `admin` dan `super_admin`; `staff` hanya melihat `/dashboard` dan `/leads`.
+> `/pengguna` dan `/pelanggan` hanya tampil untuk `super_admin`; `/pelanggan` bersifat baca saja. Menu lain tampil untuk `admin` dan `super_admin`.
 
 ## 3. Navigasi global
 
 ### 3.1 Header publik
 
 ```text
-┌──────────────────────────────────────────────────────────────────┐
-│ [Logo Azetta]   Desain   Kerja Sama Lahan   Investasi   Artikel  │
-│                                          [Hubungi Kami ▸]        │
-└──────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────┐
+│ [Logo Azetta]  Desain  Proyek  Kerja Sama Lahan  Investasi  Artikel        │
+│                                     [Masuk]  [Hubungi Kami ▸]             │
+└───────────────────────────────────────────────────────────────────────────┘
 ```
 
 - Tinggi 64 px (mobile 56 px), sticky dengan latar semi-transparan setelah scroll.
 - Mobile: logo + tombol menu (drawer dari kanan). Drawer memuat tautan + CTA WhatsApp.
 - Item aktif ditandai garis bawah dan `aria-current="page"`.
 - CTA "Hubungi Kami" mengarah ke `/kontak`; di halaman detail desain diganti "Tanya Desain Ini" (scroll ke form).
+- Bila sesi aktif, "Masuk" berganti avatar dengan menu: **Akun saya**, **Pengajuan saya**, **Keluar**. Nama pengguna tidak ditampilkan di header publik (privasi di ruang bersama).
+- Halaman `/akun` tidak menampilkan header pemasaran penuh; header disederhanakan (logo + tombol keluar).
 
 ### 3.2 Footer
 
@@ -89,7 +104,7 @@ Baris bawah: `© 2026 Azetta. Seluruh hak cipta dilindungi.`
 
 ### 3.3 Navigasi admin
 
-Sidebar kiri 240 px (collapse jadi 64 px), berisi Dashboard, Lead (dengan badge jumlah `NEW`), Desain, Artikel, FAQ, Testimoni, Pengguna*, Pengaturan, Audit. Header atas: pencarian global (lead), nama pengguna, menu keluar.
+Sidebar kiri 240 px (collapse jadi 64 px), berisi Dashboard, Lead (dengan badge jumlah `NEW`), Desain, Proyek, Artikel, FAQ, Testimoni, Pengguna*, Pelanggan*, Pengaturan, Audit. Header atas: pencarian global (lead), nama pengguna, menu keluar.
 
 ## 4. Spesifikasi halaman publik
 
@@ -104,8 +119,8 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 1. **Hero** — headline nilai (mis. "Desain rumah yang siap dibangun, lahan yang diolah bersama, modal yang tumbuh bersama"), subheadline 1 kalimat, dua CTA: "Lihat Katalog Desain" (utama) + "Tawarkan Lahan Anda" (sekunder), gambar render.
 2. **Tiga kartu jalur** — Desain / Kerja Sama Lahan / Investasi, masing-masing dengan ikon Iconify, 1 kalimat, tautan.
 3. **Desain unggulan** — 6 kartu desain (`featured`), tautan "Lihat semua desain".
-4. **Cara kerja** — 3–4 langkah bernomor (konsultasi → pilih desain/skema → kerja sama → konstruksi).
-5. **Angka kredibilitas** — jumlah desain, proyek, lahan dikerjasamakan (dari pengaturan; disembunyikan bila kosong).
+4. **Proyek yang sedang & sudah berjalan** — 3 kartu proyek `ONGOING`/`COMPLETED`, tautan "Lihat semua proyek" (Q4).
+5. **Cara kerja** — 3–4 langkah bernomor (konsultasi → pilih desain/skema → kerja sama → konstruksi).
 6. **Testimoni** — maks 3, karusel sederhana.
 7. **Artikel terbaru** — 3 kartu.
 8. **CTA penutup** — "Siap mulai? Bicara dengan tim kami" + tombol WhatsApp.
@@ -175,7 +190,6 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 │  Carport 1             Gaya Minimalis     │  └───────────────┘  │
 │ Deskripsi (Markdown)                      │                     │
 │ Denah (tab: Lantai 1 / Lantai 2)          │                     │
-│ Estimasi biaya bangun (± disclaimer)      │                     │
 │ ─────────────────────────────────────────  │                     │
 │ FORM "Tanya desain ini" (inline)          │                     │
 │ Nama · WhatsApp · Email · Pesan · ☐ setuju│                     │
@@ -189,9 +203,10 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 
 - Field kosong disembunyikan (mis. tanpa `carports` → baris tidak ditampilkan).
 - `priceFrom` kosong → "Hubungi kami untuk harga".
-- Estimasi biaya selalu disertai: "Estimasi kasar, bukan penawaran resmi. Biaya aktual bergantung lokasi dan spesifikasi."
+- **Estimasi biaya bangun tidak ditampilkan** (Q8). Bila pengunjung bertanya, jawab lewat sales/WhatsApp; tidak ada angka di halaman.
 - Galeri: klik membuka lightbox; panah keyboard berfungsi; `alt` deskriptif.
 - Sticky sidebar di desktop; di mobile, bar aksi menempel di bawah (`sticky bottom-0`) berisi harga + tombol "Tanya Desain".
+- Bila pengunjung sudah login, form menampilkan "Mengirim sebagai {email}" dan lead otomatis tertaut ke akun.
 
 **CTA:** submit form (utama), WhatsApp (sekunder — membuka `wa.me` dengan pesan berisi judul desain).
 
@@ -236,24 +251,53 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 
 **Event:** `offer_view` (`type: invest`), `invest_form_start`, `lead_submit_success`.
 
-### 4.6 Artikel `/artikel` & `/artikel/[slug]`
+### 4.6 Proyek `/proyek` & `/proyek/[slug]`
+
+**Tujuan:** memberi bukti nyata bahwa Azetta mengerjakan proyek, sehingga pemilik lahan dan investor lebih percaya.
+
+**Struktur daftar:**
+
+1. Judul + paragraf pembuka singkat (1–2 kalimat).
+2. Filter ringan: status (Sedang berjalan / Selesai / Direncanakan) dan kota.
+3. Grid kartu 9/halaman: cover 4:3, badge status, judul, lokasi, tahun.
+4. Empty state bila belum ada proyek publish → section tidak ditampilkan di beranda, halaman menampilkan penjelasan singkat.
+
+**Struktur detail:**
+
+1. Breadcrumb + judul + badge status.
+2. Meta: lokasi, tahun mulai/selesai, luas lahan, jumlah unit (bila diisi).
+3. Cover + galeri (grid, lightbox).
+4. Deskripsi Markdown.
+5. CTA: "Tawarkan lahan Anda" dan "Minta proposal investasi" (maks 2).
+
+**Aturan:**
+
+- Tidak menampilkan angka keuangan, harga jual, atau nama klien tanpa persetujuan.
+- Proyek `isPublished = false` → 404.
+- Tanpa peta interaktif di MVP (menghindari bobot & kebutuhan API peta).
+
+**SEO:** `CreativeWork` + `BreadcrumbList`; title "{Judul Proyek} — Proyek Azetta di {Kota}".
+
+**Event:** `project_list_view`, `project_view` (`slug`), `project_cta_click`.
+
+### 4.7 Artikel `/artikel` & `/artikel/[slug]`
 
 - Daftar: kartu (cover, judul, ringkasan, tanggal, estimasi baca), pagination 9/halaman, filter tag sederhana.
 - Detail: judul, meta (tanggal, waktu baca), cover, isi Markdown (heading, list, gambar, tabel, blockquote), CTA di tengah/akhir ("Lihat katalog desain" / "Tanya tim"), artikel terkait 3.
 - `Article` + `BreadcrumbList` JSON-LD.
 - Event: `article_view`, `article_cta_click`.
 
-### 4.7 Tentang `/tentang`
+### 4.8 Tentang `/tentang`
 
 Struktur: cerita singkat, visi, tim (foto + peran, opsional), nilai, proyek yang sudah dikerjakan, CTA kontak. Bertujuan membangun kepercayaan untuk dua aliran bernilai besar (lahan & investasi).
 
-### 4.8 Kontak `/kontak`
+### 4.9 Kontak `/kontak`
 
 - Info kontak (WhatsApp, telepon, email, alamat, jam operasional, peta opsional).
 - Form kontak umum (`type = GENERAL`): nama, WhatsApp, email, kota, pesan, consent.
 - Tautan cepat ke tiga alur.
 
-### 4.9 Terima kasih `/terima-kasih/[type]`
+### 4.10 Terima kasih `/terima-kasih/[type]`
 
 Halaman `noindex`, tidak dapat diakses langsung tanpa referensi valid? (MVP: dapat diakses langsung, isi generik).
 
@@ -265,17 +309,75 @@ Isi:
 4. Tombol WhatsApp "Chat sekarang" (opsional, agar yang tidak sabar bisa langsung).
 5. Tautan kembali ke katalog/beranda.
 
-### 4.10 FAQ `/faq`
+### 4.11 FAQ `/faq`
 
 Akordeon per kategori (Umum, Desain, Lahan, Investasi) + form kontak di bawah. `FAQPage` JSON-LD.
 
-### 4.11 Halaman legal
+### 4.12 Akun saya
+
+**Rute:** `/akun`, `/akun/pengajuan/[id]`, `/akun/profil`
+
+**Tujuan:** memberi ketenangan setelah mengirim pengajuan — pengguna tahu statusnya tanpa harus menghubungi sales.
+
+**Akses:** wajib login + email terverifikasi. Belum login → `/masuk?next=/akun`; belum verifikasi → banner verifikasi dengan tombol kirim ulang.
+
+**Struktur:**
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ [Logo]                                    [Avatar ▾] [Keluar]│
+├──────────────────────────────────────────────────────────────┤
+│ Halo, Budi                                                   │
+│ [ Pengajuan saya ]  [ Profil ]                               │
+│                                                              │
+│ ┌──────────────────────────────────────────────────────────┐ │
+│ │ AZT-LD-2610-K7Q2M            [ Sedang ditinjau ]        │ │
+│ │ Pengajuan lahan · 23 Okt 2026                            │ │
+│ │ "Lokasi sudah sesuai. Survei dijadwalkan minggu depan."  │ │
+│ │                                         [Lihat detail →] │ │
+│ └──────────────────────────────────────────────────────────┘ │
+│ ┌──────────────────────────────────────────────────────────┐ │
+│ │ AZT-DS-2610-P3M8Q            [ Selesai ]                │ │
+│ │ Tanya desain · Rumah Minimalis 2 Lantai 6×12             │ │
+│ │                                         [Lihat detail →] │ │
+│ └──────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Detail pengajuan (`/akun/pengajuan/[id]`):**
+
+1. Header: referensi, tipe, tanggal, badge status ramah pengguna.
+2. Linimasa status: `Diterima → Dihubungi → Ditinjau → Penawaran → Selesai` — hanya tahap yang sudah dilalui yang terisi, dengan tanggal.
+3. Catatan terbaru dari tim (`customerNote`), bila ada.
+4. Ringkasan data yang dikirim (tanpa catatan internal): desain yang ditanyakan / luas & lokasi lahan / rentang modal.
+5. Lampiran milik pengguna (foto lahan) dengan pratinjau.
+6. CTA: "Chat tim kami" (WhatsApp berisi referensi) + "Kembali".
+
+**Profil (`/akun/profil`):**
+
+- Nama, WhatsApp, kota (dapat diubah).
+- Email (tidak dapat diubah; tampil dengan tanda terverifikasi).
+- Ganti kata sandi (kata sandi lama + baru + konfirmasi).
+- Tautan "Ajukan penghapusan akun" → halaman bantuan/kontak dengan penjelasan ≤ 30 hari.
+
+**Aturan tampilan:**
+
+- Status internal tidak pernah ditampilkan apa adanya; gunakan label di [04 §3.6](./04-data-model.md#36-pipeline-status).
+- Lead `SPAM` tidak muncul.
+- Bila pengguna membuka pengajuan milik orang lain → 404.
+- Tidak ada data internal (assignee, estimasi nilai, catatan aktivitas) di halaman ini.
+
+**SEO:** `noindex, nofollow`.
+
+**Event:** `account_view`, `submission_view` (`type`), `account_profile_update`.
+
+### 4.13 Halaman legal
 
 - `/kebijakan-privasi`: data yang dikumpulkan, tujuan, dasar pemrosesan (consent), retensi, hak subjek data, kontak.
 - `/syarat-ketentuan`: penggunaan situs, hak kekayaan intelektual gambar desain, batasan tanggung jawab, hukum yang berlaku.
 - Keduanya wajib direview pihak legal sebelum rilis.
 
-### 4.12 Halaman 404
+### 4.14 Halaman 404
 
 Pesan ramah + pencarian desain + tautan ke tiga alur utama. Status HTTP 404 sungguhan.
 
@@ -295,6 +397,7 @@ Pesan ramah + pencarian desain + tautan ke tiga alur utama. Status HTTP 404 sung
 | Autofill | `autocomplete="name"`, `tel`, `email`, `address-level1/2`, `street-address` |
 | Anti-spam | Honeypot tersembunyi (`tabindex="-1"`, `aria-hidden`), Turnstile invisible, waktu render |
 | Privasi | Tautan ke kebijakan privasi di samping checkbox consent |
+| Login | Bila sesi aktif, nama & email terisi otomatis dan dapat diubah; lead tertaut ke akun |
 
 ### 5.2 Form "Tanya desain ini" (`BUY_DESIGN`)
 
@@ -371,6 +474,31 @@ Bantuan di atas field foto: "Foto membantu kami menilai potensi lahan. Maksimal 
 
 `name`, `phone`, `email`, `city`, `message` (wajib, ≤1000), `consent`.
 
+### 5.6 Form akun
+
+**Daftar (`/daftar`)**
+
+| Field | Tipe | Wajib | Validasi / pesan |
+|-------|------|:-----:|------------------|
+| `name` | text | ✅ | 2–80; "Nama minimal 2 karakter" |
+| `email` | email | ✅ | format email; "Format email tidak valid" |
+| `password` | password | ✅ | min. 8 karakter, ada huruf & angka; indikator kekuatan |
+| `confirmPassword` | password | ✅ | harus sama; "Kata sandi tidak sama" |
+| `consent` | checkbox | ✅ | setuju kebijakan privasi & syarat |
+| Turnstile | invisible | ✅ | — |
+
+Setelah submit: halaman "Cek email Anda" + tombol kirim ulang (maks 3×/jam). Tidak ada auto-login sebelum verifikasi.
+
+**Masuk (`/masuk`)**
+
+`email`, `password`, tautan "Lupa kata sandi?". Pesan gagal selalu sama: "Email atau kata sandi salah" (tidak membocorkan keberadaan akun).
+
+**Lupa sandi (`/lupa-sandi`)** — `email`; respons selalu "Jika email terdaftar, kami telah mengirim tautan reset."
+
+**Reset sandi (`/reset-sandi?token=…`)** — `password` + `confirmPassword`; token tidak valid/kedaluwarsa → pesan + tautan minta ulang.
+
+**Profil (`/akun/profil`)** — `name`, `whatsapp`, `city`; bagian terpisah "Ubah kata sandi" (`currentPassword`, `newPassword`, `confirmPassword`). Email hanya-baca.
+
 ## 6. Wireframe kunci
 
 ### 6.1 Beranda (mobile)
@@ -434,8 +562,6 @@ Bantuan di atas field foto: "Foto membantu kami menilai potensi lahan. Maksimal 
 │ └────────────┴─────────────┘ │
 │ Deskripsi …                  │
 │ Denah  [Lantai 1][Lantai 2]  │
-│ Estimasi biaya Rp450–600 jt  │
-│ (disclaimer)                 │
 │ ── Tanya desain ini ──       │
 │ [Nama]                       │
 │ [WhatsApp]                   │
@@ -541,6 +667,8 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 | `FileDropzone` | kustom + `file-input` | Foto lahan |
 | `Badge` | `badge` | Status, kategori |
 | `DesignCard` | `card` | Katalog, beranda |
+| `ProjectCard` | `card` | Beranda, `/proyek` |
+| `StatusBadge` | `badge` | Status pengajuan (label ramah pengguna) |
 | `Stat` | `stat` | Dashboard |
 | `Table` | `table` | Admin |
 | `Pagination` | `join` | Katalog, admin |
@@ -550,6 +678,8 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 | `Timeline` | `timeline` | Aktivitas lead |
 | `Skeleton` | `skeleton` | Loading |
 | `EmptyState` | kustom | Katalog kosong, daftar kosong |
+| `Avatar` | `avatar` | Header akun, admin |
+| `Alert` | `alert` | Banner verifikasi email, catatan sistem |
 | `Breadcrumbs` | `breadcrumbs` | Publik & admin |
 | `MarkdownEditor` | textarea + preview | CMS |
 | `ConfirmDialog` | `modal` | Hapus/arsipkan |
@@ -566,6 +696,11 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 | Gambar gagal dimuat | Placeholder abu-abu dengan ikon + `alt` tetap ada |
 | Koneksi lambat | Skeleton untuk katalog; tombol submit menampilkan spinner |
 | Sesi admin kedaluwarsa | Redirect ke `/login?next=…` setelah menyimpan tujuan |
+| Sesi customer kedaluwarsa | Redirect ke `/masuk?next=/akun…` |
+| Email belum diverifikasi | Banner di `/akun` + tombol kirim ulang; data pengajuan tidak ditampilkan |
+| Pengguna membuka pengajuan orang lain | 404 (bukan 403) |
+| Akun dinonaktifkan | Sesi dicabut; pesan "akun tidak aktif, hubungi kami" |
+| Reset kata sandi dengan token kedaluwarsa | Pesan + tautan minta ulang |
 | Submit ganda | Tombol nonaktif + `Idempotency-Key` |
 | Nama dengan karakter non-latin | Diterima; panjang dihitung per karakter |
 | Nomor telepon dengan spasi/tanda hubung | Dinormalisasi sebelum validasi |
@@ -582,6 +717,15 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 | `design_card_click` | Kartu diklik | `designId`, `position` |
 | `design_view` | Detail desain dimuat | `designId`, `source` |
 | `offer_view` | Halaman lahan/investasi dimuat | `type` |
+| `project_list_view` | Daftar proyek dimuat | `filterCount` |
+| `project_view` | Detail proyek dibuka | `slug` |
+| `project_cta_click` | CTA proyek diklik | `slug`, `target` |
+| `register_submit` | Form daftar dikirim | `source` |
+| `register_success` | Akun berhasil dibuat | — |
+| `email_verified` | Verifikasi email berhasil | — |
+| `login_success` | Login berhasil | `role` |
+| `account_view` | `/akun` dibuka | `submissionCount` |
+| `submission_view` | Detail pengajuan dibuka | `type`, `statusLabel` |
 | `lead_form_start` | Field pertama difokuskan | `type`, `designId` |
 | `lead_form_step` | Langkah form lahan selesai | `step` |
 | `lead_submit_attempt` | Tombol submit ditekan | `type` |

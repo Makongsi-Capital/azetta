@@ -100,34 +100,40 @@ Aturan:
 
 ### 3.1 Endpoint Better Auth (`/api/auth/*`)
 
-| Metode | Path | Fungsi |
-|--------|------|--------|
-| POST | `/sign-in/email` | Login admin (`email`, `password`) |
-| POST | `/sign-out` | Akhiri sesi |
-| GET | `/get-session` | Ambil sesi aktif |
-| POST | `/change-password` | Ganti kata sandi sendiri |
-| POST | `/forget-password` | Kirim tautan reset |
-| POST | `/reset-password` | Reset dengan token |
-| POST | `/admin/create-user` | Buat akun staf (super admin) |
-| POST | `/admin/set-role` | Ubah peran (super admin) |
-| POST | `/admin/ban-user` / `/unban-user` | Nonaktifkan/aktifkan |
+| Metode | Path | Fungsi | Akses |
+|--------|------|--------|-------|
+| POST | `/sign-up/email` | Registrasi publik | Anonim + Turnstile |
+| POST | `/sign-in/email` | Login | Anonim (rate limit) |
+| POST | `/sign-out` | Akhiri sesi | Sesi aktif |
+| GET | `/get-session` | Ambil sesi aktif | Sesi aktif |
+| POST | `/send-verification-email` | Kirim ulang verifikasi | Anonim (maks 3×/jam) |
+| GET | `/verify-email` | Verifikasi lewat token | Anonim |
+| POST | `/forget-password` | Kirim tautan reset | Anonim (rate limit) |
+| POST | `/reset-password` | Reset dengan token | Anonim |
+| POST | `/change-password` | Ganti kata sandi sendiri | Sesi aktif |
+| POST | `/admin/create-user` | Buat akun internal | `super_admin` |
+| POST | `/admin/set-role` | Ubah peran | `super_admin` |
+| POST | `/admin/ban-user` / `/unban-user` | Nonaktifkan/aktifkan | `super_admin` |
 
-> Daftar akhir mengikuti dokumentasi Better Auth versi yang dipakai; endpoint di atas adalah yang **dipakai** aplikasi. Registrasi publik dinonaktifkan (`disableSignUp: true` pada level konfigurasi), sehingga akun hanya dibuat oleh super admin.
+> Registrasi publik **aktif** (`disableSignUp: false`) dan selalu menghasilkan `role = "customer"`; peran tidak dapat dikirim dari klien. Akun internal hanya dibuat `super_admin`. Nama endpoint mengikuti dokumentasi Better Auth versi yang dipakai; tabel ini adalah yang **digunakan** aplikasi.
 
 ### 3.2 Matriks otorisasi
 
-| Area | Anonim | `staff` | `admin` | `super_admin` |
-|------|:------:|:-------:|:-------:|:-------------:|
-| Baca katalog/artikel | ✅ | ✅ | ✅ | ✅ |
+| Area | Anonim | `customer` | `admin` | `super_admin` |
+|------|:------:|:----------:|:-------:|:-------------:|
+| Baca katalog/artikel/proyek | ✅ | ✅ | ✅ | ✅ |
 | Kirim lead | ✅ | ✅ | ✅ | ✅ |
-| Baca lead | ❌ | ✅ | ✅ | ✅ |
-| Ubah status/catat aktivitas | ❌ | ✅ | ✅ | ✅ |
-| Lihat lampiran | ❌ | ✅ | ✅ | ✅ |
-| Kelola desain/artikel | ❌ | ❌ | ✅ | ✅ |
+| Melihat pengajuan sendiri (`/me/leads`) | ❌ | ✅ (setelah verifikasi email) | — | — |
+| Baca semua lead | ❌ | ❌ | ✅ | ✅ |
+| Ubah status/catat aktivitas/catatan pemohon | ❌ | ❌ | ✅ | ✅ |
+| Lihat lampiran lead | ❌ | ❌ | ✅ | ✅ |
+| Kelola desain/proyek/artikel | ❌ | ❌ | ✅ | ✅ |
 | Ekspor data pribadi | ❌ | ❌ | ✅ | ✅ |
 | Kelola pengguna & peran | ❌ | ❌ | ❌ | ✅ |
-| Ubah pengaturan situs | ❌ | ❌ | ✅ | ✅ |
+| Ubah pengaturan situs & unggah aset | ❌ | ❌ | ✅ | ✅ |
 | Lihat audit log | ❌ | ❌ | ✅ | ✅ |
+
+Catatan: kolom `customer` **tidak** memiliki akses ke `/api/v1/admin/*`. Satu cookie sesi dipakai bersama web & admin, sehingga pembatasan wajib ditegakkan di server (lihat [03 §6.3](./03-arsitektur-teknis.md#63-guard)).
 
 ## 4. Endpoint publik
 
@@ -139,15 +145,23 @@ Aturan:
 | GET | `/public/designs/filters` | Nilai filter tersedia + jumlah | 300 s |
 | GET | `/public/designs/:slug` | Detail desain | 300 s |
 | GET | `/public/designs/:slug/related` | Desain terkait (maks 4) | 300 s |
+| GET | `/public/projects` | Daftar proyek publish | 60 s |
+| GET | `/public/projects/:slug` | Detail proyek | 300 s |
 | GET | `/public/articles` | Daftar artikel publish | 60 s |
 | GET | `/public/articles/:slug` | Detail artikel | 300 s |
 | GET | `/public/faqs` | FAQ aktif | 600 s |
 | GET | `/public/testimonials` | Testimoni publish | 600 s |
-| GET | `/public/site-config` | Kontak, hero, template WA, analytics | 300 s |
+| GET | `/public/site-config` | Kontak, brand, hero, template WA, analytics, dokumen legal | 300 s |
 | GET | `/public/regions` | Provinsi & kabupaten/kota | 1 hari (etag) |
 | POST | `/public/uploads/presign` | URL unggah lampiran lead | — |
 | POST | `/public/leads` | Kirim lead | — |
 | POST | `/public/events` | Kirim event funnel (batch) | — |
+| GET | `/me` | Profil pengguna yang login | no-store |
+| PATCH | `/me` | Ubah profil sendiri | no-store |
+| GET | `/me/leads` | Daftar pengajuan milik sendiri | no-store |
+| GET | `/me/leads/:id` | Detail pengajuan milik sendiri | no-store |
+
+> Empat endpoint terakhir berada di prefiks `/api/v1` dan memerlukan sesi `customer` yang email-nya terverifikasi.
 
 ### 4.2 `GET /public/designs`
 
@@ -176,8 +190,6 @@ GET /api/v1/public/designs?category=RESIDENTIAL&floors=2&bedrooms=3&sort=-publis
       "buildingAreaM2": 96,
       "landAreaMinM2": 72,
       "priceFrom": "4500000",
-      "estimatedBuildCostMin": "450000000",
-      "estimatedBuildCostMax": "600000000",
       "featured": true,
       "cover": {
         "url": "https://media.azetta.id/designs/clx1/cover.webp",
@@ -213,8 +225,6 @@ GET /api/v1/public/designs?category=RESIDENTIAL&floors=2&bedrooms=3&sort=-publis
     "buildingAreaM2": 96,
     "landAreaMinM2": 72,
     "priceFrom": "4500000",
-    "estimatedBuildCostMin": "450000000",
-    "estimatedBuildCostMax": "600000000",
     "media": [
       { "id": "m1", "kind": "IMAGE", "url": "https://…", "alt": "…", "width": 1600, "height": 1067, "isCover": true },
       { "id": "m2", "kind": "FLOOR_PLAN", "url": "https://…", "alt": "Denah lantai 1", "width": 1200, "height": 1600, "isCover": false }
@@ -225,6 +235,8 @@ GET /api/v1/public/designs?category=RESIDENTIAL&floors=2&bedrooms=3&sort=-publis
   }
 }
 ```
+
+> **Tidak dikirim ke publik:** `estimatedBuildCostMin`, `estimatedBuildCostMax`, `createdById`, dan catatan internal. Estimasi biaya hanya tersedia di endpoint admin (Q8).
 
 Respons `404 NOT_FOUND` untuk desain `DRAFT`/`ARCHIVED`/`deletedAt != null` — tanpa membedakan alasannya (menghindari kebocoran informasi).
 
@@ -336,6 +348,10 @@ Satu endpoint untuk tiga tipe. Skema bersifat diskriminatif berdasarkan `type`.
 | Turnstile gagal | `400 INVALID_CAPTCHA` |
 | Dedup 60 detik | `200` + referensi yang sudah ada |
 | Rate limit | `429 RATE_LIMITED` + `Retry-After` |
+| Pengunjung sedang login | `userId` diambil dari sesi; field `userId` di body **diabaikan** |
+| Belum verifikasi email | Lead tetap dibuat (tanpa akun tertaut) dan pengajuan tertaut setelah email diverifikasi |
+
+Catatan: lead dari pengunjung yang login **tetap** dapat dikirim meski email belum terverifikasi — verifikasi hanya syarat untuk *melihat* pengajuan, bukan untuk mengirim.
 
 ### 4.5 `POST /public/uploads/presign`
 
@@ -374,7 +390,91 @@ Dipakai untuk foto lahan sebelum submit lead.
 
 Batasan: maks 5 file/permintaan, ≤5 MB/file, MIME `image/jpeg|png|webp`, prefix `leads/tmp/`. Objek `tmp` yang tidak dirujuk lead dihapus setelah 24 jam. Saat lead dibuat, API memindahkan objek ke `leads/{leadId}/…` (copy + delete) dan mencatat metadata.
 
-### 4.6 `POST /public/events`
+### 4.6 `GET /public/projects` & `GET /public/projects/:slug`
+
+**Query daftar:** `status` (`PLANNED`|`ONGOING`|`COMPLETED`), `city`, `page`, `perPage` (default 9).
+
+```json
+{
+  "data": [
+    {
+      "id": "prj1",
+      "slug": "cluster-ngaglik-sleman",
+      "title": "Cluster Ngaglik",
+      "summary": "12 unit rumah dua lantai di Sleman.",
+      "location": "Ngaglik, Sleman",
+      "city": "Sleman",
+      "province": "DI Yogyakarta",
+      "status": "COMPLETED",
+      "yearStarted": 2023,
+      "yearCompleted": 2025,
+      "unitCount": 12,
+      "coverImageUrl": "https://media.azetta.id/projects/prj1/cover.webp"
+    }
+  ],
+  "meta": { "page": 1, "perPage": 9, "total": 3, "totalPages": 1 }
+}
+```
+
+Detail menambahkan `description`, `galleryUrls`, `landAreaM2`, dan `seo`. Proyek dengan `isPublished = false` → `404`.
+
+### 4.7 Akun saya
+
+Memerlukan `requireUser` (sesi + `emailVerified = true`). **Semua** endpoint memfilter `userId = user.id`; tidak ada parameter `userId` dari klien.
+
+**`GET /me`**
+
+```json
+{
+  "data": {
+    "id": "usr_1",
+    "name": "Budi Santoso",
+    "email": "budi@example.com",
+    "emailVerified": true,
+    "phone": "081234567890",
+    "city": "Bandung",
+    "createdAt": "2026-10-20T03:00:00.000Z"
+  }
+}
+```
+
+**`PATCH /me`** — hanya `name`, `phone`, `city`, `whatsapp`. Perubahan `email`/`role` diabaikan (atau `400 VALIDATION_ERROR` bila dikirim).
+
+**`GET /me/leads`**
+
+```json
+{
+  "data": [
+    {
+      "id": "clx_lead_1",
+      "reference": "AZT-LD-2610-K7Q2M",
+      "type": "LAND_OFFER",
+      "statusLabel": "Sedang ditinjau",
+      "statusTone": "info",
+      "createdAt": "2026-10-23T04:15:00.000Z",
+      "updatedAt": "2026-10-24T02:10:00.000Z",
+      "customerNote": "Lokasi sudah sesuai. Survei dijadwalkan minggu depan.",
+      "customerNoteUpdatedAt": "2026-10-24T02:10:00.000Z",
+      "designSlug": null
+    }
+  ],
+  "meta": { "page": 1, "perPage": 20, "total": 1, "totalPages": 1 }
+}
+```
+
+**`GET /me/leads/:id`** menambahkan ringkasan data yang dikirim pengguna (tanpa catatan internal), riwayat perubahan status yang ramah pengguna, dan lampiran miliknya (URL bertanda tangan 15 menit).
+
+Aturan:
+
+| Aturan | Detail |
+|--------|--------|
+| Kepemilikan | `lead.userId !== user.id` → `404 NOT_FOUND` (bukan 403, agar tidak membocorkan keberadaan data) |
+| Status `SPAM` | Tidak pernah dikembalikan |
+| Catatan internal | `LeadActivity` tidak dikirim; hanya `customerNote` |
+| Verifikasi email | Belum verifikasi → `403 EMAIL_NOT_VERIFIED` |
+| Rate limit | 120/menit per pengguna |
+
+### 4.8 `POST /public/events`
 
 Batch maks 20 event; dipakai untuk funnel internal. Bila analitik pihak ketiga aktif, event tetap dikirim agar data tidak hilang karena ad-blocker.
 
@@ -400,7 +500,7 @@ Semua endpoint di bawah memerlukan sesi + peran sesuai [§3.2](#32-matriks-otori
 |--------|------|--------|
 | GET | `/admin/leads` | Daftar + filter + pencarian + urutan |
 | GET | `/admin/leads/:id` | Detail lengkap (termasuk detail tipe, lampiran, aktivitas) |
-| PATCH | `/admin/leads/:id` | Ubah `priority`, `assignedToId`, `estimatedValue`, `nextFollowUpAt`, `city` |
+| PATCH | `/admin/leads/:id` | Ubah `priority`, `assignedToId`, `estimatedValue`, `nextFollowUpAt`, `city`, `customerNote` |
 | POST | `/admin/leads/:id/status` | Transisi status |
 | POST | `/admin/leads/:id/activities` | Catat aktivitas |
 | DELETE | `/admin/leads/:id/activities/:activityId` | Hapus catatan (khusus `super_admin`, tercatat di audit) |
@@ -466,14 +566,31 @@ Aturan: `body` wajib untuk `NOTE`/`CALL`/`WHATSAPP`/`EMAIL`/`MEETING`; maks 2.00
 | PATCH/DELETE | `/admin/testimonials/:id` | Ubah / hapus |
 | GET | `/admin/settings` | Semua setting |
 | PATCH | `/admin/settings` | Ubah sebagian (`{ key: value }`) |
+| POST | `/admin/settings/assets/presign` | URL unggah logo/favicon/dokumen legal |
 
-### 5.4 Pengguna, statistik, audit
+**`POST /admin/settings/assets/presign`** menerima `{ purpose, fileName, mimeType, sizeBytes }` dengan `purpose` ∈ `BRAND_LOGO` | `BRAND_FAVICON` | `LEGAL_DOCUMENT`. MIME: gambar untuk brand, `application/pdf` untuk dokumen legal. Setelah unggah, URL disimpan melalui `PATCH /admin/settings` pada kunci `brand` atau `legal`.
+
+### 5.4 Proyek
+
+| Metode | Path | Fungsi |
+|--------|------|--------|
+| GET | `/admin/projects` | Daftar semua status |
+| POST | `/admin/projects` | Buat draft |
+| GET/PATCH/DELETE | `/admin/projects/:id` | Detail / ubah / arsipkan |
+| POST | `/admin/projects/:id/publish` | Publish (wajib `coverImageUrl`) |
+| POST | `/admin/projects/:id/unpublish` | Tarik dari publik |
+| POST | `/admin/projects/:id/media/presign` | Unggah cover/galeri |
+
+Aturan: `galleryUrls` maks 10; `sortOrder` menentukan urutan tampil; proyek `deletedAt` tidak pernah tampil.
+
+### 5.5 Pengguna, statistik, audit
 
 | Metode | Path | Fungsi | Peran |
 |--------|------|--------|-------|
-| GET | `/admin/users` | Daftar pengguna internal | admin |
-| POST | `/admin/users` | Buat pengguna staf | super_admin |
-| PATCH | `/admin/users/:id/role` | Ubah peran | super_admin |
+| GET | `/admin/users` | Daftar pengguna **internal** (`role` ≠ customer) | admin |
+| GET | `/admin/customers` | Daftar akun customer (baca saja) | super_admin |
+| POST | `/admin/users` | Buat pengguna internal | super_admin |
+| PATCH | `/admin/users/:id/role` | Ubah peran (`admin`/`super_admin`) | super_admin |
 | POST | `/admin/users/:id/disable` | Nonaktifkan | super_admin |
 | GET | `/admin/stats/overview` | Kartu ringkasan | admin |
 | GET | `/admin/stats/leads-timeseries` | Tren harian 30/90 hari | admin |
@@ -514,7 +631,11 @@ Aturan: `body` wajib untuk `NOTE`/`CALL`/`WHATSAPP`/`EMAIL`/`MEETING`; maks 2.00
 | `POST /public/uploads/presign` | 20/jam | IP |
 | `POST /public/events` | 120/menit | IP |
 | `GET /public/*` | 300/menit | IP |
+| `POST /auth/sign-up/*` | 3/jam | IP |
 | `POST /auth/sign-in/*` | 5/menit | IP + email |
+| `POST /auth/forget-password` | 3/jam | IP + email |
+| `POST /auth/send-verification-email` | 3/jam | IP + email |
+| `/me/*` | 120/menit | `userId` |
 | `/admin/*` | 600/menit | `userId` |
 
 Implementasi MVP: `@elysiajs/rate-limit` dengan penyimpanan in-memory per instance. **Bila API dijalankan lebih dari satu replika**, pindahkan penyimpanan ke Redis agar batas tetap akurat (lihat [11 §9](./11-deployment-operations.md#9-rencana-skalabilitas)).
@@ -526,7 +647,8 @@ Implementasi MVP: `@elysiajs/rate-limit` dengan penyimpanan in-memory per instan
 | `VALIDATION_ERROR` | Tampilkan pesan per field; fokus ke field pertama yang salah |
 | `INVALID_CAPTCHA` | Tampilkan ulang Turnstile + pesan "verifikasi gagal, coba lagi" |
 | `RATE_LIMITED` | Pesan "terlalu banyak percobaan", tampilkan sisa waktu dari `Retry-After` |
-| `DUPLICATE_RESOURCE` | Pada slug desain/artikel: sarankan slug alternatif |
+| `DUPLICATE_RESOURCE` | Pada slug desain/artikel: sarankan slug alternatif; pada email: arahkan ke login |
+| `EMAIL_NOT_VERIFIED` | Tampilkan banner "verifikasi email" + tombol kirim ulang |
 | `NOT_FOUND` | Halaman 404 kustom |
 | `INTERNAL_ERROR` | Pesan umum + `requestId` untuk dilaporkan |
 
@@ -539,7 +661,8 @@ Setelah lead tersimpan (bukan `SPAM`), API mengirim:
 | Kanal | Penerima | Isi | Kegagalan |
 |-------|----------|-----|-----------|
 | Email | `SALES_NOTIFY_EMAIL` | Ringkasan lead + tautan admin + `requestId` | Retry 3× (1 mnt, 5 mnt, 15 mnt), lalu catat `notify_failed` |
-| WhatsApp gateway (opsional) | Nomor sales | Ringkasan 1 baris + tautan | Sama |
+
+Email juga dipakai untuk: verifikasi akun, reset kata sandi, dan (opsional) pemberitahuan ke pemohon saat `customerNote` diperbarui. Tidak ada WhatsApp gateway di MVP (Q7); tombol WhatsApp tetap tersedia sebagai tautan `wa.me` yang dibuka pengguna.
 
 Kegagalan notifikasi **tidak** menggagalkan respons ke pengunjung. Status pengiriman dicatat di `LeadActivity` bertipe `SYSTEM` agar terlihat di detail lead.
 

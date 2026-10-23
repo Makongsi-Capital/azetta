@@ -74,8 +74,9 @@ azetta/
 │  │  │  │  ├─ rate-limit.ts
 │  │  │  │  └─ error-handler.ts
 │  │  │  ├─ modules/
-│  │  │  │  ├─ public/         # designs, articles, site, leads
-│  │  │  │  ├─ admin/          # leads, designs, articles, users, stats
+│  │  │  │  ├─ public/         # designs, projects, articles, site, leads
+│  │  │  │  ├─ account/        # profil, pengajuan milik user
+│  │  │  │  ├─ admin/          # leads, designs, projects, articles, users, stats, settings
 │  │  │  │  └─ uploads/
 │  │  │  └─ jobs/              # cron: retensi data, pembersihan spam
 │  │  ├─ test/
@@ -93,8 +94,16 @@ azetta/
 │  │  │  │  ├─ desain/[slug]/+page.svelte
 │  │  │  │  ├─ kerjasama-lahan/+page.svelte
 │  │  │  │  ├─ investasi/+page.svelte
+│  │  │  │  ├─ proyek/+page.svelte
+│  │  │  │  ├─ proyek/[slug]/+page.svelte
 │  │  │  │  ├─ artikel/+page.svelte
 │  │  │  │  ├─ artikel/[slug]/+page.svelte
+│  │  │  │  ├─ masuk/, daftar/, lupa-sandi/, reset-sandi/, verifikasi-email/
+│  │  │  │  ├─ akun/                     # layout ber-guard sesi
+│  │  │  │  │  ├─ +layout.server.ts      # redirect bila belum login
+│  │  │  │  │  ├─ +page.svelte           # ringkasan & daftar pengajuan
+│  │  │  │  │  ├─ pengajuan/[id]/+page.svelte
+│  │  │  │  │  └─ profil/+page.svelte
 │  │  │  │  ├─ tentang/, kontak/, faq/
 │  │  │  │  ├─ terima-kasih/[type]/+page.svelte
 │  │  │  │  ├─ kebijakan-privasi/, syarat-ketentuan/
@@ -114,6 +123,7 @@ azetta/
 │     │     ├─ (app)/dashboard/
 │     │     ├─ (app)/leads/
 │     │     ├─ (app)/desain/
+│     │     ├─ (app)/proyek/
 │     │     ├─ (app)/artikel/
 │     │     ├─ (app)/pengguna/
 │     │     └─ (app)/pengaturan/
@@ -237,15 +247,21 @@ Semua mutasi melewati API. SvelteKit **tidak** menulis ke DB.
 
 | Aspek | Keputusan |
 |-------|-----------|
-| Metode | Email + password (utama), Google OAuth (opsional, fase 2) |
+| Metode | Email + password untuk semua pengguna; Google OAuth ditunda ke fase 2 |
+| Registrasi | Terbuka untuk publik (`/daftar`), selalu menghasilkan peran `customer`; Turnstile + rate limit |
+| Verifikasi email | **Wajib** sebelum akun dapat melihat pengajuan; tautan berlaku 24 jam |
+| Reset kata sandi | Via email, token sekali pakai berlaku 1 jam |
 | Base path | `/api/auth` |
 | Tabel | `user`, `session`, `account`, `verification` (skema di [04](./04-data-model.md)) |
 | Adapter | `@better-auth/prisma-adapter` |
 | Plugin | `admin` (role, ban, impersonate) |
 | Cookie | `httpOnly`, `secure` (produksi), `sameSite=lax`, domain `.azetta.id` (produksi) |
-| Masa sesi | 7 hari, perpanjangan otomatis saat aktif |
-| Peran | `customer` (default), `investor`, `landowner`, `staff`, `admin`, `super_admin` |
+| Masa sesi | Admin 7 hari; customer 30 hari; perpanjangan otomatis saat aktif |
+| Peran | `customer` (default), `admin`, `super_admin` |
 | Peran admin | `admin`, `super_admin` (dikonfigurasi di `adminRoles`) |
+| Pembuatan akun internal | Hanya `super_admin`; tidak ada endpoint publik yang dapat memberi peran internal |
+
+> Peran `investor`/`landowner` tidak dipakai: identitas kepentingan pengguna ditentukan dari **tipe pengajuan**, bukan dari peran akun. Ini menghindari pengguna yang tertarik pada dua aliran sekaligus harus punya dua akun.
 
 ### 6.2 Alur sesi lintas aplikasi
 
@@ -295,14 +311,24 @@ export const requireAdmin = new Elysia({ name: 'require-admin' })
       set.status = 403; throw new ApiError('FORBIDDEN');
     }
   });
+
+export const requireUser = new Elysia({ name: 'require-user' })
+  .use(authGuard)
+  .onBeforeHandle(({ user, set }) => {
+    if (!user) { set.status = 401; throw new ApiError('AUTH_REQUIRED'); }
+    if (!user.emailVerified) { set.status = 403; throw new ApiError('EMAIL_NOT_VERIFIED'); }
+  });
 ```
 
 Aturan tambahan:
 
 - Guard diterapkan pada **setiap** route admin (defense in depth), bukan hanya pada grup.
 - Endpoint yang mengubah peran pengguna hanya untuk `super_admin`.
-- Percobaan login dibatasi 5/menit per IP + email.
+- Percobaan login dibatasi 5/menit per IP + email; registrasi 3/jam per IP.
 - Tidak ada endpoint publik yang mengembalikan daftar pengguna atau data pribadi lead.
+- Route `/api/v1/me/*` memakai `requireUser` **dan** selalu memfilter `userId = user.id`; tidak ada endpoint `GET /leads/:id` untuk customer.
+- Satu cookie sesi dipakai bersama web & admin (domain `.azetta.id`). Pemisahan wewenang dilakukan lewat peran di server, bukan lewat domain. Akun `customer` yang cookie-nya terbaca tidak dapat memanggil endpoint admin (403) — diuji di [09](./09-qa-test-plan.md#5-matriks-uji-fungsional).
+- Halaman `/akun` di web dijaga di `+layout.server.ts` (redirect ke `/masuk?next=…`) **dan** datanya hanya diambil dari `/api/v1/me/*`.
 
 ## 7. Rendering & caching
 
@@ -311,10 +337,13 @@ Aturan tambahan:
 | Beranda | SSR | CDN 60 s, purge saat konten berubah |
 | Katalog (`/desain`) | SSR, filter via query | CDN 60 s (`s-maxage=60, stale-while-revalidate=300`) |
 | Detail desain | SSR | CDN 300 s, purge per URL saat publish |
+| Proyek (`/proyek`, detail) | SSR | CDN 300 s, purge per URL saat publish |
 | Artikel | SSR | CDN 300 s, purge per URL |
 | Tentang/Kontak/FAQ | SSR | CDN 600 s |
 | Kebijakan/Syarat | Prerender saat build | immutable sampai deploy |
 | Terima kasih | SSR, `noindex` | no-store |
+| Masuk/Daftar/Lupa sandi | SSR, `noindex` | no-store |
+| Akun (`/akun/*`) | SSR guard + data per pengguna, `noindex` | no-store |
 | Admin | SSR guard + CSR tabel | no-store |
 
 Invalidasi: saat admin mem-publish desain/artikel, API memanggil endpoint purge Cloudflare (`POST /purge_cache` dengan `files` atau `tags`) melalui job. Bila purge gagal, TTL pendek tetap menjamin konten baru tampil ≤ 5 menit. Detail: [11 §6](./11-deployment-operations.md#6-cache--invalidasi).
@@ -419,7 +448,8 @@ Aturan:
 | 400 | `INVALID_TRANSITION` | Transisi status lead ilegal |
 | 401 | `AUTH_REQUIRED` | Belum login |
 | 403 | `FORBIDDEN` | Peran tidak cukup |
-| 404 | `NOT_FOUND` | Entitas tidak ada / tidak publish |
+| 403 | `EMAIL_NOT_VERIFIED` | Akun belum memverifikasi email |
+| 404 | `NOT_FOUND` | Entitas tidak ada / tidak publish / bukan milik pengguna |
 | 409 | `DUPLICATE_RESOURCE` | Slug atau email sudah dipakai |
 | 413 | `PAYLOAD_TOO_LARGE` | Lampiran melebihi batas |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | MIME tidak diizinkan |
@@ -465,3 +495,5 @@ Semua variabel divalidasi saat boot (aplikasi menolak start bila ada yang hilang
 - Tidak ada WebSocket/realtime; dashboard memakai polling/refresh manual.
 - Tidak ada multi-tenant; satu organisasi (Azetta).
 - Tidak ada API publik berbayar; `/api/v1` hanya untuk aplikasi internal.
+- Akun publik bersifat **baca-saja terhadap pengajuannya sendiri**; tidak ada chat, notifikasi realtime, atau unggah dokumen lanjutan di MVP.
+- Tidak ada antrian email persisten; email verifikasi/reset dikirim langsung dengan retry terbatas dan kegagalan dicatat.

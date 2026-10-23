@@ -103,7 +103,7 @@ Aturan:
 | `SENTRY_DSN` | ⚠️ | — | Disarankan |
 | `PUBLIC_API_BASE_URL` | ✅ | `https://api.azetta.id` | Dipakai web/admin |
 | `CLOUDFLARE_ZONE_ID` / `CLOUDFLARE_PURGE_TOKEN` | ⚠️ | — | Purge cache |
-| `WHATSAPP_GATEWAY_URL` / `_TOKEN` | ❌ | — | Opsional |
+| `RESEND_WEBHOOK_SECRET` | ❌ | — | Opsional: pantau bounce/complaint email verifikasi |
 | `ADMIN_BOOTSTRAP_EMAIL` / `_PASSWORD` | ❌ | — | Hanya untuk inisialisasi awal; hapus setelah dipakai |
 
 Semua divalidasi saat boot (`apps/api/src/env.ts`); aplikasi menolak start bila ada yang hilang. Variabel `PUBLIC_*` untuk SvelteKit diekspos ke klien — **jangan** pernah menaruh rahasia di sana.
@@ -169,6 +169,8 @@ Jangan memakai purge "seluruh cache" kecuali darurat — biayanya mahal dan memi
 | Backup harian | Job monitor | Backup tidak ada > 26 jam |
 | Lead tidak tersimpan | Log khusus | 1 pun terjadi → alert segera |
 | Email notifikasi gagal | Log | > 3 kegagalan/jam |
+| Email verifikasi/reset gagal | Log + webhook provider | > 5 kegagalan/jam |
+| Registrasi abnormal | Log | > 20 registrasi/jam (indikasi bot) |
 
 Kanal alert: WhatsApp/Slack grup teknis + email. Setiap alert harus punya pemilik dan tindakan; alert yang tidak actionable dihapus.
 
@@ -289,7 +291,8 @@ Alur: deteksi → tetapkan tingkat → mitigasi (rollback/restore) → perbaiki 
 | Mingguan | Tinjau error Sentry, log 5xx, ukuran disk/DB | Developer |
 | Mingguan | Perbarui dependensi patch (`bun update --latest` hanya untuk patch) | Developer |
 | Bulanan | Uji restore, tinjau akses admin, tinjau rate limit | DevOps |
-| Bulanan | Perbarui konten & periksa link rusak | Marketing |
+| Bulanan | Proses permintaan hapus akun/data (target ≤ 30 hari) | Manajemen |
+| Bulanan | Perbarui konten & periksa link rusak | Tim internal |
 | Kuartalan | Audit keamanan ringan, tinjau biaya infra, uji rollback | Tech lead |
 | Tahunan | Rotasi kredensial, tinjau kebijakan privasi | Manajemen + tech lead |
 

@@ -60,7 +60,7 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 | TC-PUB-03 | Pencarian "minimalis" | Hasil relevan; pencarian kosong mengembalikan semua |
 | TC-PUB-04 | Filter tanpa hasil | Empty state + tombol reset; status 200 (bukan error) |
 | TC-PUB-05 | Halaman 2 pagination | Data berbeda dari halaman 1; tidak ada duplikat |
-| TC-PUB-06 | Buka detail desain `PUBLISHED` | Galeri, spesifikasi, denah, estimasi biaya tampil |
+| TC-PUB-06 | Buka detail desain `PUBLISHED` | Galeri, spesifikasi, denah, harga "mulai dari" tampil; **tidak ada** angka estimasi biaya bangun |
 | TC-PUB-07 | Buka slug `DRAFT` | 404 kustom; tidak membocorkan data |
 | TC-PUB-08 | Field opsional kosong (mis. carport) | Baris tidak ditampilkan; tidak ada "null"/"—" berlebihan |
 | TC-PUB-09 | Klik galeri | Lightbox terbuka; panah & Esc berfungsi; fokus kembali ke thumbnail |
@@ -99,7 +99,7 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 |----|----------|---------|
 | TC-ADM-01 | Akses `/admin/leads` tanpa login | Redirect ke `/login?next=/leads`; setelah login kembali ke tujuan |
 | TC-ADM-02 | Login salah 6× | Percobaan ke-6 ditolak 429; pesan jelas |
-| TC-ADM-03 | Login sebagai `staff` | Hanya dashboard & lead; menu lain tidak tampil **dan** API menolak |
+| TC-ADM-03 | Login sebagai `customer` lalu akses `/admin/leads` | 403; menu admin tidak tampil; API menolak |
 | TC-ADM-04 | Filter status `NEW` + tipe `LAND_OFFER` | Hasil benar; filter tersimpan di URL |
 | TC-ADM-05 | Cari nomor telepon sebagian | Menemukan lead terkait |
 | TC-ADM-06 | Ubah status `NEW` → `WON` | Ditolak (transisi ilegal) dengan pesan |
@@ -111,6 +111,41 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 | TC-ADM-12 | Nama berisi `=cmd()` di CSV | Diescape agar tidak menjadi formula (CSV injection) |
 | TC-ADM-13 | Dua admin membuka lead sama | Perubahan terakhir menang; tidak ada data hilang tanpa peringatan |
 | TC-ADM-14 | Dashboard setelah lead baru | Angka bertambah konsisten dengan daftar |
+| TC-ADM-15 | Tulis `customerNote` pada lead | Tersimpan; muncul di `/akun` pemilik; tidak memuat data internal |
+| TC-ADM-16 | Daftar pelanggan (`/pelanggan`) | Hanya baca; tidak menampilkan kata sandi/token |
+
+### 5.3a Akun publik
+
+| ID | Skenario | Harapan |
+|----|----------|---------|
+| TC-ACC-01 | Registrasi email baru | Akun dibuat `role=customer`; email verifikasi terkirim; belum bisa melihat pengajuan |
+| TC-ACC-02 | Registrasi email yang sudah terdaftar | Pesan seragam; tidak membocorkan keberadaan akun; email konfirmasi tidak dikirim berulang |
+| TC-ACC-03 | Klik tautan verifikasi | `emailVerified=true`; `/akun` dapat diakses |
+| TC-ACC-04 | Tautan verifikasi kedaluwarsa (24 jam) | Pesan jelas + tombol kirim ulang |
+| TC-ACC-05 | Kirim ulang verifikasi 4× dalam 1 jam | Permintaan ke-4 → 429 |
+| TC-ACC-06 | Lupa sandi untuk email tidak terdaftar | Respons tetap "Jika email terdaftar…"; tidak ada email terkirim |
+| TC-ACC-07 | Reset sandi dengan token valid | Kata sandi berubah; semua sesi lain dicabut |
+| TC-ACC-08 | Akses `/akun` tanpa login | Redirect `/masuk?next=/akun` |
+| TC-ACC-09 | Akses `/akun` sebelum verifikasi | Banner verifikasi; daftar pengajuan tidak dirender |
+| TC-ACC-10 | Dua akun, masing-masing punya pengajuan | Tidak ada data yang saling terlihat; membuka ID milik orang lain → 404 |
+| TC-ACC-11 | Submit lead saat login | `userId` terisi; pengajuan muncul di `/akun` |
+| TC-ACC-12 | Submit lead tanpa akun, lalu daftar dengan email sama | Pengajuan otomatis tertaut setelah verifikasi |
+| TC-ACC-13 | Lead berstatus `SPAM` milik pengguna | Tidak muncul di `/akun` |
+| TC-ACC-14 | Ubah profil (nama/WA/kota) | Tersimpan; email tidak berubah |
+| TC-ACC-15 | Ubah email melalui PATCH `/me` | Ditolak/diabaikan; email tetap |
+| TC-ACC-16 | Ganti kata sandi dengan sandi lama salah | Ditolak; pesan jelas |
+| TC-ACC-17 | Label status | Tidak ada istilah internal (`QUALIFIED`, `SPAM`) yang tampil |
+| TC-ACC-18 | Sesi kedaluwarsa saat membuka detail pengajuan | Redirect login; setelah login kembali ke pengajuan |
+
+### 5.3b Proyek
+
+| ID | Skenario | Harapan |
+|----|----------|---------|
+| TC-PRJ-01 | Proyek `isPublished=false` diakses lewat URL | 404 |
+| TC-PRJ-02 | Publish tanpa cover | Ditolak dengan pesan |
+| TC-PRJ-03 | Publish projects | Tampil di `/proyek` dan section beranda ≤ 5 menit |
+| TC-PRJ-04 | Galeri 11 gambar | Ditolak (maks 10) |
+| TC-PRJ-05 | Proyek tanpa unit/luas | Field kosong disembunyikan |
 
 ### 5.4 Admin — CMS
 
@@ -150,7 +185,10 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 | **E2E-4** CRM | Login → daftar lead → buka E2E-1 → ubah status → catat aktivitas | Status & aktivitas persist setelah reload |
 | **E2E-5** CMS | Login → buat desain → unggah media → publish → buka halaman publik | Desain tampil dengan media |
 | **E2E-6** Otorisasi | Akses endpoint admin tanpa cookie | 401/403; tidak ada data bocor |
-| **E2E-7** Anti-spam | Submit dengan honeypot terisi | Tidak ada notifikasi; status `SPAM` |
+| E2E-7 | Anti-spam | Submit dengan honeypot terisi | Tidak ada notifikasi; status `SPAM` |
+| **E2E-8** Akun | Daftar → verifikasi (Mailpit) → login → `/akun` → buka pengajuan | Hanya melihat pengajuannya sendiri; status tampil ramah pengguna |
+| **E2E-9** Isolasi akun | Buat 2 akun + 2 pengajuan; akun A membuka URL pengajuan akun B | 404; tidak ada data bocor |
+| **E2E-10** Proyek | Login admin → buat proyek → publish → buka `/proyek/[slug]` | Proyek tampil dengan galeri |
 
 E2E berjalan di CI pada setiap PR (subset) dan sebelum rilis (semua).
 
@@ -170,12 +208,15 @@ E2E berjalan di CI pada setiap PR (subset) dan sebelum rilis (semua).
 | S10 | Kebocoran log | Tidak ada kata sandi/token/nomor penuh di log | Telusuri log staging |
 | S11 | Dependency | `bun audit` / Dependabot bersih dari high/critical | CI |
 | S12 | Brute force | Login dibatasi; pesan error tidak membedakan email ada/tidak | Uji login |
-| S13 | Enumerasi | Endpoint publik tidak membocorkan daftar pengguna/lead | Uji endpoint |
-| S14 | Mass assignment | PATCH hanya menerima field yang diizinkan | Kirim `role` pada PATCH profil → diabaikan/ditolak |
+| S13 | Enumerasi | Endpoint publik tidak membocorkan daftar pengguna/lead; pesan registrasi & reset seragam | Uji endpoint |
+| S14 | Mass assignment | PATCH hanya menerima field yang diizinkan; `role`/`email` diabaikan | Kirim `role` pada PATCH `/me` → ditolak |
 | S15 | CSV injection | Sel yang dimulai `=`, `+`, `-`, `@` diescape | Uji ekspor |
 | S16 | Backup | Backup terenkripsi, akses terbatas, restore teruji | Audit akses |
 | S17 | Secrets | Tidak ada kunci di repo; `.env` di `.gitignore`; secret di manajer rahasia | `gitleaks` di CI |
 | S18 | Error | Tidak ada stack trace di respons produksi | Uji 500 |
+| S19 | Penyalahgunaan registrasi | Rate limit per IP; Turnstile; verifikasi email wajib; kuota kirim email | Uji 10 registrasi/menit |
+| S20 | Pencabutan sesi | Reset/ubah kata sandi mencabut sesi lain; akun nonaktif langsung tidak bisa mengakses | Uji dua perangkat |
+| S21 | Isolasi data akun | `/me/*` selalu memfilter `userId`; ID pengajuan orang lain → 404 | Uji otomatis dua akun |
 
 ## 8. Anggaran performa
 
@@ -218,10 +259,13 @@ Aturan: setiap PR yang menambah > 25 KB JS harus disertai alasan di deskripsi PR
 | P6 | Keamanan | Enkripsi transport, akses berbasis peran, audit log | Checklist §7 |
 | P7 | Pemroses pihak ketiga | Daftar vendor (hosting, email, storage) + perjanjian | Daftar vendor |
 | P8 | Insiden | Prosedur notifikasi kebocoran | Runbook |
+| P9 | Data akun | Hanya email + profil minimal; tidak ada NIK/alamat lengkap wajib | Review skema `user` |
+| P10 | Hak subjek data akun | Permintaan hapus via halaman bantuan; anonimisasi + cabut sesi ≤ 30 hari | SOP + uji |
+| P11 | Anak di bawah umur | Form menyatakan layanan untuk 18+; tidak ada verifikasi usia khusus di MVP | Teks syarat |
 
 ## 11. UAT (User Acceptance Test)
 
-**Peserta:** 1 sales senior, 1 perwakilan manajemen, 1 staf marketing.
+**Peserta:** 1 admin/sales senior, 1 perwakilan manajemen, 1 staf marketing.
 **Durasi:** 2 sesi × 2 jam, di staging, dengan data uji mendekati nyata.
 
 Skenario UAT:
@@ -238,6 +282,10 @@ Skenario UAT:
 | U8 | Menulis artikel & publish | Marketing | ≤ 15 menit |
 | U9 | Mengubah nomor WhatsApp situs | Manajemen | ≤ 2 menit, langsung tampil |
 | U10 | Mengekspor lead bulan ini | Manajemen | File terbuka rapi di Excel |
+| U11 | Mendaftar akun & memantau status pengajuan | Marketing | ≤ 3 menit; status terbaca tanpa bertanya ke sales |
+| U12 | Menulis catatan untuk pemohon | Sales | ≤ 30 detik; catatan tampil di akun pemohon |
+| U13 | Menambah proyek baru & publish | Marketing | ≤ 10 menit, tanpa developer |
+| U14 | Mengunggah dokumen legal di Pengaturan | Manajemen | ≤ 3 menit; tautan tampil di halaman legal |
 
 Kriteria: setiap peserta menilai kemudahan 1–5; rata-rata ≥ 4; tidak ada blocker.
 
@@ -247,7 +295,8 @@ Rilis produksi hanya bila **semua** terpenuhi:
 
 - [ ] 0 bug `blocker`/`critical` terbuka.
 - [ ] ≤ 3 bug `major` terbuka, semuanya punya workaround terdokumentasi.
-- [ ] Seluruh E2E kritis lulus di staging.
+- [ ] Seluruh E2E kritis lulus di staging (termasuk E2E akun & isolasi data).
+- [ ] Uji isolasi data akun (IDOR) lulus otomatis.
 - [ ] Lighthouse ≥ 90 pada 4 halaman (mobile).
 - [ ] Checklist keamanan S1–S18 lulus.
 - [ ] Checklist privasi P1–P8 lulus.
