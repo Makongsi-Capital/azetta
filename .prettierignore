@@ -5,3 +5,5 @@ dist
 coverage
 bun.lock
 docs
+
+packages/db/src/generated

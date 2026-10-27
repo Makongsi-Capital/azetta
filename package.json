@@ -13,13 +13,17 @@
 		"dev:web": "bun run --filter @azetta/web dev",
 		"dev:admin": "bun run --filter @azetta/admin dev",
 		"build": "bun run --filter './apps/*' --sequential build",
-		"check": "bun run --filter './apps/*' --sequential check",
+		"check": "bun run --filter @azetta/db check && bun run --filter './apps/*' --sequential check",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"test": "bun run --filter @azetta/api test",
 		"test:e2e": "bun run --filter @azetta/web test:e2e",
+		"db:generate": "bun --env-file=.env run --filter @azetta/db generate",
+		"db:migrate": "bun --env-file=.env run --filter @azetta/db migrate",
+		"db:deploy": "bun --env-file=.env run --filter @azetta/db deploy",
+		"db:studio": "bun --env-file=.env run --filter @azetta/db studio",
 		"prepare": "husky"
 	},
 	"lint-staged": {

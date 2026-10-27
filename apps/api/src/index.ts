@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
-import { loadEnv } from './env';
+import { getEnv } from './env';
 
-const env = loadEnv();
+const env = getEnv();
 
 const app = new Elysia()
 	.get('/health', () => ({ status: 'ok', env: env.NODE_ENV }))

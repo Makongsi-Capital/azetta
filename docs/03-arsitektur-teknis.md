@@ -146,13 +146,15 @@ azetta/
 
 | Paket | Boleh bergantung pada | Tidak boleh |
 |-------|----------------------|-------------|
-| `apps/web` | `contracts`, `api-client`, `ui`, `seo` | `db`, `apps/api` |
-| `apps/admin` | `contracts`, `api-client`, `ui` | `db`, `apps/api` |
+| `apps/web` | `contracts`, `api-client`, `ui`, `seo`, tipe dari `db` | `db` (runtime), `apps/api` |
+| `apps/admin` | `contracts`, `api-client`, `ui`, tipe dari `db` | `db` (runtime), `apps/api` |
 | `apps/api` | `contracts`, `db`, `config` | `ui`, `apps/web` |
 | `packages/db` | `config` | apa pun di `apps/` |
 | `packages/ui` | `config` | `db`, `api` |
 
 Aturan ini dijaga dengan `eslint-plugin-import` (`no-restricted-imports`) agar tidak dilanggar tanpa sengaja.
+
+Pengecualian: `apps/web` dan `apps/admin` boleh mengimpor **tipe** model Prisma dari `@azetta/db` memakai `import type` (mis. `import type { Design } from '@azetta/db'`). Impor runtime tetap dilarang karena hanya API yang boleh mengakses database; aturan ESLint membedakan keduanya lewat `allowTypeImports`.
 
 ### Perintah kerja
 

@@ -17,3 +17,6 @@ coverage/
 
 playwright-report/
 test-results/
+
+# Prisma generated client
+packages/db/src/generated/

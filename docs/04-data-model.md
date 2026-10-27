@@ -257,9 +257,35 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+generator json {
+  provider     = "prisma-json-types-generator"
+  namespace    = "PrismaJson"
+  allowAny     = false
+  clientOutput = "../src/generated/prisma"
+}
+
+generator prismabox {
+  provider                    = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName   = "t"
+  inputModel                  = true
+  output                      = "../src/generated/prismabox"
+}
+
 datasource db {
   provider = "postgresql"
 }
+```
+
+Ketiga generator dijalankan oleh `bun run db:generate` dari `packages/db`:
+
+| Generator | Output | Dipakai oleh |
+|-----------|--------|--------------|
+| `client` | `packages/db/src/generated/prisma` | API (`@azetta/db`) dan tipe di web (`import type`) |
+| `json` | memperkaya tipe `Json` di client | API |
+| `prismabox` | `packages/db/src/generated/prismabox` | API lewat subpath `@azetta/db/prismabox`; frontend hanya boleh `import type` |
+
+Karena `allowAny = false`, setiap field `Json` wajib diberi anotasi `/// [Tipe]` dan tipe tersebut dideklarasikan pada namespace global `PrismaJson`.
 
 // ============================================================
 // Better Auth

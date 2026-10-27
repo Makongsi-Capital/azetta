@@ -23,6 +23,7 @@ export default [
 			'**/build/**',
 			'**/dist/**',
 			'**/coverage/**',
+			'**/generated/**',
 			'**/playwright-report/**',
 			'**/test-results/**'
 		]
@@ -51,7 +52,34 @@ export default [
 	},
 	{
 		files: ['apps/web/**/*.{ts,svelte}', 'apps/admin/**/*.{ts,svelte}'],
-		rules: { 'no-restricted-imports': restrictedImports(['@azetta/db', '@azetta/api']) }
+		rules: {
+			'no-restricted-imports': 'off',
+			'@typescript-eslint/no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: '@azetta/api',
+							message:
+								'App frontend tidak boleh mengimpor API secara langsung; gunakan HTTP/klien API.'
+						}
+					],
+					patterns: [
+						{
+							group: ['@azetta/api/*'],
+							message:
+								'App frontend tidak boleh mengimpor API secara langsung; gunakan HTTP/klien API.'
+						},
+						{
+							group: ['@azetta/db', '@azetta/db/*'],
+							allowTypeImports: true,
+							message:
+								'@azetta/db hanya boleh diimpor sebagai `import type` di app frontend (lihat docs/03-arsitektur-teknis.md §3).'
+						}
+					]
+				}
+			]
+		}
 	},
 	{
 		files: ['apps/api/**/*.ts'],

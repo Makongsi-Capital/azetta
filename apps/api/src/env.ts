@@ -104,3 +104,10 @@ export function loadEnv(source: Record<string, string | undefined> = process.env
 
 	return parsed as Env;
 }
+
+let cached: Env | undefined;
+
+export function getEnv(): Env {
+	cached ??= loadEnv();
+	return cached;
+}
