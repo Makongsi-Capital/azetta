@@ -1,2 +1,75 @@
+@import '@fontsource/poppins/latin-400.css';
+@import '@fontsource/poppins/latin-500.css';
+@import '@fontsource/poppins/latin-600.css';
+@import '@fontsource/poppins/latin-700.css';
 @import 'tailwindcss';
-@plugin "daisyui";
+
+@plugin 'daisyui' {
+	themes: false;
+}
+
+/* Tema terinspirasi ruma.id: putih bersih, slate gelap, aksen steel-blue, sudut membulat. */
+@plugin 'daisyui/theme' {
+	name: 'azetta';
+	default: true;
+	prefersdark: false;
+	color-scheme: light;
+
+	--color-base-100: #ffffff;
+	--color-base-200: #f7f8fa;
+	--color-base-300: #e5e7eb;
+	--color-base-content: #111827;
+
+	--color-primary: #3f7c98;
+	--color-primary-content: #ffffff;
+	--color-secondary: #0f766e;
+	--color-secondary-content: #ffffff;
+	--color-accent: #15803d;
+	--color-accent-content: #ffffff;
+	--color-neutral: #1f2937;
+	--color-neutral-content: #ffffff;
+
+	--color-info: #0369a1;
+	--color-info-content: #ffffff;
+	--color-success: #15803d;
+	--color-success-content: #ffffff;
+	--color-warning: #f59e0b;
+	--color-warning-content: #111827;
+	--color-error: #dc2626;
+	--color-error-content: #ffffff;
+
+	--radius-selector: 0.5rem;
+	--radius-field: 9999px;
+	--radius-box: 1rem;
+
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 1px;
+	--depth: 0;
+	--noise: 0;
+}
+
+@theme {
+	--font-sans: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+	}
+
+	body {
+		@apply bg-base-100 text-base-content antialiased;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		@apply font-semibold tracking-tight;
+	}
+
+	::selection {
+		background-color: color-mix(in oklab, var(--color-primary) 22%, transparent);
+	}
+}

@@ -46,6 +46,8 @@
 └─ /404
 ```
 
+> `/theme` adalah halaman pratinjau komponen internal (`noindex`) dan tidak ditautkan dari navigasi publik.
+
 ### 2.2 Admin (`admin.azetta.id`)
 
 ```text
@@ -688,7 +690,7 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 
 **Editor konten (Tiptap):** toolbar H2/H3, bold, italic, bullet & numbered list, link, gambar (unggah via presign R2), blockquote, tabel, undo/redo. Paste dibersihkan otomatis; tidak ada HTML mentah atau `script`. Pratinjau publik merender HTML tersanitasi.
 
-**Tema:** warna utama mengikuti identitas Azetta (didefinisikan sekali di `tailwind.preset.ts`), radius 12 px, font sans (system stack + satu webfont opsional), dark mode **tidak** diaktifkan di MVP.
+**Tema:** tema daisyUI `azetta` (light-only) didefinisikan di `apps/web/src/routes/layout.css`: primer steel-blue `#3f7c98`, base putih `#ffffff`/`#f7f8fa`, teks `#111827`, radius box 16 px, field pill, font Poppins self-hosted (`@fontsource/poppins`). Halaman pratinjau `/theme` (`noindex`) menampilkan contoh komponen. Pada E1-01 token dipindahkan ke preset bersama di `packages/ui`.
 
 **Ikon (Iconify):** pakai set `lucide` untuk UI dan `mdi`/`ph` bila perlu. Ikon dekoratif `aria-hidden="true"`.
 
