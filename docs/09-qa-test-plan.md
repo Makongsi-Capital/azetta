@@ -40,7 +40,7 @@ Aturan:
 
 | Level | Cakupan | Tool |
 |-------|---------|------|
-| Unit | Util normalisasi nomor, validasi skema, transisi status, formatter, sanitasi Markdown | `bun test` / Vitest |
+| Unit | Util normalisasi nomor, validasi skema, transisi status, formatter, sanitasi HTML | `bun test` / Vitest |
 | Integrasi API | Route + Prisma + Postgres nyata (test container) | Vitest + `fetch` ke instance uji |
 | Komponen | Komponen UI kritis (form field, stepper, tabel) | Vitest + `@testing-library/svelte` |
 | E2E | Alur bisnis kritis lintas halaman | Playwright |
@@ -160,7 +160,9 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 | TC-CMS-04 | Ubah slug desain yang sudah tayang | URL lama 301 ke URL baru (atau ditolak — lihat kebijakan) |
 | TC-CMS-05 | Hapus desain yang punya lead | Ditolak 409; sarankan arsipkan |
 | TC-CMS-06 | Hapus media cover | Cover otomatis pindah ke media berikutnya |
-| TC-CMS-07 | Artikel dengan Markdown berisi `<script>` | Skrip tidak dieksekusi (disanitasi) |
+| TC-CMS-07 | Artikel dengan HTML berisi `<script>` | Skrip tidak dieksekusi (disanitasi) |
+| TC-CMS-08 | Tautan `javascript:alert(1)` di editor | Atribut `href` berbahaya dibuang; tautan aman tetap |
+| TC-CMS-09 | Gambar dengan `onerror` | Event handler dibuang; gambar tetap tampil |
 | TC-CMS-08 | Ubah nomor WhatsApp di pengaturan | Tampil di footer & tombol WA ≤ 5 menit |
 | TC-CMS-09 | Non-admin membuka `/pengguna` | 403 |
 | TC-CMS-10 | Super admin menonaktifkan dirinya | Ditolak |
@@ -202,7 +204,7 @@ E2E berjalan di CI pada setiap PR (subset) dan sebelum rilis (semua).
 | S1 | Kontrol akses | Setiap route `/admin/*` memakai guard; tidak ada data sensitif di endpoint publik | Uji manual + test otomatis per route |
 | S2 | IDOR | Akses lead/lampiran milik orang lain | Uji dengan dua akun berbeda |
 | S3 | Injeksi | Semua query lewat Prisma; tidak ada `$queryRawUnsafe` | Code review + `grep` |
-| S4 | XSS | Markdown disanitasi sebelum render; tidak ada `{@html}` tanpa sanitasi | Test payload `<img src=x onerror=alert(1)>` |
+| S4 | XSS | HTML dari Tiptap disanitasi sebelum disimpan & dirender; tidak ada `{@html}` tanpa sanitasi | Test payload `<img src=x onerror=alert(1)>` dan `javascript:` |
 | S5 | CSRF | Mutasi memakai cookie `sameSite=lax` + origin check; CORS terbatas | Uji request lintas origin |
 | S6 | Rate limit | Login, lead, presign, events | Uji melebihi batas |
 | S7 | Unggah file | MIME diverifikasi (magic bytes), ukuran dibatasi, nama file tidak dipakai mentah | Unggah file `.php` dengan MIME palsu |

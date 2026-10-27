@@ -255,7 +255,7 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | FR-ADM-08 | Ekspor CSV sesuai filter aktif | S | Maks 5.000 baris; kolom terdokumentasi |
 | FR-ADM-09 | Deteksi duplikat nomor | S | Badge + tautan ke lead lain |
 | FR-ADM-10 | CRUD desain + unggah media + atur urutan + cover | M | Simpan sebagai draft; publish manual |
-| FR-ADM-11 | CRUD artikel/FAQ/testimoni | M | Editor teks kaya (Markdown atau WYSIWYG) |
+| FR-ADM-11 | CRUD artikel/FAQ/testimoni | M | Editor WYSIWYG Tiptap; gambar diunggah lewat presign; konten disimpan sebagai HTML tersanitasi |
 | FR-ADM-12 | Pengaturan situs (kontak, jam kerja, teks hero, template WA) | S | Perubahan langsung tampil ≤ 5 menit |
 | FR-ADM-13 | Dashboard: lead baru hari ini, belum dihubungi, per tipe, tren 30 hari | M | Angka konsisten dengan daftar lead |
 | FR-ADM-14 | Kelola pengguna admin (undang, ubah peran, nonaktifkan) | S | Hanya `super_admin`; tidak bisa menonaktifkan diri sendiri |

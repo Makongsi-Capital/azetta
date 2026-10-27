@@ -1,6 +1,6 @@
 # Dokumen Perencanaan Azetta
 
-**Versi:** 1.2 (revisi setelah Q11–Q12 dijawab)
+**Versi:** 1.3 (revisi D8 — editor WYSIWYG Tiptap)
 **Tanggal:** 27 Oktober 2026
 **Status:** Menunggu persetujuan pemilik produk
 
@@ -59,6 +59,7 @@ Urutan baca yang disarankan:
 | Frontend admin | SvelteKit (aplikasi terpisah) + Tailwind + daisyUI |
 | Backend | ElysiaJS (Bun) + Better Auth + Prisma |
 | Database | PostgreSQL |
+| Editor konten | Tiptap (WYSIWYG), konten disimpan sebagai HTML tersanitasi |
 | Struktur repo | Monorepo (Bun workspaces) |
 | Target waktu | Tidak ada tanggal mutlak — 8 sprint relatif, ±15 minggu (lihat [07](./07-backlog-sprint.md)) |
 

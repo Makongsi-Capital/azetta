@@ -98,7 +98,7 @@
 |----|------|------------|:--:|---------|
 | E4-01 | CRUD desain + alur publish | Form lengkap dengan validasi; slug otomatis & bisa diubah; draft/publish/archive; validasi publish di [05 §5.2](./05-spesifikasi-api.md#52-desain); duplikasi desain; estimasi biaya tersimpan sebagai data internal | 4 | E1-02 |
 | E4-02 | Media manager | Unggah banyak file; urutkan drag-drop; pilih cover; hapus (objek R2 ikut); `alt` wajib sebelum publish | 3 | E1-07, E4-01 |
-| E4-03 | CRUD artikel + halaman publik | Editor Markdown + preview; publish/archive; daftar & detail publik dengan pagination; `Article` JSON-LD | 4 | E2-01 |
+| E4-03 | CRUD artikel + halaman publik | Editor WYSIWYG Tiptap (toolbar di [06 §7](./06-ux-sitemap-wireframe.md#7-inventaris-komponen-ui)); gambar via presign; sanitasi HTML server-side; publish/archive; daftar & detail publik dengan pagination; `Article` JSON-LD | 4 | E2-01 |
 | E4-04 | FAQ & testimoni | CRUD; urutan; aktif/nonaktif; tampil di `/faq` dan beranda; `FAQPage` JSON-LD | 2 | E4-03 |
 | E4-05 | Pengaturan situs | 10 kunci setting dapat diubah; kontak/hero/template WA/brand langsung dipakai web; validasi nilai; audit tercatat | 3 | E3-01 |
 | E4-06 | Pengguna & audit log | Super admin dapat membuat/menonaktifkan pengguna internal & mengubah peran; daftar pelanggan baca saja; tidak bisa menonaktifkan diri | 2 | E3-01 |

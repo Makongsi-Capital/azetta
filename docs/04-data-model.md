@@ -11,6 +11,7 @@
 3. **Data pribadi seminimal mungkin.** Hanya field yang benar-benar dipakai sales. Tidak ada NIK, nomor kartu, atau dokumen identitas pada MVP.
 4. **Semua waktu dalam UTC**, ditampilkan dalam `Asia/Jakarta`.
 5. **Uang dalam rupiah utuh** (`BigInt`), tanpa desimal. Serialisasi API: string (lihat [05 §2.4](./05-spesifikasi-api.md#24-tipe-data-khusus)).
+6. **Konten kaya disimpan sebagai HTML tersanitasi.** Editor admin memakai Tiptap; API menyimpan HTML setelah disanitasi ber-allowlist (D8). Markdown tidak dipakai.
 
 ## 2. ERD
 
@@ -123,7 +124,7 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 | `slug` | text | ✗ | Unik, `kebab-case`, 3–80 |
 | `title` | text | ✗ | 5–120 |
 | `subtitle` | text | ✓ | Maks 160 |
-| `description` | text | ✗ | Markdown, maks 10.000 |
+| `description` | text | ✗ | HTML tersanitasi (Tiptap), maks 10.000 karakter |
 | `category` | enum | ✗ | `RESIDENTIAL`/`COMMERCIAL`/`RENOVATION`/`INTERIOR` |
 | `style` | text | ✗ | Mis. `Minimalis`, `Modern Tropis`, `Skandinavia` |
 | `floors` | int | ✗ | 1–4 |
@@ -146,7 +147,7 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 
 | Entitas | Field kunci |
 |---------|-------------|
-| `Article` | `slug`, `title`, `excerpt`, `content` (Markdown), `coverImageUrl`, `authorId`, `status`, `publishedAt`, `readingMinutes`, `tags text[]`, `viewCount`, `seoTitle`, `seoDescription`, `deletedAt` |
+| `Article` | `slug`, `title`, `excerpt`, `content` (HTML tersanitasi), `coverImageUrl`, `authorId`, `status`, `publishedAt`, `readingMinutes`, `tags text[]`, `viewCount`, `seoTitle`, `seoDescription`, `deletedAt` |
 | `Faq` | `question`, `answer`, `category`, `sortOrder`, `isActive` |
 | `Testimonial` | `name`, `role`, `projectName`, `quote`, `avatarUrl`, `isPublished`, `sortOrder` |
 | `SiteSetting` | `key` (PK), `value` (JSONB), `updatedById`, `updatedAt` |
@@ -215,7 +216,7 @@ Portofolio proyek (Q4). Tidak memiliki relasi ke `Lead` pada MVP — atribusi te
 | `slug` | text | ✗ | Unik, `kebab-case` |
 | `title` | text | ✗ | 5–120 |
 | `summary` | text | ✓ | Ringkasan 1–2 kalimat (kartu & meta) |
-| `description` | text | ✓ | Markdown, maks 10.000 |
+| `description` | text | ✓ | HTML tersanitasi (Tiptap), maks 10.000 karakter |
 | `location` | text | ✗ | Nama lokasi yang aman dipublikasikan |
 | `city` / `province` | text | ✗/✗ | Untuk filter & SEO |
 | `status` | enum | ✗ | `PLANNED` / `ONGOING` / `COMPLETED` |
@@ -429,6 +430,7 @@ model PropertyDesign {
   slug        String  @unique
   title       String
   subtitle    String?
+  /// HTML tersanitasi (Tiptap)
   description String  @db.Text
 
   category       DesignCategory
@@ -774,6 +776,7 @@ model Project {
   slug        String        @unique
   title       String
   summary     String?
+  /// HTML tersanitasi (Tiptap)
   description String?       @db.Text
 
   location String
@@ -822,6 +825,7 @@ model Article {
   slug          String        @unique
   title         String
   excerpt       String?
+  /// HTML tersanitasi (Tiptap)
   content       String        @db.Text
   coverImageUrl String?
   status        ArticleStatus @default(DRAFT)
@@ -1009,6 +1013,8 @@ Beberapa aturan tidak dapat dinyatakan di Prisma, jadi ditegakkan di service lay
 | Nama proyek tidak boleh memuat data keuangan sensitif | Review konten manual sebelum `isPublished = true` |
 | Permohonan hapus akun tidak menghapus data otomatis | Service hanya membuat/menandai `AccountDeletionRequest`; penghapusan/anonimisasi manual oleh admin |
 | Maksimal satu permohonan `PENDING` per akun | Service menolak permohonan baru dengan `409 DUPLICATE_REQUEST` |
+| Konten Tiptap disanitasi sebelum disimpan | Service API menjalankan sanitizer ber-allowlist; HTML mentah dari klien tidak pernah masuk DB |
+| `readingMinutes` artikel dihitung dari teks | Strip tag HTML → hitung kata ÷ 200, minimum 1 |
 
 ## 7. Retensi & pembersihan data
 

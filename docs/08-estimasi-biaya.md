@@ -32,6 +32,7 @@
 | 8 | Tidak ada perubahan lingkup setelah Sprint 1 | +5–15% |
 | 9 | Akun publik terbatas pada pemantauan progres + permohonan hapus akun, tanpa favorit/chat/notifikasi maupun penghapusan otomatis | +4–8 pd |
 | 10 | Verifikasi email memakai penyedia email transaksional yang sama dengan notifikasi | +1–2 pd (integrasi tambahan) |
+| 11 | Tiptap dipakai sebagai library editor (MIT); tidak ada layanan editor/hosting tambahan | +2–4 pd bila butuh kolaborasi realtime atau penyimpanan dokumen eksternal |
 
 Rate acuan pasar (2026, Indonesia, proyek lepas):
 

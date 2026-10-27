@@ -186,9 +186,11 @@ bun run build
 | CSS | Tailwind CSS 4 + daisyUI 5 | Komponen siap pakai, tema mudah diubah | CSS-in-JS, Bootstrap |
 | Ikon | Iconify (`@iconify/svelte`) | Ikon on-demand, tidak menambah banyak bobot | Font icon |
 | Kontrak | TypeBox | Dipakai native Elysia; bisa dipakai validasi klien | Zod (butuh lapisan konversi ekstra di Elysia) |
-| Editor konten | Markdown (textarea + preview) | Sederhana, aman, mudah direview | WYSIWYG berat (fase 2) |
+| Editor konten | Tiptap (WYSIWYG) | Tim non-teknis dapat menulis tanpa menghafal sintaks; ringan, MIT, dan dapat diperluas | Markdown textarea + preview (butuh pelatihan sintaks) |
 | Media | Cloudflare R2 + URL presigned | Murah, egress gratis, kompatibel S3 | Simpan di disk VPS (tidak skalabel) |
 | Antrian/job | `setInterval` in-process + endpoint cron | Tidak butuh infrastruktur tambahan di MVP | Redis/BullMQ (ditunda) |
+
+Catatan implementasi editor: admin memakai `@tiptap/core` + StarterKit dengan ekstensi Link, Image, dan Table; gambar diunggah lewat presign R2. API menyanitasi HTML dengan allowlist (mis. `sanitize-html`) sebelum menyimpan, dan halaman publik hanya merender HTML hasil sanitasi. Tiptap dimuat **hanya** di bundel admin.
 
 ## 5. Alur permintaan
 
@@ -488,7 +490,7 @@ Semua variabel divalidasi saat boot (aplikasi menolak start bila ada yang hilang
 | API terpisah dari SvelteKit | SvelteKit `+server.ts` saja | Diinginkan satu API untuk web, admin, dan integrasi masa depan |
 | Auth di SvelteKit | Sesi di API | Dua implementasi sesi = dua sumber bug; satu instance Better Auth lebih sederhana |
 | SSR penuh | SPA + API | SEO adalah kanal utama |
-| Markdown di DB | Headless CMS eksternal | Biaya & kompleksitas tambahan; tim kecil |
+| HTML tersanitasi dari Tiptap di DB | Headless CMS eksternal | Biaya & kompleksitas tambahan; tim kecil |
 
 ## 13. Batas arsitektur MVP
 

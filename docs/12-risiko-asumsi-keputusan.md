@@ -49,7 +49,7 @@ Rincian yang sengaja **belum diputuskan** (tidak memblokir MVP, tetapi harus jel
 | D5 | **TypeBox sebagai kontrak** | Native di Elysia, bisa dipakai validasi klien | Kurang populer dibanding Zod | Zod + konversi |
 | D6 | **Soft delete untuk konten** | Menjaga integritas lead & SEO | Query harus memfilter `deletedAt` | Hard delete |
 | D7 | **Akun publik masuk MVP, terbatas pada pemantauan progres** | Pemilik produk memutuskan pengunjung perlu melihat status pengajuannya (Q1) | +1 sprint, kewajiban verifikasi email & perlindungan data akun; tidak ada fitur sosial/favorit | Tanpa akun publik; akun penuh dengan favorit & checkout |
-| D8 | **CMS Markdown**, bukan WYSIWYG | Sederhana, aman, mudah direview di git-like flow | Penulis harus paham Markdown dasar (disediakan preview) | Editor blok, headless CMS |
+| D8 | **CMS WYSIWYG berbasis Tiptap**, bukan Markdown | Tim internal non-teknis butuh editor visual; Tiptap ringan, berlisensi MIT, extensible, dan tidak mengikat ke layanan eksternal | Konten disimpan sebagai **HTML tersanitasi**; sanitasi wajib di server (allowlist tag/atribut) sebelum disimpan dan dirender; editor hanya dimuat di admin; estimasi E4-03 tetap 4 pd | Markdown textarea + preview, headless CMS |
 | D9 | **Cloudflare R2** untuk media | Murah, egress gratis, kompatibel S3 | Bergantung pada Cloudflare | Disk VPS, S3 |
 | D10 | **Tanpa Redis** di MVP | Skala awal tidak membutuhkan; mengurangi komponen | Rate limit per instance; tidak boleh multi-replika tanpa Redis | Redis sejak awal |
 | D11 | **Hanya bahasa Indonesia** | Pasar awal Indonesia; mengurangi effort & risiko konten | Investor asing belum terlayani | ID+EN |
@@ -92,6 +92,7 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 | R22 | Tanpa estimasi biaya publik, calon pembeli desain ragu atau membanjiri sales dengan pertanyaan harga | Bisnis | 3 | 2 | 6 | Tampilkan `priceFrom` paket desain, FAQ biaya, artikel estimasi biaya sebagai jawaban tidak langsung | Marketing |
 | R23 | Semua lead ditangani satu tim admin tanpa routing → lead menumpuk saat sibuk | Operasional | 3 | 3 | 9 | Antrean tunggal + prioritas + filter "belum dihubungi"; tinjauan harian; opsi routing di fase 2 | Sales lead |
 | R24 | Permohonan hapus akun menumpuk dan melewati target ≤ 30 hari | Legal/Operasional | 3 | 4 | 12 | Daftar `PENDING` di panel admin, tinjauan mingguan, penanggung jawab eksplisit, catat tanggal proses | Manajemen |
+| R25 | XSS melalui HTML yang dihasilkan editor WYSIWYG | Keamanan | 3 | 5 | **15** | Sanitasi server-side ber-allowlist, larang `script`/`iframe`/event handler/`javascript:`, uji payload XSS otomatis, CSP ketat | Tech lead |
 
 ### 4.1 Rencana respons risiko tinggi (skor ≥ 15)
 
@@ -100,6 +101,7 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 | R1 | Tetapkan daftar 12 desain + PIC aset; pesan jasa render; buffer konten 2 minggu sebelum Sprint 5 | Sebelum Sprint 2 |
 | R2 | Tentukan sales lead, jam kerja, dan aturan eskalasi; aktifkan alert lead baru | Sebelum Sprint 3 |
 | R5 | Tandatangani ruang lingkup MVP (dokumen ini) oleh manajemen | Sebelum Sprint 1 |
+| R25 | Terapkan sanitasi HTML ber-allowlist + uji XSS otomatis pada konten Tiptap | Sebelum Sprint 4 |
 
 ## 5. Change Log
 
@@ -108,6 +110,7 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 | 2026-10-23 | 1.0 | Dokumen awal dibuat | Perencanaan MVP | — |
 | 2026-10-23 | 1.1 | Q1–Q10 dijawab; **akun publik** dan **portofolio proyek** masuk MVP; peran `staff` dihapus; estimasi biaya bangun tidak ditampilkan; WhatsApp gateway dihapus; effort 155 → 185 pd; jadwal 7 → 8 sprint | Keputusan pemilik produk atas pertanyaan terbuka | Pemilik produk |
 | 2026-10-27 | 1.2 | Q11 dijawab (verifikasi email wajib); Q12 dijawab (**permohonan hapus akun** lewat admin, tanpa self-service); model + endpoint + halaman terkait; effort 185 → 187 pd | Keputusan pemilik produk atas pertanyaan lanjutan | Pemilik produk |
+| 2026-10-27 | 1.3 | **D8 diubah**: CMS Markdown → **WYSIWYG Tiptap** dengan penyimpanan HTML tersanitasi; risiko XSS (R25) dicatat | Permintaan pemilik produk | Pemilik produk |
 
 ## 6. Dependensi eksternal
 

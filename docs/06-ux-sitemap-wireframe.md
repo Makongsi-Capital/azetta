@@ -189,7 +189,7 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 │  Luas bangunan 96 m²   Luas lahan 72 m²   │  │ 96 m²         │  │
 │  Kamar tidur 3         Kamar mandi 2      │  │ Lantai 2      │  │
 │  Carport 1             Gaya Minimalis     │  └───────────────┘  │
-│ Deskripsi (Markdown)                      │                     │
+│ Deskripsi (editor)                        │                     │
 │ Denah (tab: Lantai 1 / Lantai 2)          │                     │
 │ ─────────────────────────────────────────  │                     │
 │ FORM "Tanya desain ini" (inline)          │                     │
@@ -268,7 +268,7 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 1. Breadcrumb + judul + badge status.
 2. Meta: lokasi, tahun mulai/selesai, luas lahan, jumlah unit (bila diisi).
 3. Cover + galeri (grid, lightbox).
-4. Deskripsi Markdown.
+4. Deskripsi kaya (HTML tersanitasi dari Tiptap).
 5. CTA: "Tawarkan lahan Anda" dan "Minta proposal investasi" (maks 2).
 
 **Aturan:**
@@ -284,7 +284,7 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 ### 4.7 Artikel `/artikel` & `/artikel/[slug]`
 
 - Daftar: kartu (cover, judul, ringkasan, tanggal, estimasi baca), pagination 9/halaman, filter tag sederhana.
-- Detail: judul, meta (tanggal, waktu baca), cover, isi Markdown (heading, list, gambar, tabel, blockquote), CTA di tengah/akhir ("Lihat katalog desain" / "Tanya tim"), artikel terkait 3.
+- Detail: judul, meta (tanggal, waktu baca), cover, isi kaya (heading, list, gambar, tabel, blockquote), CTA di tengah/akhir ("Lihat katalog desain" / "Tanya tim"), artikel terkait 3.
 - `Article` + `BreadcrumbList` JSON-LD.
 - Event: `article_view`, `article_cta_click`.
 
@@ -683,8 +683,10 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 | `Avatar` | `avatar` | Header akun, admin |
 | `Alert` | `alert` | Banner verifikasi email, catatan sistem |
 | `Breadcrumbs` | `breadcrumbs` | Publik & admin |
-| `MarkdownEditor` | textarea + preview | CMS |
+| `RichTextEditor` | Tiptap + toolbar | CMS |
 | `ConfirmDialog` | `modal` | Hapus/arsipkan |
+
+**Editor konten (Tiptap):** toolbar H2/H3, bold, italic, bullet & numbered list, link, gambar (unggah via presign R2), blockquote, tabel, undo/redo. Paste dibersihkan otomatis; tidak ada HTML mentah atau `script`. Pratinjau publik merender HTML tersanitasi.
 
 **Tema:** warna utama mengikuti identitas Azetta (didefinisikan sekali di `tailwind.preset.ts`), radius 12 px, font sans (system stack + satu webfont opsional), dark mode **tidak** diaktifkan di MVP.
 

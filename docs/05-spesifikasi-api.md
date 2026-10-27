@@ -592,6 +592,8 @@ Aturan: `body` wajib untuk `NOTE`/`CALL`/`WHATSAPP`/`EMAIL`/`MEETING`; maks 2.00
 | PATCH | `/admin/settings` | Ubah sebagian (`{ key: value }`) |
 | POST | `/admin/settings/assets/presign` | URL unggah logo/favicon/dokumen legal |
 
+**Konten kaya (D8).** Field `content` (artikel) dan `description` (desain/proyek) berisi **HTML dari editor Tiptap**; jawaban FAQ tetap teks biasa. API **wajib** menyaring dengan allowlist server-side sebelum menyimpan (tag: `h2`–`h4`, `p`, `ul`, `ol`, `li`, `strong`, `em`, `a`, `blockquote`, `code`, `pre`, `img`, `table`, `hr`, `br`; atribut: `href`, `src`, `alt`, `title`, `rel`, `target`). `script`, `style`, `iframe`, event handler, dan URL `javascript:` ditolak/dibuang. Gambar harus memakai URL hasil presign R2.
+
 **`POST /admin/settings/assets/presign`** menerima `{ purpose, fileName, mimeType, sizeBytes }` dengan `purpose` ∈ `BRAND_LOGO` | `BRAND_FAVICON` | `LEGAL_DOCUMENT`. MIME: gambar untuk brand, `application/pdf` untuk dokumen legal. Setelah unggah, URL disimpan melalui `PATCH /admin/settings` pada kunci `brand` atau `legal`.
 
 ### 5.4 Proyek
