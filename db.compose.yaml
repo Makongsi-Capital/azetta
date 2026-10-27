@@ -1,4 +1,4 @@
-name: azetta
+name: azetta_dev_db
 
 services:
   db:
