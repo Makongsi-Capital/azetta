@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -25,4 +20,660 @@ generator prismabox {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ============================================================
+// Better Auth
+// ============================================================
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // admin plugin
+  role       String    @default("customer")
+  banned     Boolean   @default(false)
+  banReason  String?
+  banExpires DateTime?
+
+  // profil aplikasi
+  phone       String?
+  whatsapp    String?
+  city        String?
+  company     String?
+  lastLoginAt DateTime?
+
+  sessions      Session[]
+  accounts      Account[]
+  createdLeads  Lead[]           @relation("LeadCreatedBy")
+  assignedLeads Lead[]           @relation("LeadAssignee")
+  activities    LeadActivity[]
+  attachments   LeadAttachment[] @relation("AttachmentUploader")
+  articles      Article[]        @relation("ArticleAuthor")
+  projects      Project[]        @relation("ProjectAuthor")
+  auditLogs     AuditLog[]
+  settings      SiteSetting[]    @relation("SettingUpdatedBy")
+
+  deletionRequests        AccountDeletionRequest[] @relation("DeletionRequestedBy")
+  handledDeletionRequests AccountDeletionRequest[] @relation("DeletionRequestHandledBy")
+
+  @@index([role])
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  token          String   @unique
+  expiresAt      DateTime
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  impersonatedBy String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ============================================================
+// Katalog desain
+// ============================================================
+
+enum DesignCategory {
+  RESIDENTIAL
+  COMMERCIAL
+  RENOVATION
+  INTERIOR
+}
+
+enum DesignStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum MediaKind {
+  IMAGE
+  FLOOR_PLAN
+  RENDER_3D
+  VIDEO
+}
+
+model PropertyDesign {
+  id Int @id @default(autoincrement())
+  slug        String  @unique
+  title       String
+  subtitle    String?
+  /// HTML tersanitasi (Tiptap)
+  description String  @db.Text
+
+  category       DesignCategory
+  style          String
+  floors         Int    @default(1)
+  bedrooms       Int    @default(0)
+  bathrooms      Int    @default(0)
+  carports       Int    @default(0)
+  buildingAreaM2 Int
+  landAreaMinM2  Int
+
+  estimatedBuildCostMin BigInt?
+  estimatedBuildCostMax BigInt?
+  priceFrom             BigInt?
+
+  status      DesignStatus @default(DRAFT)
+  featured    Boolean      @default(false)
+  viewCount   Int          @default(0)
+  publishedAt DateTime?
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  media PropertyDesignMedia[]
+  /// @prismabox.hide
+  tags  DesignTagOnDesign[]
+  leads Lead[]
+
+  @@index([status, publishedAt])
+  @@index([category, style])
+  @@index([featured, status])
+  @@index([deletedAt])
+  @@map("property_design")
+}
+
+model PropertyDesignMedia {
+  id Int @id @default(autoincrement())
+  designId   Int
+  kind       MediaKind @default(IMAGE)
+  storageKey String
+  url        String
+  alt        String?
+  width      Int?
+  height     Int?
+  sortOrder  Int       @default(0)
+  isCover    Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  design PropertyDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@index([designId, sortOrder])
+  @@map("property_design_media")
+}
+
+model DesignTag {
+  id Int @id @default(autoincrement())
+  slug String @unique
+  name String @unique
+
+  /// @prismabox.hide
+  designs DesignTagOnDesign[]
+
+  @@map("design_tag")
+}
+
+/// @prismabox.hide
+model DesignTagOnDesign {
+  designId Int
+  tagId    Int
+
+  design PropertyDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
+  tag    DesignTag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([designId, tagId])
+  @@index([tagId])
+  @@map("design_tag_on_design")
+}
+
+// ============================================================
+// Lead & CRM
+// ============================================================
+
+enum LeadType {
+  BUY_DESIGN
+  LAND_OFFER
+  INVEST
+  GENERAL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+  SPAM
+}
+
+enum LeadPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum LeadSource {
+  WEBSITE
+  ORGANIC_SEARCH
+  SOCIAL
+  ADS
+  REFERRAL
+  WHATSAPP
+  EVENT
+  OTHER
+}
+
+enum ActivityType {
+  NOTE
+  STATUS_CHANGE
+  ASSIGNMENT
+  CALL
+  WHATSAPP
+  EMAIL
+  MEETING
+  SYSTEM
+}
+
+enum AttachmentKind {
+  LAND_PHOTO
+  DOCUMENT
+  OTHER
+}
+
+enum OwnershipStatus {
+  SHM
+  SHGB
+  AJB
+  GIRIK
+  LETTER_C
+  OTHER
+}
+
+enum ExpectedScheme {
+  BAGI_HASIL
+  SEWA
+  JUAL
+  BELUM_TAHU
+}
+
+enum StartTimeline {
+  IMMEDIATE
+  M3_6
+  M6_12
+  OVER_12
+  UNKNOWN
+}
+
+enum BudgetRange {
+  UNDER_500M
+  M500_1B
+  B1_5
+  B5_20
+  ABOVE_20B
+}
+
+enum RiskProfile {
+  CONSERVATIVE
+  MODERATE
+  AGGRESSIVE
+  UNKNOWN
+}
+
+enum InvestmentInstrument {
+  EQUITY
+  PROFIT_SHARE
+  FIXED_RETURN
+  OPEN
+}
+
+model Lead {
+  id String @id @default(uuid(7)) @db.Uuid
+  reference String     @unique
+  type      LeadType
+  status    LeadStatus @default(NEW)
+  priority  LeadPriority @default(NORMAL)
+
+  name            String
+  phone           String
+  phoneNormalized String
+  email           String?
+  city            String?
+  message         String? @db.Text
+
+  designId Int?
+  design   PropertyDesign? @relation(fields: [designId], references: [id], onDelete: SetNull)
+
+  source       LeadSource @default(WEBSITE)
+  landingPath  String?
+  referrerUrl  String?
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  utmContent   String?
+  utmTerm      String?
+  ipHash       String?
+  userAgent    String?
+
+  userId       String?
+  user         User?   @relation("LeadCreatedBy", fields: [userId], references: [id], onDelete: SetNull)
+  assignedToId String?
+  assignedTo   User?   @relation("LeadAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  estimatedValue   BigInt?
+  lostReason       String?
+  firstContactedAt DateTime?
+  lastContactedAt  DateTime?
+  nextFollowUpAt   DateTime?
+  closedAt         DateTime?
+  spamScore        Int       @default(0)
+  idempotencyKey   String?   @unique
+  customerNote     String?   @db.Text
+  customerNoteUpdatedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  landSubmission     LandSubmission?
+  investmentInterest InvestmentInterest?
+  activities         LeadActivity[]
+  attachments        LeadAttachment[]
+
+  @@index([status, createdAt])
+  @@index([type, status])
+  @@index([assignedToId, status])
+  @@index([phoneNormalized])
+  @@index([createdAt])
+  @@index([designId])
+  @@index([deletedAt])
+  @@map("lead")
+}
+
+model LandSubmission {
+  id Int @id @default(autoincrement())
+  leadId  String @unique @db.Uuid
+  address String
+
+  province String
+  city     String
+  district String?
+
+  areaM2            Int
+  frontageM         Int?
+  ownershipStatus   OwnershipStatus
+  certificateOnBehalf String?
+  zoning            String?
+  currentUse        String?
+  roadAccess        String?
+  estimatedValue    BigInt?
+  expectedScheme    ExpectedScheme
+  startTimeline     StartTimeline?
+  notes             String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([province, city])
+  @@map("land_submission")
+}
+
+model InvestmentInterest {
+  id Int @id @default(autoincrement())
+  leadId    String @unique @db.Uuid
+  budgetRange       BudgetRange
+  preferredLocations String[]
+  horizonMonths     Int?
+  riskProfile       RiskProfile @default(UNKNOWN)
+  instrument        InvestmentInstrument?
+  notes             String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("investment_interest")
+}
+
+model LeadActivity {
+  id Int @id @default(autoincrement())
+  leadId String @db.Uuid
+  type   ActivityType
+  body   String?      @db.Text
+  /// [LeadActivityMeta]
+  meta   Json?
+
+  actorId String?
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("lead_activity")
+}
+
+model LeadAttachment {
+  id Int @id @default(autoincrement())
+  leadId     String @db.Uuid
+  kind       AttachmentKind @default(LAND_PHOTO)
+  fileName   String
+  storageKey String
+  mimeType   String
+  sizeBytes  Int
+  createdAt  DateTime       @default(now())
+
+  uploadedById String?
+  uploadedBy   User?   @relation("AttachmentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@map("lead_attachment")
+}
+
+// ============================================================
+// Portofolio proyek
+// ============================================================
+
+enum ProjectStatus {
+  PLANNED
+  ONGOING
+  COMPLETED
+}
+
+model Project {
+  id Int @id @default(autoincrement())
+  slug        String        @unique
+  title       String
+  summary     String?
+  /// HTML tersanitasi (Tiptap)
+  description String?       @db.Text
+
+  location String
+  city     String
+  province String
+
+  status        ProjectStatus @default(ONGOING)
+  yearStarted   Int?
+  yearCompleted Int?
+  landAreaM2    Int?
+  unitCount     Int?
+
+  coverImageUrl String?
+  galleryUrls   String[]
+  isPublished   Boolean @default(false)
+  sortOrder     Int     @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdById String?
+  createdBy   User?   @relation("ProjectAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([isPublished, sortOrder])
+  @@index([status, yearCompleted])
+  @@index([deletedAt])
+  @@map("project")
+}
+
+// ============================================================
+// Konten
+// ============================================================
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Article {
+  id Int @id @default(autoincrement())
+  slug          String        @unique
+  title         String
+  excerpt       String?
+  /// HTML tersanitasi (Tiptap)
+  content       String        @db.Text
+  coverImageUrl String?
+  status        ArticleStatus @default(DRAFT)
+  publishedAt   DateTime?
+  readingMinutes Int?
+  tags          String[]
+  viewCount     Int           @default(0)
+  seoTitle      String?
+  seoDescription String?
+
+  authorId String?
+  author   User?   @relation("ArticleAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([status, publishedAt])
+  @@index([deletedAt])
+  @@map("article")
+}
+
+model Faq {
+  id Int @id @default(autoincrement())
+  question  String
+  answer    String  @db.Text
+  category  String  @default("umum")
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, sortOrder])
+  @@map("faq")
+}
+
+model Testimonial {
+  id Int @id @default(autoincrement())
+  name        String
+  role        String?
+  projectName String?
+  quote       String  @db.Text
+  avatarUrl   String?
+  isPublished Boolean @default(false)
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonial")
+}
+
+model SiteSetting {
+  key   String @id
+  /// [SiteSettingValue]
+  value Json
+
+  updatedById String?
+  updatedBy   User?   @relation("SettingUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("site_setting")
+}
+
+// ============================================================
+// Operasional
+// ============================================================
+
+model AuditLog {
+  id Int @id @default(autoincrement())
+  action     String
+  entityType String
+  entityId   String
+  /// [AuditSnapshot]
+  before     Json?
+  /// [AuditSnapshot]
+  after      Json?
+  ipHash     String?
+
+  actorId String?
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_log")
+}
+
+model FunnelEvent {
+  id Int @id @default(autoincrement())
+  name      String
+  path      String
+  designId  Int?
+  leadId    String? @db.Uuid
+  sessionId String?
+  /// [FunnelProps]
+  props     Json?
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([designId])
+  @@index([leadId])
+  @@map("funnel_event")
+}
+
+enum DeletionRequestStatus {
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+model AccountDeletionRequest {
+  id String @id @default(nanoid())
+  userId String
+  reason String?
+  status DeletionRequestStatus @default(PENDING)
+
+  requestedAt DateTime  @default(now())
+  handledAt   DateTime?
+  handledById String?
+  note        String?
+
+  user      User  @relation("DeletionRequestedBy", fields: [userId], references: [id], onDelete: Cascade)
+  handledBy User? @relation("DeletionRequestHandledBy", fields: [handledById], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([status, requestedAt])
+  @@map("account_deletion_request")
 }

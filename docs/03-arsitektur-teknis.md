@@ -257,6 +257,7 @@ Semua mutasi melewati API. SvelteKit **tidak** menulis ke DB.
 | Reset kata sandi | Via email, token sekali pakai berlaku 1 jam |
 | Base path | `/api/auth` |
 | Tabel | `user`, `session`, `account`, `verification` (skema di [04](./04-data-model.md)) |
+| Generator ID | `advanced.database.generateId` memakai `nanoid()` — bukan default Better Auth |
 | Adapter | `@better-auth/prisma-adapter` |
 | Plugin | `admin` (role, ban, impersonate) |
 | Cookie | `httpOnly`, `secure` (produksi), `sameSite=lax`, domain `.azetta.id` (produksi) |

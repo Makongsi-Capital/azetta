@@ -66,7 +66,11 @@ Aturan:
 ### 2.3 Waktu & ID
 
 - Semua timestamp: ISO 8601 UTC, contoh `2026-10-23T04:15:00.000Z`.
-- ID internal: `cuid` (string). Tidak pernah memakai urutan angka.
+- ID mengikuti jenis entitas:
+  - `Int` autoincrement untuk entitas internal (desain, media, tag, proyek, artikel, FAQ, testimoni, aktivitas lead, lampiran, audit log, funnel event).
+  - `nanoid()` untuk ID unik yang dikembalikan ke pengguna (`AccountDeletionRequest`).
+  - **UUIDv7** untuk `Lead.id` — urut waktu sekaligus tidak mudah ditebak (dipakai di `/akun/pengajuan/[id]`).
+  - Tabel Better Auth (`User`, `Session`, `Account`, `Verification`) memakai ID yang dibuat Better Auth.
 - `reference` lead: `AZT-{DS|LD|IV|GN}-{yyMM}-{5 char}` — mis. `AZT-LD-2610-K7Q2M`.
 
 ### 2.4 Tipe data khusus
@@ -258,7 +262,7 @@ Satu endpoint untuk tiga tipe. Skema bersifat diskriminatif berdasarkan `type`.
   "email": "budi@example.com",
   "city": "Bandung",
   "message": "Apakah bisa diubah jadi 3 kamar?",
-  "designId": "clx1",
+  "designId": 42,
   "consent": true,
   "turnstileToken": "0.abc…",
   "honeypot": "",
@@ -431,7 +435,7 @@ Memerlukan `requireUser` (sesi + `emailVerified = true`). **Semua** endpoint mem
 ```json
 {
   "data": {
-    "id": "usr_1",
+    "id": "9f2c1a7b4e8d4c6f9a0b1c2d3e4f5a6b",
     "name": "Budi Santoso",
     "email": "budi@example.com",
     "emailVerified": true,
@@ -450,7 +454,7 @@ Memerlukan `requireUser` (sesi + `emailVerified = true`). **Semua** endpoint mem
 {
   "data": [
     {
-      "id": "clx_lead_1",
+      "id": "0199a1c4-7f2b-7c3e-9a10-5d6f8b9c0d1e",
       "reference": "AZT-LD-2610-K7Q2M",
       "type": "LAND_OFFER",
       "statusLabel": "Sedang ditinjau",
@@ -489,7 +493,7 @@ Aturan:
 ```json
 {
   "data": {
-    "id": "cdr_1",
+    "id": "V1StGXR8_Z5jdHi6B-myT",
     "status": "PENDING",
     "reason": "Tidak lagi menggunakan layanan",
     "requestedAt": "2026-10-27T03:00:00.000Z",
@@ -506,8 +510,8 @@ Batch maks 20 event; dipakai untuk funnel internal. Bila analitik pihak ketiga a
 {
   "sessionId": "s_9f2c…",
   "events": [
-    { "name": "design_view", "path": "/desain/rumah-minimalis-2-lantai-6x12", "designId": "clx1", "props": { "source": "catalog" } },
-    { "name": "lead_form_start", "path": "/desain/rumah-minimalis-2-lantai-6x12", "designId": "clx1" }
+    { "name": "design_view", "path": "/desain/rumah-minimalis-2-lantai-6x12", "designId": 42, "props": { "source": "catalog" } },
+    { "name": "lead_form_start", "path": "/desain/rumah-minimalis-2-lantai-6x12", "designId": 42 }
   ]
 }
 ```

@@ -12,6 +12,14 @@
 4. **Semua waktu dalam UTC**, ditampilkan dalam `Asia/Jakarta`.
 5. **Uang dalam rupiah utuh** (`BigInt`), tanpa desimal. Serialisasi API: string (lihat [05 §2.4](./05-spesifikasi-api.md#24-tipe-data-khusus)).
 6. **Konten kaya disimpan sebagai HTML tersanitasi.** Editor admin memakai Tiptap; API menyimpan HTML setelah disanitasi ber-allowlist (D8). Markdown tidak dipakai.
+7. **Strategi ID.** `Int autoincrement` untuk entitas internal yang tidak diekspos; `nanoid()` untuk ID unik yang dikembalikan ke pengguna; **UUIDv7** untuk entitas yang butuh urutan waktu sekaligus tidak mudah ditebak. Tabel Better Auth memakai ID yang dibuat Better Auth, bukan default Prisma.
+
+| Kebutuhan | Tipe ID | Contoh model |
+|-----------|---------|--------------|
+| Urut, internal, tidak diekspos | `Int @id @default(autoincrement())` | `PropertyDesign`, `Project`, `Article`, `LeadActivity`, `AuditLog`, `FunnelEvent` |
+| Unik, dikembalikan ke pengguna | `String @id @default(nanoid())` | `AccountDeletionRequest` |
+| Urut waktu + acak (tidak mudah ditebak) | `String @id @default(uuid(7)) @db.Uuid` | `Lead` |
+| Dikelola Better Auth | `String @id` tanpa default; `generateId` → `nanoid()` | `User`, `Session`, `Account`, `Verification` |
 
 ## 2. ERD
 
@@ -49,7 +57,7 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 
 | Kolom | Tipe | Null | Default | Keterangan |
 |-------|------|:----:|---------|------------|
-| `id` | text | ✗ | cuid | PK |
+| `id` | uuid | ✗ | uuid v7 | PK |
 | `reference` | text | ✗ | — | Nomor manusiawi, mis. `AZT-LD-2610-A7K2Q`. Unik |
 | `type` | enum | ✗ | — | `BUY_DESIGN` / `LAND_OFFER` / `INVEST` / `GENERAL` |
 | `status` | enum | ✗ | `NEW` | Lihat [§3.6](#36-pipeline-status) |
@@ -60,7 +68,7 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 | `email` | text | ✓ | — | Wajib untuk `INVEST` |
 | `city` | text | ✓ | — | Kota pemohon (bukan selalu lokasi lahan) |
 | `message` | text | ✓ | — | Maks 1000 karakter |
-| `designId` | text | ✓ | — | Terisi untuk `BUY_DESIGN` |
+| `designId` | int | ✓ | — | Terisi untuk `BUY_DESIGN` |
 | `source` | enum | ✗ | `WEBSITE` | Kanal asal |
 | `landingPath` | text | ✓ | — | Path halaman saat submit |
 | `referrerUrl` | text | ✓ | — | Referrer (di-truncate 500 char) |
@@ -87,8 +95,8 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 
 | Kolom | Tipe | Null | Keterangan |
 |-------|------|:----:|------------|
-| `id` | text | ✗ | PK |
-| `leadId` | text | ✗ | Unik, FK ke `Lead` |
+| `id` | int | ✗ | PK (autoincrement) |
+| `leadId` | uuid | ✗ | Unik, FK ke `Lead` |
 | `address` | text | ✗ | Alamat lengkap (10–300) |
 | `province` / `city` / `district` | text | ✗/✗/✓ | Wilayah |
 | `areaM2` | int | ✗ | 50–1.000.000 |
@@ -107,8 +115,8 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 
 | Kolom | Tipe | Null | Keterangan |
 |-------|------|:----:|------------|
-| `id` | text | ✗ | PK |
-| `leadId` | text | ✗ | Unik |
+| `id` | int | ✗ | PK (autoincrement) |
+| `leadId` | uuid | ✗ | Unik |
 | `budgetRange` | enum | ✗ | `UNDER_500M`/`M500_1B`/`B1_5`/`B5_20`/`ABOVE_20B` |
 | `preferredLocations` | text[] | ✗ | Maks 5 kota |
 | `horizonMonths` | int | ✓ | 6–60 |
@@ -120,7 +128,7 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 
 | Kolom | Tipe | Null | Keterangan |
 |-------|------|:----:|------------|
-| `id` | text | ✗ | PK |
+| `id` | int | ✗ | PK (autoincrement) |
 | `slug` | text | ✗ | Unik, `kebab-case`, 3–80 |
 | `title` | text | ✗ | 5–120 |
 | `subtitle` | text | ✓ | Maks 160 |
@@ -212,7 +220,7 @@ Portofolio proyek (Q4). Tidak memiliki relasi ke `Lead` pada MVP — atribusi te
 
 | Kolom | Tipe | Null | Keterangan |
 |-------|------|:----:|------------|
-| `id` | text | ✗ | PK |
+| `id` | int | ✗ | PK (autoincrement) |
 | `slug` | text | ✗ | Unik, `kebab-case` |
 | `title` | text | ✗ | 5–120 |
 | `summary` | text | ✓ | Ringkasan 1–2 kalimat (kartu & meta) |
@@ -239,7 +247,7 @@ Permohonan hapus akun (Q12). Pemohon hanya **mengajukan**; admin memutuskan dan 
 
 | Kolom | Tipe | Null | Default | Keterangan |
 |-------|------|:----:|---------|------------|
-| `id` | text | ✗ | cuid | PK |
+| `id` | text | ✗ | nanoid | PK |
 | `userId` | text | ✗ | — | Pemohon |
 | `reason` | text | ✓ | — | Alasan, maks 500 karakter |
 | `status` | enum | ✗ | `PENDING` | `PENDING` / `COMPLETED` / `REJECTED` |
@@ -295,17 +303,6 @@ generator prismabox {
 datasource db {
   provider = "postgresql"
 }
-```
-
-Ketiga generator dijalankan oleh `bun run db:generate` dari `packages/db`:
-
-| Generator | Output | Dipakai oleh |
-|-----------|--------|--------------|
-| `client` | `packages/db/src/generated/prisma` | API (`@azetta/db`) dan tipe di web (`import type`) |
-| `json` | memperkaya tipe `Json` di client | API |
-| `prismabox` | `packages/db/src/generated/prismabox` | API lewat subpath `@azetta/db/prismabox`; frontend hanya boleh `import type` |
-
-Karena `allowAny = false`, setiap field `Json` wajib diberi anotasi `/// [Tipe]` dan tipe tersebut dideklarasikan pada namespace global `PrismaJson`.
 
 // ============================================================
 // Better Auth
@@ -426,7 +423,7 @@ enum MediaKind {
 }
 
 model PropertyDesign {
-  id          String  @id @default(cuid())
+  id Int @id @default(autoincrement())
   slug        String  @unique
   title       String
   subtitle    String?
@@ -458,6 +455,7 @@ model PropertyDesign {
   deletedAt DateTime?
 
   media PropertyDesignMedia[]
+  /// @prismabox.hide
   tags  DesignTagOnDesign[]
   leads Lead[]
 
@@ -469,8 +467,8 @@ model PropertyDesign {
 }
 
 model PropertyDesignMedia {
-  id         String    @id @default(cuid())
-  designId   String
+  id Int @id @default(autoincrement())
+  designId   Int
   kind       MediaKind @default(IMAGE)
   storageKey String
   url        String
@@ -488,18 +486,20 @@ model PropertyDesignMedia {
 }
 
 model DesignTag {
-  id   String @id @default(cuid())
+  id Int @id @default(autoincrement())
   slug String @unique
   name String @unique
 
+  /// @prismabox.hide
   designs DesignTagOnDesign[]
 
   @@map("design_tag")
 }
 
+/// @prismabox.hide
 model DesignTagOnDesign {
-  designId String
-  tagId    String
+  designId Int
+  tagId    Int
 
   design PropertyDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
   tag    DesignTag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
@@ -613,7 +613,7 @@ enum InvestmentInstrument {
 }
 
 model Lead {
-  id        String     @id @default(cuid())
+  id String @id @default(uuid(7)) @db.Uuid
   reference String     @unique
   type      LeadType
   status    LeadStatus @default(NEW)
@@ -626,7 +626,7 @@ model Lead {
   city            String?
   message         String? @db.Text
 
-  designId String?
+  designId Int?
   design   PropertyDesign? @relation(fields: [designId], references: [id], onDelete: SetNull)
 
   source       LeadSource @default(WEBSITE)
@@ -676,8 +676,8 @@ model Lead {
 }
 
 model LandSubmission {
-  id      String @id @default(cuid())
-  leadId  String @unique
+  id Int @id @default(autoincrement())
+  leadId  String @unique @db.Uuid
   address String
 
   province String
@@ -706,8 +706,8 @@ model LandSubmission {
 }
 
 model InvestmentInterest {
-  id        String @id @default(cuid())
-  leadId    String @unique
+  id Int @id @default(autoincrement())
+  leadId    String @unique @db.Uuid
   budgetRange       BudgetRange
   preferredLocations String[]
   horizonMonths     Int?
@@ -724,10 +724,11 @@ model InvestmentInterest {
 }
 
 model LeadActivity {
-  id     String       @id @default(cuid())
-  leadId String
+  id Int @id @default(autoincrement())
+  leadId String @db.Uuid
   type   ActivityType
   body   String?      @db.Text
+  /// [LeadActivityMeta]
   meta   Json?
 
   actorId String?
@@ -743,8 +744,8 @@ model LeadActivity {
 }
 
 model LeadAttachment {
-  id         String         @id @default(cuid())
-  leadId     String
+  id Int @id @default(autoincrement())
+  leadId     String @db.Uuid
   kind       AttachmentKind @default(LAND_PHOTO)
   fileName   String
   storageKey String
@@ -772,7 +773,7 @@ enum ProjectStatus {
 }
 
 model Project {
-  id          String        @id @default(cuid())
+  id Int @id @default(autoincrement())
   slug        String        @unique
   title       String
   summary     String?
@@ -821,7 +822,7 @@ enum ArticleStatus {
 }
 
 model Article {
-  id            String        @id @default(cuid())
+  id Int @id @default(autoincrement())
   slug          String        @unique
   title         String
   excerpt       String?
@@ -849,7 +850,7 @@ model Article {
 }
 
 model Faq {
-  id        String  @id @default(cuid())
+  id Int @id @default(autoincrement())
   question  String
   answer    String  @db.Text
   category  String  @default("umum")
@@ -864,7 +865,7 @@ model Faq {
 }
 
 model Testimonial {
-  id          String  @id @default(cuid())
+  id Int @id @default(autoincrement())
   name        String
   role        String?
   projectName String?
@@ -881,6 +882,7 @@ model Testimonial {
 
 model SiteSetting {
   key   String @id
+  /// [SiteSettingValue]
   value Json
 
   updatedById String?
@@ -896,11 +898,13 @@ model SiteSetting {
 // ============================================================
 
 model AuditLog {
-  id         String   @id @default(cuid())
+  id Int @id @default(autoincrement())
   action     String
   entityType String
   entityId   String
+  /// [AuditSnapshot]
   before     Json?
+  /// [AuditSnapshot]
   after      Json?
   ipHash     String?
 
@@ -915,12 +919,13 @@ model AuditLog {
 }
 
 model FunnelEvent {
-  id        String   @id @default(cuid())
+  id Int @id @default(autoincrement())
   name      String
   path      String
-  designId  String?
-  leadId    String?
+  designId  Int?
+  leadId    String? @db.Uuid
   sessionId String?
+  /// [FunnelProps]
   props     Json?
   createdAt DateTime @default(now())
 
@@ -937,7 +942,7 @@ enum DeletionRequestStatus {
 }
 
 model AccountDeletionRequest {
-  id     String                @id @default(cuid())
+  id String @id @default(nanoid())
   userId String
   reason String?
   status DeletionRequestStatus @default(PENDING)
@@ -956,20 +961,36 @@ model AccountDeletionRequest {
 }
 ```
 
+Ketiga generator dijalankan oleh `bun run db:generate` dari `packages/db`:
+
+| Generator | Output | Dipakai oleh |
+|-----------|--------|--------------|
+| `client` | `packages/db/src/generated/prisma` | API (`@azetta/db`) dan tipe di web (`import type`) |
+| `json` | memperkaya tipe `Json` di client | API |
+| `prismabox` | `packages/db/src/generated/prismabox` | API lewat subpath `@azetta/db/prismabox`; frontend hanya boleh `import type` |
+
+Karena `allowAny = false`, setiap field `Json` wajib diberi anotasi `/// [Tipe]` dan tipe tersebut dideklarasikan pada namespace global `PrismaJson` (lihat `packages/db/src/json-types.ts`). Relasi many-to-many eksplisit `DesignTagOnDesign` disembunyikan dari Prismabox dengan `/// @prismabox.hide` karena Prismabox belum mendukung composite ID pada relasi; Prisma Client tetap memuat model tersebut.
+
+
 ### 4.1 Inisialisasi Prisma Client
 
 ```ts
 // apps/api/src/lib/prisma.ts
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@azetta/db';
-import { env } from '../env';
+import { createPrismaClient } from '@azetta/db';
+import { getEnv } from '../env';
 
-const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
+const env = getEnv();
 
-export const prisma = new PrismaClient({ adapter });
+const globalForPrisma = globalThis as typeof globalThis & {
+	prisma?: ReturnType<typeof createPrismaClient>;
+};
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient(env.DATABASE_URL);
+
+if (env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 ```
 
-Klien dibuat sekali per proses (singleton) dan hanya diimpor oleh `apps/api`. Frontend tidak pernah mengimpor `@azetta/db`.
+Klien dibuat sekali per proses (singleton) dan hanya diimpor **runtime** oleh `apps/api`. Frontend hanya boleh mengimpor tipe (`import type`).
 
 ## 5. Index & pencarian
 

@@ -1,7 +1,7 @@
 name: azetta
 
 services:
-  postgres:
+  db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -17,6 +17,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - ${ADMINER_PORT}:8080 # untuk kepentingan dev saja kalau nda mau pusing buat db
 
   mailpit:
     image: axllent/mailpit:latest
