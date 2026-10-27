@@ -1,0 +1,42 @@
+{
+	"name": "azetta",
+	"private": true,
+	"type": "module",
+	"packageManager": "bun@1.4.4",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "bun run --filter './apps/*' --parallel dev",
+		"dev:api": "bun run --filter @azetta/api dev",
+		"dev:web": "bun run --filter @azetta/web dev",
+		"dev:admin": "bun run --filter @azetta/admin dev",
+		"build": "bun run --filter './apps/*' --sequential build",
+		"check": "bun run --filter './apps/*' --sequential check",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"test": "bun run --filter @azetta/api test",
+		"test:e2e": "bun run --filter @azetta/web test:e2e",
+		"prepare": "husky"
+	},
+	"lint-staged": {
+		"*.{ts,js,svelte}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{json,md,css,yml,yaml}": "prettier --write"
+	},
+	"devDependencies": {
+		"@azetta/config": "workspace:*",
+		"concurrently": "^10.0.6",
+		"eslint": "^10.13.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^17.6.0",
+		"prettier": "^3.9.10",
+		"prettier-plugin-svelte": "^4.1.1",
+		"typescript": "^6.0.3"
+	}
+}

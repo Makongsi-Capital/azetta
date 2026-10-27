@@ -179,8 +179,8 @@ bun run build
 | Auth | Better Auth | Sesi di DB, plugin admin, adapter Prisma, dukungan TypeScript penuh | Auth.js (lebih terikat Next), implementasi sendiri (rawan celah) |
 | ORM | Prisma | Skema deklaratif, migrasi jelas, tipe kuat | Drizzle (lebih ringan, tapi ekosistem migrasi kurang terintegrasi) |
 | DB | PostgreSQL 16 | Transaksi, tipe JSONB, full-text, andal | MySQL (tidak dipilih: butuh JSONB & FTS) |
-| Web publik | SvelteKit 2 + `adapter-node` | SSR, routing berbasis file, form actions, ukuran bundel kecil | Next.js (lebih berat, ekosistem besar) |
-| Admin | SvelteKit 2 (app terpisah) | Isolasi origin & bundel, guard di server | Route group `/(admin)` di app yang sama (risiko bocor bundel & konfigurasi) |
+| Web publik | SvelteKit 3 + `adapter-node` | SSR, routing berbasis file, form actions, ukuran bundel kecil | Next.js (lebih berat, ekosistem besar) |
+| Admin | SvelteKit 3 (app terpisah) | Isolasi origin & bundel, guard di server | Route group `/(admin)` di app yang sama (risiko bocor bundel & konfigurasi) |
 | CSS | Tailwind CSS 4 + daisyUI 5 | Komponen siap pakai, tema mudah diubah | CSS-in-JS, Bootstrap |
 | Ikon | Iconify (`@iconify/svelte`) | Ikon on-demand, tidak menambah banyak bobot | Font icon |
 | Kontrak | TypeBox | Dipakai native Elysia; bisa dipakai validasi klien | Zod (butuh lapisan konversi ekstra di Elysia) |
