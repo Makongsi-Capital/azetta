@@ -8,13 +8,13 @@
 
 Dokumen ini mencatat tiga hal yang menentukan keberhasilan rencana:
 
-1. **Keputusan atas pertanyaan terbuka** — sudah dijawab seluruhnya pada v1.1; pertanyaan baru dicatat terpisah.
+1. **Keputusan atas pertanyaan terbuka** — Q1–Q10 dijawab pada v1.1, Q11–Q12 dijawab pada v1.2 (27 Oktober 2026); rincian yang sengaja ditunda dicatat terpisah.
 2. **Keputusan arsitektur/produk** — agar tidak diperdebatkan ulang tanpa alasan baru.
 3. **Risiko** — beserta mitigasi dan pemiliknya.
 
 ## 2. Keputusan atas pertanyaan terbuka
 
-Seluruh pertanyaan di bawah **sudah dijawab** pada 23 Oktober 2026 oleh pemilik produk. Jawaban ini menjadi baseline dokumen versi 1.1 dan sudah diterapkan ke seluruh dokumen terkait.
+Seluruh pertanyaan di bawah **sudah dijawab**: Q1–Q10 pada 23 Oktober 2026 (v1.1) dan Q11–Q12 pada 27 Oktober 2026 (v1.2). Jawaban ini menjadi baseline dan sudah diterapkan ke seluruh dokumen terkait.
 
 | # | Pertanyaan | Keputusan | Dampak ke dokumen |
 |---|------------|-----------|-------------------|
@@ -28,13 +28,15 @@ Seluruh pertanyaan di bawah **sudah dijawab** pada 23 Oktober 2026 oleh pemilik 
 | Q8 | Estimasi biaya bangun ditampilkan publik? | **Tidak** — hanya dipakai internal sales | Field tetap ada di DB sebagai data internal, tidak dikirim API publik; [06 §4.3](./06-ux-sitemap-wireframe.md#43-detail-desain-desainslug) |
 | Q9 | Penanggung jawab konten | **Belum ada PIC khusus**; dikerjakan tim internal secara best-effort, opsi penambahan tetap terbuka | Risiko R1 naik; [10 §8](./10-seo-konten.md#8-kalender-konten) |
 | Q10 | Badan hukum & dokumen perusahaan | **Belum ada**; halaman Pengaturan menyediakan unggah dokumen agar bisa ditambahkan kemudian | Setting `legal` + unggah berkas; [06 §4.8](./06-ux-sitemap-wireframe.md#48-tentang-tentang) |
+| Q11 | Apakah akun publik memakai verifikasi email wajib? | **Ya** — akun wajib memverifikasi email sebelum dapat melihat pengajuan | [01 FR-ACC-02](./01-prd.md#55-modul-akun-publik), [03 §6.1](./03-arsitektur-teknis.md#61-konfigurasi-better-auth) |
+| Q12 | Apakah pemilik akun boleh menghapus akun sendiri di MVP? | **Hanya mengajukan permohonan** — pemohon mengirim permohonan dari `/akun/profil`; admin melihatnya sebagai daftar dan memproses penghapusan. Penghapusan/anonimisasi otomatis ditunda | Model `AccountDeletionRequest`, endpoint `/me/deletion-request` & `/admin/account-deletion-requests`, halaman profil + admin, Sprint 5 (+2 pd); [04 §3.8](./04-data-model.md#38-accountdeletionrequest), [05 §4.7](./05-spesifikasi-api.md#47-akun-saya) |
 
-Pertanyaan baru yang muncul setelah baseline ini dicatat pada tabel berikut, bukan ditambahkan sebagai asumsi diam-diam.
+Rincian yang sengaja **belum diputuskan** (tidak memblokir MVP, tetapi harus jelas sebelum rilis):
 
-| # | Pertanyaan baru | Status | Dibutuhkan sebelum |
-|---|-----------------|--------|--------------------|
-| Q11 | Apakah akun publik memakai verifikasi email wajib? | Diasumsikan **ya** (mencegah spam & memungkinkan reset kata sandi) | Sprint 5 |
-| Q12 | Apakah pemilik akun boleh menghapus akun sendiri di MVP? | Diasumsikan **belum**; penghapusan/anonimisasi via permintaan manual ≤ 30 hari | Sprint 5 |
+| # | Rincian | Status | Dibutuhkan sebelum |
+|---|---------|--------|--------------------|
+| Q12a | Mekanisme penghapusan/anonimisasi setelah permohonan disetujui (manual vs job, perlakuan data lead) | **Ditunda** — pada MVP admin memproses manual di luar sistem; target ≤ 30 hari tetap berlaku | Sprint 7 (sebelum rilis) |
+| Q12b | Apakah permohonan dapat dibatalkan pemohon sebelum diproses | **Ditunda** — belum ada endpoint pembatalan | Sprint 5 |
 
 ## 3. Log keputusan (ADR ringkas)
 
@@ -51,11 +53,12 @@ Pertanyaan baru yang muncul setelah baseline ini dicatat pada tabel berikut, buk
 | D9 | **Cloudflare R2** untuk media | Murah, egress gratis, kompatibel S3 | Bergantung pada Cloudflare | Disk VPS, S3 |
 | D10 | **Tanpa Redis** di MVP | Skala awal tidak membutuhkan; mengurangi komponen | Rate limit per instance; tidak boleh multi-replika tanpa Redis | Redis sejak awal |
 | D11 | **Hanya bahasa Indonesia** | Pasar awal Indonesia; mengurangi effort & risiko konten | Investor asing belum terlayani | ID+EN |
-| D12 | **8 sprint / ±15 minggu** | Tambahan akun publik & portofolio proyek menaikkan effort | Beban developer 97% kapasitas; tanpa buffer lingkup | 7 sprint dengan lingkup lama |
+| D12 | **8 sprint / ±15 minggu** | Tambahan akun publik & portofolio proyek menaikkan effort | Beban developer 98% kapasitas; tanpa buffer lingkup | 7 sprint dengan lingkup lama |
 | D13 | **Portofolio proyek masuk MVP** | Ada proyek yang boleh dipublikasikan (Q4); bukti sosial penting untuk lahan & investasi | +1 model, +2 halaman, +CRUD admin | Menunda proyek ke fase 2 |
 | D14 | **Estimasi biaya bangun tidak ditampilkan publik** | Menghindari ekspektasi harga yang tidak mengikat (Q8) | Data tetap disimpan untuk sales; UI publik tidak memuatnya | Menampilkan dengan disclaimer |
 | D15 | **Tanpa WhatsApp gateway** | Email dinilai cukup pada volume awal (Q7) | Notifikasi bergantung pada email; risiko email masuk spam dimitigasi dengan domain terautentikasi | Gateway berbayar sejak MVP |
 | D16 | **Satu peran internal (`admin`) + `super_admin`** | Semua lead ditangani admin (Q6); peran tambahan tanpa pembedaan tugas hanya menambah kompleksitas | Tidak ada pembatasan per tim; kehati-hatian lewat audit log | Peran `staff` dengan akses terbatas |
+| D17 | **Hapus akun lewat permohonan ke admin**, bukan self-service | Pemilik produk memutuskan (Q12); penghapusan menyentuh data lead dan kewajiban retensi sehingga perlu keputusan admin | Ada daftar permohonan di panel admin; penghapusan data tetap manual di MVP; tidak ada tombol hapus langsung | Penghapusan mandiri seketika; tiket manual lewat email |
 
 Keputusan dapat diubah, tetapi perubahan harus mencatat: alasan baru, dampak jadwal/biaya, dan siapa yang menyetujui.
 
@@ -88,6 +91,7 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 | R21 | Publikasi proyek melanggar kerahasiaan klien/investor | Legal/Relasi | 2 | 4 | 8 | Persetujuan tertulis per proyek sebelum publish; field `isPublished` default `false`; tanpa angka keuangan sensitif | Manajemen |
 | R22 | Tanpa estimasi biaya publik, calon pembeli desain ragu atau membanjiri sales dengan pertanyaan harga | Bisnis | 3 | 2 | 6 | Tampilkan `priceFrom` paket desain, FAQ biaya, artikel estimasi biaya sebagai jawaban tidak langsung | Marketing |
 | R23 | Semua lead ditangani satu tim admin tanpa routing → lead menumpuk saat sibuk | Operasional | 3 | 3 | 9 | Antrean tunggal + prioritas + filter "belum dihubungi"; tinjauan harian; opsi routing di fase 2 | Sales lead |
+| R24 | Permohonan hapus akun menumpuk dan melewati target ≤ 30 hari | Legal/Operasional | 3 | 4 | 12 | Daftar `PENDING` di panel admin, tinjauan mingguan, penanggung jawab eksplisit, catat tanggal proses | Manajemen |
 
 ### 4.1 Rencana respons risiko tinggi (skor ≥ 15)
 
@@ -103,6 +107,7 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 |---------|-------|-----------|--------|------|
 | 2026-10-23 | 1.0 | Dokumen awal dibuat | Perencanaan MVP | — |
 | 2026-10-23 | 1.1 | Q1–Q10 dijawab; **akun publik** dan **portofolio proyek** masuk MVP; peran `staff` dihapus; estimasi biaya bangun tidak ditampilkan; WhatsApp gateway dihapus; effort 155 → 185 pd; jadwal 7 → 8 sprint | Keputusan pemilik produk atas pertanyaan terbuka | Pemilik produk |
+| 2026-10-27 | 1.2 | Q11 dijawab (verifikasi email wajib); Q12 dijawab (**permohonan hapus akun** lewat admin, tanpa self-service); model + endpoint + halaman terkait; effort 185 → 187 pd | Keputusan pemilik produk atas pertanyaan lanjutan | Pemilik produk |
 
 ## 6. Dependensi eksternal
 

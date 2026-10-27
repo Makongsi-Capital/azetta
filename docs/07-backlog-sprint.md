@@ -15,6 +15,7 @@
 **Asumsi kapasitas:** 2 developer full-time (1 backend-leaning, 1 frontend-leaning), desainer paruh waktu, QA paruh waktu. Kapasitas developer per sprint 2 minggu = 20 pd; Sprint 0 = 1 minggu = 10 pd.
 
 **Perubahan v1.1:** akun publik (Q1) dan portofolio proyek (Q4) masuk MVP; peran `staff` dihapus (Q6); WhatsApp gateway dihapus (Q7); estimasi biaya bangun tidak ditampilkan (Q8). Jadwal menjadi 8 sprint (±15 minggu).
+**Perubahan v1.2:** permohonan hapus akun masuk MVP (Q12, +2 pd di Sprint 5); verifikasi email dikonfirmasi wajib (Q11).
 
 ## 2. Ringkasan epic
 
@@ -103,7 +104,7 @@
 | E4-06 | Pengguna & audit log | Super admin dapat membuat/menonaktifkan pengguna internal & mengubah peran; daftar pelanggan baca saja; tidak bisa menonaktifkan diri | 2 | E3-01 |
 | E4-07 | CRUD proyek + publish | Form proyek + galeri (maks 10 URL); draft/publish/unpublish; cover wajib saat publish; hanya publish tampil publik | 2 | E4-02 |
 
-### Sprint 5 — Akun publik (18 pd)
+### Sprint 5 — Akun publik (20 pd)
 
 **Sprint goal:** pengunjung dapat mendaftar, memverifikasi email, dan melihat status pengajuannya sendiri tanpa bisa melihat data orang lain.
 
@@ -115,6 +116,7 @@
 | E5-04 | Halaman `Akun saya` | Daftar pengajuan, detail dengan linimasa status ramah pengguna, profil, ganti kata sandi; empty state; `noindex`; mobile rapi | 4 | E5-03, E1-01 |
 | E5-05 | Catatan untuk pemohon | Admin dapat menulis `customerNote`; tampil di `/akun`; tidak ada data internal; perubahan tercatat di audit | 2 | E5-04, E3-04 |
 | E5-06 | E2E + uji isolasi data | E2E daftar → verifikasi (mailpit) → lihat pengajuan; uji dua akun tidak dapat saling melihat (IDOR); uji belum verifikasi | 1 | E5-04 |
+| E5-07 | Permohonan hapus akun | API `POST/GET /me/deletion-request`; satu `PENDING` per akun (`409` bila duplikat); status tampil di profil; admin melihat daftar & menandai `COMPLETED`/`REJECTED` + audit; akun tetap aktif; **tanpa** penghapusan otomatis | 2 | E5-03, E5-04, E3-01 |
 
 ### Sprint 6 — Konten & kualitas (17 pd)
 
@@ -156,14 +158,14 @@
 | 2 | 2 minggu | 20 pd | 20 pd | Lead | Kirim 3 jenis lead |
 | 3 | 2 minggu | 20 pd | 20 pd | CRM | Kelola lead end-to-end |
 | 4 | 2 minggu | 20 pd | 20 pd | CMS & proyek | Tambah desain, proyek, artikel |
-| 5 | 2 minggu | 20 pd | 18 pd | Akun publik | Daftar → verifikasi → pantau status |
+| 5 | 2 minggu | 20 pd | 20 pd | Akun publik | Daftar → verifikasi → pantau status |
 | 6 | 2 minggu | 20 pd | 17 pd | Konten & kualitas | Situs lengkap + skor audit |
 | 7 | 2 minggu | 20 pd | 20 pd | Rilis | Produksi |
-| **Total** | **15 minggu** | **150 pd** | **145 pd** | | |
+| **Total** | **15 minggu** | **150 pd** | **147 pd** | | |
 
-Beban developer 145/150 pd ≈ **97% kapasitas**. Sangat ketat: satu hambatan 3 hari akan menggeser rilis. Jika ingin buffer 15%, tambahkan 2–3 minggu (total ±17–18 minggu) atau kurangi lingkup (mis. tunda portofolio proyek ke fase 2).
+Beban developer 147/150 pd ≈ **98% kapasitas**. Sangat ketat: satu hambatan 3 hari akan menggeser rilis. Jika ingin buffer 15%, tambahkan 2–3 minggu (total ±17–18 minggu) atau kurangi lingkup (mis. tunda portofolio proyek ke fase 2).
 
-Effort non-developer (tidak masuk 145 pd): desain UI 17 pd, QA 15 pd, konten 8 pd. Rincian: [08 §3](./08-estimasi-biaya.md#3-rincian-effort).
+Effort non-developer (tidak masuk 147 pd): desain UI 17 pd, QA 15 pd, konten 8 pd. Rincian: [08 §3](./08-estimasi-biaya.md#3-rincian-effort).
 
 ## 5. Jalur kritis
 
@@ -215,7 +217,7 @@ Dicatat agar tidak hilang; **tidak** masuk estimasi MVP.
 | F2-01 | Pembayaran online + order desain | Monetisasi langsung |
 | F2-02 | Unduhan file desain otomatis | Skalabilitas penjualan |
 | F2-03 | Favorit, notifikasi email/WA, ubah email sendiri | Retensi pengguna |
-| F2-04 | Hapus akun mandiri | Kepatuhan & kenyamanan |
+| F2-04 | Penghapusan akun otomatis/self-service (tanpa campur tangan admin) | Kepatuhan & kenyamanan |
 | F2-05 | Dashboard investor (proyek, laporan, distribusi) | Kepercayaan investor |
 | F2-06 | WhatsApp Business API (notifikasi & balasan otomatis) | Kecepatan respons |
 | F2-07 | Pengingat follow-up & routing lead per tim | Disiplin sales |

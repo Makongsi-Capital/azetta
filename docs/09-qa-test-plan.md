@@ -113,6 +113,7 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 | TC-ADM-14 | Dashboard setelah lead baru | Angka bertambah konsisten dengan daftar |
 | TC-ADM-15 | Tulis `customerNote` pada lead | Tersimpan; muncul di `/akun` pemilik; tidak memuat data internal |
 | TC-ADM-16 | Daftar pelanggan (`/pelanggan`) | Hanya baca; tidak menampilkan kata sandi/token |
+| TC-ADM-17 | Tandai permohonan hapus akun selesai | Status `COMPLETED`; hilang dari daftar `PENDING`; aksi tercatat di audit; data **tidak** terhapus otomatis |
 
 ### 5.3a Akun publik
 
@@ -136,6 +137,8 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 | TC-ACC-16 | Ganti kata sandi dengan sandi lama salah | Ditolak; pesan jelas |
 | TC-ACC-17 | Label status | Tidak ada istilah internal (`QUALIFIED`, `SPAM`) yang tampil |
 | TC-ACC-18 | Sesi kedaluwarsa saat membuka detail pengajuan | Redirect login; setelah login kembali ke pengajuan |
+| TC-ACC-19 | Ajukan hapus akun dari profil | `201`; status `PENDING` tampil; akun **masih aktif** dan bisa login |
+| TC-ACC-20 | Ajukan hapus akun dua kali | Permintaan kedua → `409 DUPLICATE_REQUEST`; tidak ada data yang terhapus otomatis |
 
 ### 5.3b Proyek
 
@@ -255,12 +258,12 @@ Aturan: setiap PR yang menambah > 25 KB JS harus disertai alasan di deskripsi PR
 | P2 | Transparansi | Kebijakan privasi menjelaskan data, tujuan, retensi | Dokumen tayang |
 | P3 | Minimasi | Hanya field yang dipakai; tanpa NIK | Review skema DB |
 | P4 | Retensi | Anonimisasi 24 bulan; spam 90 hari | Job + log |
-| P5 | Hak akses & hapus | Prosedur manual ≤ 30 hari (form/email) | SOP tertulis |
+| P5 | Hak akses & hapus | Prosedur manual ≤ 30 hari (permohonan di `/akun/profil` atau email) | SOP tertulis |
 | P6 | Keamanan | Enkripsi transport, akses berbasis peran, audit log | Checklist §7 |
 | P7 | Pemroses pihak ketiga | Daftar vendor (hosting, email, storage) + perjanjian | Daftar vendor |
 | P8 | Insiden | Prosedur notifikasi kebocoran | Runbook |
 | P9 | Data akun | Hanya email + profil minimal; tidak ada NIK/alamat lengkap wajib | Review skema `user` |
-| P10 | Hak subjek data akun | Permintaan hapus via halaman bantuan; anonimisasi + cabut sesi ≤ 30 hari | SOP + uji |
+| P10 | Hak subjek data akun | Permintaan hapus via `/akun/profil` → daftar admin; anonimisasi + cabut sesi ≤ 30 hari | SOP + uji |
 | P11 | Anak di bawah umur | Form menyatakan layanan untuk 18+; tidak ada verifikasi usia khusus di MVP | Teks syarat |
 
 ## 11. UAT (User Acceptance Test)

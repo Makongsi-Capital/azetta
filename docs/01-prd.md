@@ -161,7 +161,8 @@ Semua pengguna internal memakai peran `admin`; `super_admin` hanya untuk mengelo
 | **Akun publik** | Registrasi, login, verifikasi email, reset kata sandi | ✅ | | Better Auth; verifikasi wajib (Q1) |
 | | Halaman "Akun saya": profil + daftar pengajuan | ✅ | | Melihat status & catatan dari tim |
 | | Detail pengajuan + riwayat status | ✅ | | Terbatas pada pengajuan milik sendiri |
-| | Hapus akun mandiri | ❌ | ✅ | MVP: permintaan manual ≤ 30 hari |
+| | Permohonan hapus akun | ✅ | | Diajukan dari `/akun/profil`; tampil sebagai daftar di admin; penghapusan/anonimisasi diproses manual (Q12) |
+| | Hapus akun mandiri (otomatis) | ❌ | ✅ | Fase 2 — butuh alur penghapusan otomatis |
 | | Favorit, notifikasi, chat | ❌ | ✅ | — |
 | **Panel admin** | Login & manajemen sesi | ✅ | | Peran `admin` / `super_admin` |
 | | CRM lead (list, filter, detail, aktivitas, assignment, ekspor) | ✅ | | Semua lead ditangani admin (Q6) |
@@ -197,6 +198,7 @@ MVP dinyatakan selesai bila seluruh butir berikut benar:
 7. Lighthouse mobile ≥ 90 untuk Performance, Accessibility, Best Practices, SEO pada 4 halaman utama.
 8. Checklist keamanan di [09 §7](./09-qa-test-plan.md#7-checklist-keamanan) lulus.
 9. UAT oleh perwakilan sales dan manajemen disetujui.
+10. Pemohon dapat mengajukan hapus akun dan permohonan tersebut tampil di daftar admin (penghapusan data dilakukan manual, di luar sistem).
 
 ## 5. Kebutuhan fungsional
 
@@ -262,6 +264,7 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | FR-ADM-17 | CRUD proyek + galeri gambar | M | Publish manual; proyek tidak publish tidak tampil di web |
 | FR-ADM-18 | Unggah aset merek & dokumen legal di Pengaturan | M | Logo, dokumen PDF; URL tersimpan di setting; hanya `admin` |
 | FR-ADM-19 | Tulis catatan untuk pemohon pada lead | M | Tampil di halaman akun pemohon; tanpa data internal |
+| FR-ADM-20 | Daftar permohonan hapus akun + tandai selesai/ditolak | M | Hanya menampilkan permohonan `PENDING` secara default; aksi tercatat di audit; penghapusan data dilakukan manual |
 
 ### 5.4 Modul analitik
 
@@ -283,7 +286,7 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | FR-ACC-05 | Detail pengajuan menampilkan status ramah pengguna & catatan tim | M | Status internal dipetakan (lihat [05 §4.7](./05-spesifikasi-api.md#47-akun-saya)); tanpa catatan internal |
 | FR-ACC-06 | Ubah profil (nama, WhatsApp, kota) & kata sandi | M | Perubahan tercatat di audit ringan; email tidak dapat diubah sendiri di MVP |
 | FR-ACC-07 | Pengajuan tanpa akun tetap dapat ditautkan nanti | S | Setelah verifikasi email yang sama, pengajuan dengan email tersebut otomatis tertaut |
-| FR-ACC-08 | Permintaan hapus akun lewat halaman bantuan | S | Membuat tiket manual; diproses ≤ 30 hari |
+| FR-ACC-08 | Ajukan hapus akun dari `/akun/profil` | M | Membuat `AccountDeletionRequest` berstatus `PENDING`; status permohonan tampil; akun tetap aktif sampai admin memproses; maksimal satu permohonan aktif per akun |
 | FR-ACC-09 | Sesi akun 30 hari, dapat dilihat & diakhiri dari perangkat lain | C | Daftar sesi sederhana |
 
 ## 6. Kebutuhan non-fungsional
@@ -345,8 +348,7 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | A5 | Layanan email transaksional tersedia untuk notifikasi | Notifikasi jatuh ke alternatif WhatsApp/grup |
 | A6 | Data wilayah Indonesia (provinsi/kabupaten) tersedia (statis atau API) | Dropdown wilayah harus disederhanakan jadi input bebas |
 | A7 | Tidak ada kebutuhan audit keamanan formal (ISO/PCI) di fase MVP | Pengerasan & dokumentasi tambahan |
-| A8 | Verifikasi email dipakai untuk semua akun publik (Q11) | Tanpa verifikasi, spam akun naik & reset kata sandi tidak aman |
-| A9 | Proyek yang dipublikasikan telah mendapat persetujuan pemilik proyek | Risiko kerahasiaan & relasi (R21) |
+| A8 | Proyek yang dipublikasikan telah mendapat persetujuan pemilik proyek | Risiko kerahasiaan & relasi (R21) |
 
 ## 9. Pertanyaan yang sudah dijawab
 
@@ -363,8 +365,10 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | Bahasa? | Indonesia saja | [10 §3](./10-seo-konten.md#3-peta-url) |
 | Pasar? | Indonesia | Aturan BR-04 |
 | Repo? | Monorepo | [03 §3](./03-arsitektur-teknis.md#3-struktur-monorepo) |
+| Verifikasi email wajib? | Ya — sebelum akun dapat melihat pengajuan (Q11) | FR-ACC-02, [03 §6.1](./03-arsitektur-teknis.md#61-konfigurasi-better-auth) |
+| Boleh hapus akun sendiri? | Tidak — hanya mengajukan permohonan; admin memproses (Q12) | FR-ACC-08, FR-ADM-20, [04 §3.8](./04-data-model.md#38-accountdeletionrequest) |
 
-Dua pertanyaan lanjutan (Q11, Q12) beserta asumsinya ada di [12 §2](./12-risiko-asumsi-keputusan.md#2-keputusan-atas-pertanyaan-terbuka).
+Dua pertanyaan lanjutan (Q11 verifikasi email, Q12 hapus akun) sudah dijawab dan diterapkan pada v1.2 — lihat [12 §2](./12-risiko-asumsi-keputusan.md#2-keputusan-atas-pertanyaan-terbuka). Mekanisme teknis penghapusan (Q12a) masih ditunda.
 
 ## 10. Referensi produk
 

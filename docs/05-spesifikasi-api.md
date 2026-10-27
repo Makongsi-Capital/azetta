@@ -124,6 +124,8 @@ Aturan:
 | Baca katalog/artikel/proyek | ✅ | ✅ | ✅ | ✅ |
 | Kirim lead | ✅ | ✅ | ✅ | ✅ |
 | Melihat pengajuan sendiri (`/me/leads`) | ❌ | ✅ (setelah verifikasi email) | — | — |
+| Mengajukan hapus akun (`/me/deletion-request`) | ❌ | ✅ (setelah verifikasi email) | — | — |
+| Melihat & memproses permohonan hapus akun | ❌ | ❌ | ✅ | ✅ |
 | Baca semua lead | ❌ | ❌ | ✅ | ✅ |
 | Ubah status/catat aktivitas/catatan pemohon | ❌ | ❌ | ✅ | ✅ |
 | Lihat lampiran lead | ❌ | ❌ | ✅ | ✅ |
@@ -160,6 +162,8 @@ Catatan: kolom `customer` **tidak** memiliki akses ke `/api/v1/admin/*`. Satu co
 | PATCH | `/me` | Ubah profil sendiri | no-store |
 | GET | `/me/leads` | Daftar pengajuan milik sendiri | no-store |
 | GET | `/me/leads/:id` | Detail pengajuan milik sendiri | no-store |
+| GET | `/me/deletion-request` | Status permohonan hapus akun milik sendiri | no-store |
+| POST | `/me/deletion-request` | Ajukan permohonan hapus akun | no-store |
 
 > Empat endpoint terakhir berada di prefiks `/api/v1` dan memerlukan sesi `customer` yang email-nya terverifikasi.
 
@@ -474,6 +478,26 @@ Aturan:
 | Verifikasi email | Belum verifikasi → `403 EMAIL_NOT_VERIFIED` |
 | Rate limit | 120/menit per pengguna |
 
+**Permohonan hapus akun (Q12)**
+
+- `POST /me/deletion-request` menerima `{ "reason": "..." }` (opsional, maks 500 karakter) dan membuat `AccountDeletionRequest` berstatus `PENDING`. Respons `201` berisi `{ id, status, requestedAt }`.
+- `GET /me/deletion-request` mengembalikan permohonan terakhir milik pengguna atau `null`. Status yang mungkin: `PENDING`, `COMPLETED`, `REJECTED`.
+- Akun **tetap aktif** dan dapat dipakai sampai admin memproses. Tidak ada penghapusan otomatis di MVP.
+- Bila sudah ada permohonan `PENDING`, `POST` berikutnya → `409 DUPLICATE_REQUEST` (bukan membuat baris baru).
+- Permohonan wajib melalui sesi terverifikasi; belum verifikasi → `403 EMAIL_NOT_VERIFIED`.
+
+```json
+{
+  "data": {
+    "id": "cdr_1",
+    "status": "PENDING",
+    "reason": "Tidak lagi menggunakan layanan",
+    "requestedAt": "2026-10-27T03:00:00.000Z",
+    "handledAt": null
+  }
+}
+```
+
 ### 4.8 `POST /public/events`
 
 Batch maks 20 event; dipakai untuk funnel internal. Bila analitik pihak ketiga aktif, event tetap dikirim agar data tidak hilang karena ad-blocker.
@@ -592,6 +616,8 @@ Aturan: `galleryUrls` maks 10; `sortOrder` menentukan urutan tampil; proyek `del
 | POST | `/admin/users` | Buat pengguna internal | super_admin |
 | PATCH | `/admin/users/:id/role` | Ubah peran (`admin`/`super_admin`) | super_admin |
 | POST | `/admin/users/:id/disable` | Nonaktifkan | super_admin |
+| GET | `/admin/account-deletion-requests` | Daftar permohonan hapus akun (default `PENDING`, urut terbaru) | admin |
+| PATCH | `/admin/account-deletion-requests/:id` | Tandai `COMPLETED`/`REJECTED` + catatan internal; tercatat di audit | admin |
 | GET | `/admin/stats/overview` | Kartu ringkasan | admin |
 | GET | `/admin/stats/leads-timeseries` | Tren harian 30/90 hari | admin |
 | GET | `/admin/stats/funnel` | Konversi per tahap | admin |
@@ -636,6 +662,7 @@ Aturan: `galleryUrls` maks 10; `sortOrder` menentukan urutan tampil; proyek `del
 | `POST /auth/forget-password` | 3/jam | IP + email |
 | `POST /auth/send-verification-email` | 3/jam | IP + email |
 | `/me/*` | 120/menit | `userId` |
+| `POST /me/deletion-request` | 3/jam | `userId` |
 | `/admin/*` | 600/menit | `userId` |
 
 Implementasi MVP: `@elysiajs/rate-limit` dengan penyimpanan in-memory per instance. **Bila API dijalankan lebih dari satu replika**, pindahkan penyimpanan ke Redis agar batas tetap akurat (lihat [11 §9](./11-deployment-operations.md#9-rencana-skalabilitas)).
@@ -649,6 +676,7 @@ Implementasi MVP: `@elysiajs/rate-limit` dengan penyimpanan in-memory per instan
 | `RATE_LIMITED` | Pesan "terlalu banyak percobaan", tampilkan sisa waktu dari `Retry-After` |
 | `DUPLICATE_RESOURCE` | Pada slug desain/artikel: sarankan slug alternatif; pada email: arahkan ke login |
 | `EMAIL_NOT_VERIFIED` | Tampilkan banner "verifikasi email" + tombol kirim ulang |
+| `DUPLICATE_REQUEST` | Tampilkan permohonan yang sudah ada beserta statusnya |
 | `NOT_FOUND` | Halaman 404 kustom |
 | `INTERNAL_ERROR` | Pesan umum + `requestId` untuk dilaporkan |
 

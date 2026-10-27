@@ -69,14 +69,14 @@ Ketiganya bermuara ke tabel `Lead` dengan `type` berbeda, sehingga tim sales mel
 - Portofolio proyek `/proyek` + detail (bukti nyata untuk pemilik lahan & investor).
 - Halaman penawaran: kerja sama lahan, investasi, tentang, kontak, FAQ.
 - Tiga formulir lead dengan validasi, anti-spam, dan lampiran foto lahan.
-- **Akun publik**: daftar, verifikasi email, login/reset, halaman "Akun saya" untuk memantau status pengajuan.
+- **Akun publik**: daftar, verifikasi email, login/reset, halaman "Akun saya" untuk memantau status pengajuan, serta permohonan hapus akun yang ditinjau admin.
 - Panel admin: login, CRM lead (list/detail/status/aktivitas/catatan pemohon/ekspor CSV), CMS desain, proyek, artikel, FAQ, testimoni, pengaturan situs + unggah aset, dashboard ringkas.
 - SEO teknis: SSR, sitemap, meta, schema.org, gambar teroptimasi.
 - Analitik funnel sederhana (kunjungan → lihat desain → mulai form → submit → cek status).
 
 ### Tidak termasuk (fase berikutnya)
 - Pembayaran online, checkout, unduhan otomatis file desain.
-- Fitur akun lanjutan (favorit, notifikasi, ubah email, hapus akun mandiri).
+- Fitur akun lanjutan (favorit, notifikasi, ubah email, penghapusan akun otomatis/self-service).
 - Dashboard investor (laporan proyek, bagi hasil).
 - Estimasi biaya bangun di halaman publik (hanya untuk internal sales).
 - WhatsApp Business API / WhatsApp gateway berbayar.
@@ -129,8 +129,8 @@ Rincian task: [07](./07-backlog-sprint.md).
 
 | Komponen | Perkiraan |
 |----------|-----------|
-| Effort total | **185 person-day** — 145 developer, 17 desain, 15 QA, 8 konten (lihat [08 §3](./08-estimasi-biaya.md#3-rincian-effort)) |
-| Biaya tim (outsourced) | Rp140–212 juta; dengan kontingensi 15% → **Rp161–244 juta** |
+| Effort total | **187 person-day** — 147 developer, 17 desain, 15 QA, 8 konten (lihat [08 §3](./08-estimasi-biaya.md#3-rincian-effort)) |
+| Biaya tim (outsourced) | Rp142–214 juta; dengan kontingensi 15% → **Rp163–246 juta** |
 | Infrastruktur bulanan | Rp0,45–2,3 juta/bulan (baseline ±Rp1,5 juta) |
 | Biaya sekali bayar | Domain, aset visual, foto/render, legal review — Rp4,75–15,5 juta |
 | Kontingensi | 15% dari total |
@@ -144,6 +144,6 @@ Rincian task: [07](./07-backlog-sprint.md).
 | Spam formulir & spam registrasi akun | CRM penuh sampah, kuota email habis | Honeypot + Turnstile + rate limit + deduplikasi nomor + verifikasi email wajib |
 | Data pribadi (UU PDP), termasuk data akun | Sanksi & reputasi | Consent eksplisit, minimasi data, retensi 24 bulan, isolasi data per akun, audit log |
 | Scope creep ke arah transaksi online / fitur akun lanjutan | Jadwal mundur | Batas lingkup tertulis di [01 §4](./01-prd.md#4-ruang-lingkup); perubahan via change request |
-| Beban developer 97% kapasitas | Satu hambatan menggeser rilis | Pantau burndown; siapkan opsi menunda portofolio proyek bila perlu |
+| Beban developer 98% kapasitas | Satu hambatan menggeser rilis | Pantau burndown; siapkan opsi menunda portofolio proyek bila perlu |
 
 Register lengkap: [12](./12-risiko-asumsi-keputusan.md).

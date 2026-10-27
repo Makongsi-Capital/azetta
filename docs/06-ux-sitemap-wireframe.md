@@ -65,11 +65,12 @@
 /konten/testimoni
 /pengguna
 /pelanggan
+/permohonan-hapus
 /pengaturan
 /audit
 ```
 
-> `/pengguna` dan `/pelanggan` hanya tampil untuk `super_admin`; `/pelanggan` bersifat baca saja. Menu lain tampil untuk `admin` dan `super_admin`.
+> `/pengguna` dan `/pelanggan` hanya tampil untuk `super_admin`; `/pelanggan` bersifat baca saja. `/permohonan-hapus` tampil untuk `admin` dan `super_admin`. Menu lain tampil untuk `admin` dan `super_admin`.
 
 ## 3. Navigasi global
 
@@ -104,7 +105,7 @@ Baris bawah: `© 2026 Azetta. Seluruh hak cipta dilindungi.`
 
 ### 3.3 Navigasi admin
 
-Sidebar kiri 240 px (collapse jadi 64 px), berisi Dashboard, Lead (dengan badge jumlah `NEW`), Desain, Proyek, Artikel, FAQ, Testimoni, Pengguna*, Pelanggan*, Pengaturan, Audit. Header atas: pencarian global (lead), nama pengguna, menu keluar.
+Sidebar kiri 240 px (collapse jadi 64 px), berisi Dashboard, Lead (dengan badge jumlah `NEW`), Desain, Proyek, Artikel, FAQ, Testimoni, Pengguna*, Pelanggan*, Permohonan Hapus, Pengaturan, Audit. Header atas: pencarian global (lead), nama pengguna, menu keluar.
 
 ## 4. Spesifikasi halaman publik
 
@@ -358,7 +359,8 @@ Akordeon per kategori (Umum, Desain, Lahan, Investasi) + form kontak di bawah. `
 - Nama, WhatsApp, kota (dapat diubah).
 - Email (tidak dapat diubah; tampil dengan tanda terverifikasi).
 - Ganti kata sandi (kata sandi lama + baru + konfirmasi).
-- Tautan "Ajukan penghapusan akun" → halaman bantuan/kontak dengan penjelasan ≤ 30 hari.
+- Bagian "Hapus akun": tombol **Ajukan permohonan hapus akun** + dialog konfirmasi dengan alasan opsional. Setelah terkirim, status "Menunggu diproses" tampil dan tombol dinonaktifkan. Akun tetap aktif sampai admin memproses (Q12).
+- Halaman admin `/permohonan-hapus`: tabel `PENDING` (nama, email, alasan, tanggal), aksi "Tandai selesai" / "Tolak" + catatan; tanpa tombol yang menghapus data otomatis.
 
 **Aturan tampilan:**
 
@@ -725,6 +727,7 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 | `email_verified` | Verifikasi email berhasil | — |
 | `login_success` | Login berhasil | `role` |
 | `account_view` | `/akun` dibuka | `submissionCount` |
+| `account_deletion_request` | Permohonan hapus akun terkirim | — |
 | `submission_view` | Detail pengajuan dibuka | `type`, `statusLabel` |
 | `lead_form_start` | Field pertama difokuskan | `type`, `designId` |
 | `lead_form_step` | Langkah form lahan selesai | `step` |

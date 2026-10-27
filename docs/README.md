@@ -1,7 +1,7 @@
 # Dokumen Perencanaan Azetta
 
-**Versi:** 1.1 (revisi setelah Q1–Q10 dijawab)
-**Tanggal:** 23 Oktober 2026
+**Versi:** 1.2 (revisi setelah Q11–Q12 dijawab)
+**Tanggal:** 27 Oktober 2026
 **Status:** Menunggu persetujuan pemilik produk
 
 Dokumen ini adalah rencana lengkap pembangunan **website Azetta** — mulai dari latar belakang produk, model bisnis, arsitektur teknis, model data, spesifikasi API, desain UX, backlog pengembangan, estimasi biaya, rencana QA, strategi SEO, hingga operasional peluncuran.
@@ -48,7 +48,7 @@ Urutan baca yang disarankan:
 | Model bisnis yang dicakup | Jual gambar desain, kerja sama lahan, penghimpunan investor |
 | Cakupan MVP | **Lead-gen saja** — belum ada transaksi/pembayaran online |
 | Titik konversi | Formulir lead → follow-up manual via WhatsApp/telepon/email |
-| Akun publik | **Ada** — untuk memantau progres pengajuan (verifikasi email wajib) |
+| Akun publik | **Ada** — untuk memantau progres pengajuan (verifikasi email wajib); hapus akun lewat **permohonan ke admin**, bukan self-service |
 | Portofolio proyek | **Ada** — halaman `/proyek` dari CMS |
 | Harga & biaya | Harga paket "mulai dari" ditampilkan; **estimasi biaya bangun tidak** ditampilkan publik |
 | Notifikasi | Email saja (tanpa WhatsApp gateway) |
@@ -94,9 +94,9 @@ Rincian alasan tiap keputusan ada di [12 — Log Keputusan](./12-risiko-asumsi-k
 
 ## 6. Cara memakai dokumen ini
 
-1. Q1–Q10 sudah dijawab pemilik produk dan diterapkan pada v1.1 — lihat [12 §2](./12-risiko-asumsi-keputusan.md#2-keputusan-atas-pertanyaan-terbuka). Dua pertanyaan lanjutan (Q11 verifikasi email, Q12 hapus akun mandiri) masih memakai asumsi yang dicatat di sana.
-2. Setujui ruang lingkup di [01 §4](./01-prd.md#4-ruang-lingkup) — perhatikan tambahan **akun publik** dan **portofolio proyek**.
-3. Setujui backlog dan urutan sprint di [07](./07-backlog-sprint.md) (8 sprint, ±15 minggu, beban 97%).
+1. Q1–Q12 sudah dijawab pemilik produk dan diterapkan pada v1.2 — lihat [12 §2](./12-risiko-asumsi-keputusan.md#2-keputusan-atas-pertanyaan-terbuka). Rincian teknis penghapusan akun (Q12a) sengaja ditunda sampai sebelum rilis.
+2. Setujui ruang lingkup di [01 §4](./01-prd.md#4-ruang-lingkup) — perhatikan tambahan **akun publik**, **permohonan hapus akun**, dan **portofolio proyek**.
+3. Setujui backlog dan urutan sprint di [07](./07-backlog-sprint.md) (8 sprint, ±15 minggu, beban 98%).
 4. Setelah disetujui, dokumen ini menjadi baseline; perubahan lingkup dicatat sebagai change request di [12 §5](./12-risiko-asumsi-keputusan.md#5-change-log).
 
 ---

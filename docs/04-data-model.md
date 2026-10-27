@@ -24,6 +24,8 @@ erDiagram
     USER ||--o{ ARTICLE : "menulis"
     USER ||--o{ PROJECT : "mengelola"
     USER ||--o{ AUDIT_LOG : "melakukan"
+    USER ||--o{ ACCOUNT_DELETION_REQUEST : "mengajukan"
+    USER ||--o{ ACCOUNT_DELETION_REQUEST : "memproses"
 
     PROPERTY_DESIGN ||--o{ DESIGN_MEDIA : "memiliki"
     PROPERTY_DESIGN ||--o{ DESIGN_TAG_ON_DESIGN : "diberi tag"
@@ -230,6 +232,23 @@ Portofolio proyek (Q4). Tidak memiliki relasi ke `Lead` pada MVP — atribusi te
 
 > Galeri memakai array URL (bukan tabel media terpisah) karena portofolio jarang berubah dan tidak memerlukan `alt` per gambar di MVP. Bila kebutuhan ini tumbuh, migrasi ke tabel media dapat dilakukan tanpa mengubah URL publik.
 
+### 3.8 `AccountDeletionRequest`
+
+Permohonan hapus akun (Q12). Pemohon hanya **mengajukan**; admin memutuskan dan menghapus/menganonimkan data di luar sistem pada MVP.
+
+| Kolom | Tipe | Null | Default | Keterangan |
+|-------|------|:----:|---------|------------|
+| `id` | text | ✗ | cuid | PK |
+| `userId` | text | ✗ | — | Pemohon |
+| `reason` | text | ✓ | — | Alasan, maks 500 karakter |
+| `status` | enum | ✗ | `PENDING` | `PENDING` / `COMPLETED` / `REJECTED` |
+| `requestedAt` | timestamptz | ✗ | now | Waktu pengajuan |
+| `handledAt` | timestamptz | ✓ | — | Waktu admin menandai selesai/ditolak |
+| `handledById` | text | ✓ | — | Admin pemroses |
+| `note` | text | ✓ | — | Catatan internal admin |
+
+> MVP: maksimal **satu permohonan `PENDING` per akun** (ditegakkan di service). Tidak ada penghapusan otomatis; setelah data diproses manual, admin menandai `COMPLETED`. Detail mekanisme penghapusan dicatat sebagai Q12a di [12 §2](./12-risiko-asumsi-keputusan.md#2-keputusan-atas-pertanyaan-terbuka).
+
 ## 4. Skema Prisma lengkap
 
 > **Prisma 7.** Sejak v7, `url` tidak lagi ditulis di blok `datasource`; URL koneksi dipindahkan ke `prisma.config.ts` dan `PrismaClient` memakai driver adapter. Bila memakai Prisma 6, tambahkan `url = env("DATABASE_URL")` di `datasource`, ubah provider generator menjadi `prisma-client-js`, dan adapter tidak diperlukan.
@@ -323,6 +342,9 @@ model User {
   projects      Project[]        @relation("ProjectAuthor")
   auditLogs     AuditLog[]
   settings      SiteSetting[]    @relation("SettingUpdatedBy")
+
+  deletionRequests        AccountDeletionRequest[] @relation("DeletionRequestedBy")
+  handledDeletionRequests AccountDeletionRequest[] @relation("DeletionRequestHandledBy")
 
   @@index([role])
   @@map("user")
@@ -903,6 +925,31 @@ model FunnelEvent {
   @@index([leadId])
   @@map("funnel_event")
 }
+
+enum DeletionRequestStatus {
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+model AccountDeletionRequest {
+  id     String                @id @default(cuid())
+  userId String
+  reason String?
+  status DeletionRequestStatus @default(PENDING)
+
+  requestedAt DateTime  @default(now())
+  handledAt   DateTime?
+  handledById String?
+  note        String?
+
+  user      User  @relation("DeletionRequestedBy", fields: [userId], references: [id], onDelete: Cascade)
+  handledBy User? @relation("DeletionRequestHandledBy", fields: [handledById], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([status, requestedAt])
+  @@map("account_deletion_request")
+}
 ```
 
 ### 4.1 Inisialisasi Prisma Client
@@ -960,6 +1007,8 @@ Beberapa aturan tidak dapat dinyatakan di Prisma, jadi ditegakkan di service lay
 | `customerNote` tidak boleh kosong bila diubah | Validasi service; `customerNoteUpdatedAt` diisi otomatis |
 | Proyek publish wajib `coverImageUrl` | Validasi service `publish()` |
 | Nama proyek tidak boleh memuat data keuangan sensitif | Review konten manual sebelum `isPublished = true` |
+| Permohonan hapus akun tidak menghapus data otomatis | Service hanya membuat/menandai `AccountDeletionRequest`; penghapusan/anonimisasi manual oleh admin |
+| Maksimal satu permohonan `PENDING` per akun | Service menolak permohonan baru dengan `409 DUPLICATE_REQUEST` |
 
 ## 7. Retensi & pembersihan data
 
@@ -969,7 +1018,7 @@ Beberapa aturan tidak dapat dinyatakan di Prisma, jadi ditegakkan di service lay
 | Lead `SPAM` | 90 hari | Hapus permanen |
 | Lead `NEW` tanpa aktivitas | Tidak dihapus | Masuk laporan "stale" setelah 24 jam |
 | Akun `customer` tidak aktif | 36 bulan sejak login terakhir | Anonimkan profil; akun dinonaktifkan, pengajuan tetap dianonimkan sesuai aturan lead |
-| Permintaan hapus akun | ≤ 30 hari sejak permintaan | Anonimkan `User` + `Lead` terkait; cabut semua sesi |
+| Permintaan hapus akun | ≤ 30 hari sejak permohonan disetujui | Admin memproses manual: anonimkan `User` + `Lead` terkait, cabut semua sesi, tandai request `COMPLETED` |
 | Lampiran lead | Mengikuti lead | Hapus objek storage saat lead dianonimkan |
 | `FunnelEvent` | 13 bulan | Agregasi bulanan disimpan, event mentah dihapus |
 | `AuditLog` | 24 bulan | Hapus |

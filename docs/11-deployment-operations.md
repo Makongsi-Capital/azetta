@@ -291,7 +291,7 @@ Alur: deteksi → tetapkan tingkat → mitigasi (rollback/restore) → perbaiki 
 | Mingguan | Tinjau error Sentry, log 5xx, ukuran disk/DB | Developer |
 | Mingguan | Perbarui dependensi patch (`bun update --latest` hanya untuk patch) | Developer |
 | Bulanan | Uji restore, tinjau akses admin, tinjau rate limit | DevOps |
-| Bulanan | Proses permintaan hapus akun/data (target ≤ 30 hari) | Manajemen |
+| Bulanan | Tinjau daftar permohonan hapus akun di panel admin dan proses ≤ 30 hari | Manajemen |
 | Bulanan | Perbarui konten & periksa link rusak | Tim internal |
 | Kuartalan | Audit keamanan ringan, tinjau biaya infra, uji rollback | Tech lead |
 | Tahunan | Rotasi kredensial, tinjau kebijakan privasi | Manajemen + tech lead |

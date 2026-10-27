@@ -157,6 +157,6 @@ Desain sistem saat ini sudah menyiapkan jalur menuju transaksi tanpa migrasi bes
 | Fase 2 | Perubahan yang diperlukan |
 |--------|---------------------------|
 | Checkout desain | Tambah `Order`, `OrderItem`, `Payment`; status lead `WON` memicu order |
-| Akun lanjutan | Favorit, notifikasi email/WA, hapus akun mandiri, ubah email |
+| Akun lanjutan | Favorit, notifikasi email/WA, penghapusan akun otomatis, ubah email |
 | Dashboard investor | Tambah `Investment`, `Distribution`; laporan proyek per investor (model `Project` sudah ada di MVP) |
 | Kontrak digital | Tambah `Agreement` + penyimpanan dokumen |
