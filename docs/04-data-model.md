@@ -165,7 +165,7 @@ Kunci `SiteSetting` yang dipakai MVP:
 | Key | Isi |
 |-----|-----|
 | `contact` | `{ phone, whatsapp, email, address, mapsUrl, operatingHours }` |
-| `brand` | `{ logoUrl, faviconUrl, primaryColor, legalName }` |
+| `brand` | `{ logoUrl, faviconUrl, legalName }` — warna tetap mengikuti Brand Guidelines (monokrom), tidak dapat diubah dari admin |
 | `hero` | `{ title, subtitle, ctaLabel, ctaHref, imageUrl }` |
 | `offer.land` | `{ headline, schemeBullets[], steps[], faqs[] }` |
 | `offer.invest` | `{ headline, highlights[], riskNotes[], faqs[] }` |

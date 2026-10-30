@@ -12,6 +12,7 @@
 4. **Tidak ada kejutan.** Jumlah langkah, waktu pengisian, dan apa yang terjadi setelah submit dinyatakan sejak awal.
 5. **Bisa dipindai.** Judul jelas, paragraf pendek, angka penting ditonjolkan, tidak ada dinding teks.
 6. **Aksesibel.** Kontras AA, navigasi keyboard, label eksplisit, error terbaca pembaca layar.
+7. **Tenang dan tegas.** Monokrom, tanpa warna aksen, tanpa bayangan atau gradasi; keyakinan datang dari kejelasan, bukan dari efek visual (Brand Guidelines §01 & §03).
 
 ## 2. Sitemap
 
@@ -160,7 +161,7 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Kartu desain:** cover 4:3 (lazy, `srcset`), badge kategori, judul, `3 KT · 2 KM · 2 Lantai · 96 m²`, "Mulai Rp4,5 jt" atau "Hubungi kami", tombol "Lihat detail" (seluruh kartu dapat diklik).
+**Kartu desain:** cover 4:3 (lazy, `srcset`), badge kategori, judul, `3 KT · 2 KM · 2 Lantai · 96 m²`, "Mulai Rp 4,5 jt" atau "Hubungi kami", tombol "Lihat detail" (seluruh kartu dapat diklik).
 
 **Perilaku filter:**
 
@@ -183,7 +184,7 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 ┌───────────────────────────────────────────┬─────────────────────┐
 │ Breadcrumb                                │  ┌───────────────┐  │
 │ H1 Rumah Minimalis 2 Lantai 6×12          │  │ Mulai dari    │  │
-│ Minimalis · 2 Lantai · 3 KT · 2 KM        │  │ Rp4.500.000    │  │
+│ Minimalis · 2 Lantai · 3 KT · 2 KM        │  │ Rp 4.500.000    │  │
 │ ┌───────────────────────────────────────┐ │  │ [Tanya Desain]│  │
 │ │            GALERI (1 besar + 4 thumb) │ │  │ [WhatsApp]    │  │
 │ └───────────────────────────────────────┘ │  ├───────────────┤  │
@@ -575,7 +576,7 @@ Setelah submit: halaman "Cek email Anda" + tombol kirim ulang (maks 3×/jam). Ti
 │ [ Kirim pertanyaan ]         │
 │ Desain terkait               │
 ├──────────────────────────────┤
-│ Rp4,5 jt   [Tanya Desain]    │ ← sticky
+│ Rp 4,5 jt   [Tanya Desain]    │ ← sticky
 └──────────────────────────────┘
 ```
 
@@ -690,7 +691,33 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 
 **Editor konten (Tiptap):** toolbar H2/H3, bold, italic, bullet & numbered list, link, gambar (unggah via presign R2), blockquote, tabel, undo/redo. Paste dibersihkan otomatis; tidak ada HTML mentah atau `script`. Pratinjau publik merender HTML tersanitasi.
 
-**Tema:** tema daisyUI `azetta` (light-only) didefinisikan di `apps/web/src/routes/layout.css`: primer steel-blue `#3f7c98`, base putih `#ffffff`/`#f7f8fa`, teks `#111827`, radius box 16 px, field pill, font Poppins self-hosted (`@fontsource/poppins`). Halaman pratinjau `/theme` (`noindex`) menampilkan contoh komponen. Pada E1-01 token dipindahkan ke preset bersama di `packages/ui`.
+**Tema (Brand Guidelines v1.0):** tema daisyUI `azetta` (light-only, **monokrom**) didefinisikan di `apps/web/src/routes/layout.css` dan `apps/admin/src/routes/layout.css` (identik sampai token dipindah ke `packages/ui` pada E1-01). Rujukan lengkap: `docs/AZETTA_Brand_Guidelines.pdf`.
+
+| Token | Nilai | Pemakaian |
+|-------|-------|-----------|
+| `base-100` | `#F4F5F6` (paper) | Latar utama halaman |
+| `base-200` | `#E8EAEB` (mist) | Latar kedua / section selang-seling |
+| `base-300` | `#D6D8D9` (line) | Hairline, garis pemisah |
+| `base-content` | `#1A1A1A` (ink) | Teks utama |
+| `primary` / `neutral` | `#1A1A1A` (ink) | Tombol utama, section gelap |
+| `secondary` / `accent` | `#2B2B2B` / `#3E3E3E` | Hierarki tombol lewat kontras |
+| Status | `info` `#2C4F63` · `success` `#2E5D46` · `warning` `#7A5216` · `error` `#8A3232` (teks paper) | Rona muted khusus umpan balik sistem — satu-satunya warna di luar palet monokrom (D20) |
+| Font | `Arial, 'Liberation Sans', Helvetica, sans-serif` | Semua teks; tanpa webfont |
+| Radius | field 8 px, box 16 px | Bidang polos tanpa bayangan |
+| Utility brand | `bg-brand-*`, `text-brand-*` (ink, ink-2, ink-3, gray-600/500/300, line, mist, paper) | Bila butuh nilai palet langsung |
+| Kelas bantu | `.eyebrow`, `.title-rule`, `.on-dark` | Eyebrow kapital, garis aksen 5 px di bawah judul, permukaan gelap (teks paper, tombol utama berbalik, kartu ink-2) |
+| Lockup logo | mark 90×84, jarak 0,24 × lebar mark, tinggi kapital wordmark 0,5 × tinggi mark | Ukuran minimum lockup 120 px — di bawahnya pakai mark saja (`wordmark={false}`) |
+
+Aturan visual yang mengikat:
+
+1. **Tanpa warna aksen pada permukaan dan aksi.** Satu-satunya warna adalah empat rona status muted (`info`, `success`, `warning`, `error`) untuk umpan balik sistem; kontras teks paper di atasnya 6,3–8,0:1. Status tetap **wajib** disertai label teks atau ikon — warna tidak pernah menjadi satu-satunya pembeda.
+2. **Tanpa bayangan, gradasi, atau efek elevasi.** Pemisah memakai hairline `line`; kartu adalah bidang putih (`bg-white`) di atas latar paper/mist, dan `ink-2` bila di dalam `.on-dark`.
+3. **Ritme gelap–terang.** Hero, pernyataan penting, dan ajakan memakai latar ink (`.on-dark`); section isi berselang-seling paper dan mist.
+4. **Judul** selalu tebal (700) dengan jarak baris 1,05–1,1; **isi** reguler 400 dengan jarak baris 1,4–1,45; penekanan memakai ketebalan, bukan warna atau ukuran baru.
+5. **Logo** memakai mark asterisk resmi (`logo-mark.svg` / komponen `Logo.svelte`); jangan menggambar ulang atau mengubah warna selain ink dan paper.
+6. **Kanal WhatsApp (pengecualian resmi, D19).** Tombol `wa.me` tetap dipakai di web sebagai kanal konversi sekunder (lihat FR-PUB-10), tetapi nomor WhatsApp tidak dicetak sebagai teks pada materi pemasaran (media sosial, poster, PDF, presentasi). Tombol memakai gaya `btn-outline` monokrom, bukan warna aksen.
+
+Halaman pratinjau `/theme` (`noindex`) menampilkan palet, rasio kontras, skala tipografi, dan seluruh komponen. Pada E1-01 token dipindahkan ke preset bersama di `packages/ui`.
 
 **Ikon (Iconify):** pakai set `lucide` untuk UI dan `mdi`/`ph` bila perlu. Ikon dekoratif `aria-hidden="true"`.
 
@@ -762,8 +789,31 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 
 ## 11. Nada bahasa (copy)
 
-- Bahasa Indonesia formal-santai, sapaan "Anda".
+Mengikuti Brand Guidelines §07 — bahasa Indonesia yang sopan, hangat, dan lugas.
+
+| Aspek | Ketentuan |
+|-------|-----------|
+| Sapaan | "Anda". Di WhatsApp (internal, setelah lead masuk): Bapak/Ibu, dibuka dan ditutup dengan salam. |
+| Kalimat | Pendek, satu gagasan per kalimat. |
+| Angka | Ribuan dengan titik, desimal dengan koma: `Rp 1.646.000.000` · `11,3%`. |
+| Judul | Pernyataan atau pertanyaan yang langsung kena — bukan slogan, tanpa tagar. |
+| Status proyek | Apa adanya: "Rancangan proyek Faisal · tahap perencanaan". |
+
+Jangan/gunakan:
+
+| Jangan | Gunakan |
+|--------|---------|
+| Menyebut angka imbal hasil di materi publik | Ajakan untuk kajian; angka hanya di materi tertutup beserta asumsinya |
+| "Aman", "pasti untung", "tanpa risiko" | Sebut risikonya, lalu cara mengendalikannya |
+| "Lahan tetap milik Anda" | "Lahan masuk sebagai modal penyertaan" |
+| "Pasar saham" | "Pengalihan saham" atau "pasar sekunder terbatas" |
+| Menampilkan proyek yang belum deal | Hanya proyek yang sudah deal, status apa adanya |
+| Harga lahan milik pemilik tertentu di materi publik | Angka transaksi hanya untuk pihak yang terlibat |
+
+Tambahan untuk UI:
+
 - Hindari jargon teknis properti yang tidak dijelaskan (mis. "KDB", "GSB") — jelaskan dalam kurung.
 - Angka konkret lebih baik daripada superlatif ("96 m²" bukan "sangat luas").
-- Tidak ada klaim berlebihan ("pasti untung", "termurah") — terutama di halaman investasi.
 - CTA berupa kata kerja: "Lihat katalog", "Ajukan lahan", "Minta proposal".
+- Tanpa emoji; pemisah butir memakai mark AZETTA, bukan titik atau emoji.
+- Setiap materi publik ditutup dengan satu ajakan.

@@ -52,7 +52,7 @@
 
 | ID | Task | Acceptance | pd | Depends |
 |----|------|------------|:--:|---------|
-| E1-01 | UI kit + tema + shell aplikasi | Button/Input/Select/Badge/Card/Skeleton tersedia dan terdokumentasi; header/footer web + sidebar admin; tema daisyUI dari satu preset (token saat ini di `apps/web/src/routes/layout.css`, dipindahkan ke `packages/ui`); halaman contoh semua komponen | 4 | E0-01 |
+| E1-01 | UI kit + tema + shell aplikasi | Button/Input/Select/Badge/Card/Skeleton tersedia dan terdokumentasi; header/footer web + sidebar admin; tema daisyUI **monokrom sesuai Brand Guidelines v1.0** dari satu preset (token saat ini di `apps/*/src/routes/layout.css`, dipindahkan ke `packages/ui`); logo mark + favicon resmi; halaman contoh semua komponen di `/theme` | 4 | E0-01 |
 | E1-02 | API daftar desain (filter, cari, urut, paginasi) | Semua filter di [05 §4.2](./05-spesifikasi-api.md#42-get-publicdesigns) berfungsi; query < 100 ms pada seed 12 desain; hasil hanya `PUBLISHED` | 3 | E0-03 |
 | E1-03 | API detail & terkait | Detail mengembalikan media + tag + seo; `DRAFT`/`ARCHIVED` → 404; related maks 4 dengan fallback; **estimasi biaya tidak ikut dikirim** | 2 | E1-02 |
 | E1-04 | Halaman beranda | Section sesuai [06 §4.1](./06-ux-sitemap-wireframe.md#41-beranda-); section kosong disembunyikan; tanpa "estimasi biaya"; skor Lighthouse awal ≥ 85 | 2 | E1-01, E1-02 |

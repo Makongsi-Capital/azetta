@@ -1,45 +1,49 @@
-@import '@fontsource/poppins/latin-400.css';
-@import '@fontsource/poppins/latin-500.css';
-@import '@fontsource/poppins/latin-600.css';
-@import '@fontsource/poppins/latin-700.css';
 @import 'tailwindcss';
 
 @plugin 'daisyui' {
 	themes: false;
 }
 
-/* Tema terinspirasi ruma.id: putih bersih, slate gelap, aksen steel-blue, sudut membulat. */
+/*
+	Identitas visual mengikuti AZETTA Brand Guidelines v1.0 (docs/AZETTA_Brand_Guidelines.pdf):
+	palet monokrom (ink/paper/mist/line), tipografi Arial, bidang polos tanpa bayangan.
+*/
 @plugin 'daisyui/theme' {
 	name: 'azetta';
 	default: true;
 	prefersdark: false;
 	color-scheme: light;
 
-	--color-base-100: #ffffff;
-	--color-base-200: #f7f8fa;
-	--color-base-300: #e5e7eb;
-	--color-base-content: #111827;
+	/* Permukaan: paper = latar utama, mist = latar kedua, line = hairline. */
+	--color-base-100: #f4f5f6;
+	--color-base-200: #e8eaeb;
+	--color-base-300: #d6d8d9;
+	--color-base-content: #1a1a1a;
 
-	--color-primary: #3f7c98;
-	--color-primary-content: #ffffff;
-	--color-secondary: #0f766e;
-	--color-secondary-content: #ffffff;
-	--color-accent: #15803d;
-	--color-accent-content: #ffffff;
-	--color-neutral: #1f2937;
-	--color-neutral-content: #ffffff;
+	--color-primary: #1a1a1a;
+	--color-primary-content: #f4f5f6;
+	--color-secondary: #2b2b2b;
+	--color-secondary-content: #f4f5f6;
+	--color-accent: #3e3e3e;
+	--color-accent-content: #f4f5f6;
+	--color-neutral: #1a1a1a;
+	--color-neutral-content: #f4f5f6;
 
-	--color-info: #0369a1;
-	--color-info-content: #ffffff;
-	--color-success: #15803d;
-	--color-success-content: #ffffff;
-	--color-warning: #f59e0b;
-	--color-warning-content: #111827;
-	--color-error: #dc2626;
-	--color-error-content: #ffffff;
+	/*
+		Rona status (pengecualian resmi D20): muted, satu tingkat kecerahan, hanya untuk umpan balik
+		sistem. Kontras teks paper di atasnya 6,3–8,0:1. Status tetap wajib disertai label teks/ikon.
+	*/
+	--color-info: #2c4f63;
+	--color-info-content: #f4f5f6;
+	--color-success: #2e5d46;
+	--color-success-content: #f4f5f6;
+	--color-warning: #7a5216;
+	--color-warning-content: #f4f5f6;
+	--color-error: #8a3232;
+	--color-error-content: #f4f5f6;
 
 	--radius-selector: 0.5rem;
-	--radius-field: 9999px;
+	--radius-field: 0.5rem;
 	--radius-box: 1rem;
 
 	--size-selector: 0.25rem;
@@ -50,7 +54,17 @@
 }
 
 @theme {
-	--font-sans: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-sans: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
+
+	--color-brand-ink: #1a1a1a;
+	--color-brand-ink-2: #2b2b2b;
+	--color-brand-ink-3: #3e3e3e;
+	--color-brand-gray-600: #5e5e5e;
+	--color-brand-gray-500: #8c8c8c;
+	--color-brand-gray-300: #b5b5b5;
+	--color-brand-line: #d6d8d9;
+	--color-brand-mist: #e8eaeb;
+	--color-brand-paper: #f4f5f6;
 }
 
 @layer base {
@@ -60,16 +74,66 @@
 
 	body {
 		@apply bg-base-100 text-base-content antialiased;
+		line-height: 1.45;
 	}
 
 	h1,
 	h2,
 	h3,
 	h4 {
-		@apply font-semibold tracking-tight;
+		@apply font-bold;
+		line-height: 1.1;
 	}
 
 	::selection {
 		background-color: color-mix(in oklab, var(--color-primary) 22%, transparent);
 	}
+}
+
+@layer components {
+	/* Eyebrow: kapital, tebal, renggang — gray-600 di latar terang, gray-500 di latar gelap. */
+	.eyebrow {
+		@apply text-xs font-bold tracking-[0.18em] uppercase;
+		color: var(--color-brand-gray-600);
+	}
+
+	/* Garis aksen 5 px di bawah judul. */
+	.title-rule::after {
+		content: '';
+		display: block;
+		width: 9rem;
+		height: 5px;
+		margin-top: 1rem;
+		background-color: currentColor;
+	}
+}
+
+/*
+	Permukaan gelap. Ditulis di luar @layer karena gaya daisyUI berada di layer utilities,
+	sehingga override komponen biasa akan kalah prioritas.
+*/
+.on-dark {
+	background-color: var(--color-brand-ink);
+	color: var(--color-brand-paper);
+}
+
+.on-dark .btn-primary {
+	background-color: var(--color-brand-paper);
+	border-color: var(--color-brand-paper);
+	color: var(--color-brand-ink);
+}
+
+.on-dark .btn-ghost,
+.on-dark .btn-outline {
+	border-color: var(--color-brand-gray-500);
+	color: var(--color-brand-paper);
+}
+
+.on-dark .eyebrow {
+	color: var(--color-brand-gray-500);
+}
+
+.on-dark .card {
+	background-color: var(--color-brand-ink-2);
+	border-color: var(--color-brand-ink-3);
 }

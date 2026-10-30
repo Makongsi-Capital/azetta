@@ -77,7 +77,7 @@ Ambang indikatif per aliran:
 
 - Desain: mampu membeli paket desain (mulai Rp…, lihat daftar harga internal).
 - Lahan: luas ≥ 300 m², legalitas jelas atau dapat diurus, akses jalan memadai.
-- Investasi: dana ≥ Rp250 juta, siap menempatkan dana dalam 6 bulan.
+- Investasi: dana ≥ Rp 250 juta, siap menempatkan dana dalam 6 bulan.
 
 > Ambang ini adalah parameter bisnis, bukan aturan teknis. Bila berubah, cukup ubah panduan sales — tidak perlu perubahan sistem.
 

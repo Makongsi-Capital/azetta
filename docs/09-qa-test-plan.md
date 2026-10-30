@@ -233,7 +233,7 @@ E2E berjalan di CI pada setiap PR (subset) dan sebelum rilis (semua).
 | TTFB (p75) | ≤ 800 ms | Cloudflare Analytics |
 | JS halaman katalog | ≤ 180 KB gzip | Build report |
 | Gambar hero | ≤ 250 KB (WebP/AVIF) | Audit manual |
-| Font | ≤ 2 berkas, `display=swap` | Audit manual |
+| Font | Arial/Liberation Sans dari sistem — **0 webfont** | Audit Network tab |
 
 Aturan: setiap PR yang menambah > 25 KB JS harus disertai alasan di deskripsi PR.
 
@@ -327,3 +327,18 @@ Format laporan bug: judul, environment, langkah reproduksi, hasil yang diharapka
 - Ringkasan harian selama sprint: jumlah test lulus/gagal, bug baru, bug tertutup.
 - Laporan per sprint: cakupan uji, defect density, risiko terbuka.
 - Metrik kualitas yang dipantau setelah rilis: error rate 5xx, jumlah lead gagal simpan (harus 0), waktu muat p75, jumlah laporan pengguna.
+
+## 15. Checklist kepatuhan brand (Brand Guidelines v1.0)
+
+Diperiksa pada setiap PR yang menyentuh UI publik maupun admin.
+
+- [ ] Tidak ada warna di luar palet monokrom `ink`, `ink-2`, `ink-3`, `gray-600`, `gray-500`, `gray-300`, `line`, `mist`, `paper`, `white`, serta empat rona status `info`/`success`/`warning`/`error` (D20).
+- [ ] Rona status hanya dipakai untuk umpan balik sistem, bukan untuk aksen dekoratif, tombol utama, atau navigasi.
+- [ ] Tidak ada gradasi, bayangan, atau efek elevasi; pemisah memakai hairline `line`.
+- [ ] Huruf Arial (cadangan Liberation Sans/Helvetica); tidak ada webfont yang dimuat.
+- [ ] Judul tebal 700, jarak baris 1,05–1,1; isi 400, jarak baris 1,4–1,45.
+- [ ] Logo memakai mark resmi (`logo-mark.svg` / `Logo.svelte`) tanpa diubah warna, diregangkan, atau diberi bayangan.
+- [ ] Favicon memakai mark paper di atas ink.
+- [ ] Status tidak dibedakan lewat warna saja — selalu ada label teks atau ikon.
+- [ ] Tidak ada emoji; butir memakai mark AZETTA.
+- [ ] Naskah lolos aturan wajib Brand Guidelines §07 (tanpa angka imbal hasil di materi publik, tanpa "aman/pasti untung", tanpa tagar).

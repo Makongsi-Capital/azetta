@@ -228,6 +228,31 @@ Aturan artikel: 900–1.500 kata, minimal 1 tabel/gambar orisinal, 3 internal li
 
 Umum (3), Desain (3), Lahan (2), Investasi (2). Contoh: "Apakah bisa konsultasi sebelum membeli desain?", "Apakah harga desain termasuk RAB?", "Bagaimana skema bagi hasil lahan?", "Apakah investasi dijamin untung?" (jawaban jujur: tidak ada jaminan).
 
+### 7.5 Aturan bahasa & visual materi (Brand Guidelines §07–§08)
+
+Berlaku untuk seluruh naskah publik: halaman situs, artikel, FAQ, caption media sosial, dan lampiran PDF.
+
+| Wajib | Rincian |
+|-------|---------|
+| Sapaan | "Anda"; kalimat pendek, satu gagasan per kalimat |
+| Angka | `Rp 1.646.000.000` (spasi setelah `Rp`, titik ribuan), desimal koma: `11,3%` |
+| Judul | Pernyataan/pertanyaan langsung, bukan slogan, tanpa tagar |
+| Status proyek | Apa adanya: "Rancangan proyek Faisal · tahap perencanaan" |
+| Ajakan | Setiap materi publik ditutup dengan **satu** ajakan (formulir kajian) |
+| Gambar | Foto lahan, render, dan denah asli proyek — bukan foto stok; tiap render/denah diberi keterangan status |
+| Penutup | Penyerta ajakan: "Kajian awal gratis · Tanpa ikatan sampai akad · ±10 menit" |
+
+| Jangan | Gunakan |
+|--------|---------|
+| Menyebut angka imbal hasil di materi publik | Ajakan untuk kajian; angka hanya di materi tertutup beserta asumsinya |
+| "Aman", "pasti untung", "tanpa risiko" | Sebut risikonya, lalu cara mengendalikannya |
+| "Lahan tetap milik Anda" | "Lahan masuk sebagai modal penyertaan" |
+| "Pasar saham" | "Pengalihan saham" atau "pasar sekunder terbatas" |
+| Menampilkan proyek yang belum deal | Hanya proyek yang sudah deal, status apa adanya |
+| Harga lahan milik pemilik tertentu | Angka transaksi hanya untuk pihak yang terlibat |
+
+Kontak materi publik: formulir `forms.gle/FjX6A6XZjksGbASU9`, Instagram `@azetta.indonesia`, email `azettaidofficial@gmail.com`. Pada materi pemasaran (media sosial, poster, PDF, presentasi) nomor WhatsApp tidak dicetak sebagai teks; di web, tombol `wa.me` tetap tersedia sebagai kanal konversi sekunder (pengecualian resmi D19).
+
 ## 8. Kalender konten
 
 | Minggu | Konten | Pemilik |
@@ -259,7 +284,7 @@ Setiap artikel baru dipublikasikan **setelah** halaman tujuannya siap (jangan me
 | GA4 atau Umami | Sesi, sumber, konversi | Gratis / murah |
 | `funnel_event` internal | Konversi per halaman & desain | Gratis |
 | Lighthouse CI | Regresi performa per PR | Gratis |
-| Rank tracker (opsional) | Posisi kata kunci | Rp100–300 rb/bulan |
+| Rank tracker (opsional) | Posisi kata kunci | Rp 100–300 rb/bulan |
 
 Laporan bulanan wajib memuat: sesi organik, klik GSC, CTR, posisi rata-rata 10 kata kunci utama, lead per landing page, dan 5 halaman dengan impresi tinggi tapi CTR rendah (kandidat perbaikan judul).
 

@@ -47,7 +47,7 @@
 
 ### P3 — Investor ("Pak Hendra", 45, profesional/pengusaha)
 
-- **Konteks:** punya dana menganggur Rp500 juta–5 miliar, mencari instrumen properti.
+- **Konteks:** punya dana menganggur Rp 500 juta–5 miliar, mencari instrumen properti.
 - **Masalah:** butuh gambaran proyek, skema bagi hasil, horizon waktu, dan risiko sebelum bertemu.
 - **Perilaku:** membandingkan beberapa developer, minta proposal tertulis, mengecek rekam jejak.
 - **Yang meyakinkan:** ringkasan proyek berjalan, skema imbal hasil, tata kelola, kontak yang responsif.
@@ -312,6 +312,8 @@ Prioritas memakai MoSCoW: **M** = must, **S** = should, **C** = could.
 | NFR-17 | Keamanan akun | Perlindungan kredensial | Rate limit login/registrasi/reset; pesan error seragam; sesi di DB dapat dicabut |
 | NFR-18 | Privasi akun | Isolasi data antar pengguna | Setiap query pengajuan difilter `userId`; tidak ada IDOR (diuji otomatis) |
 | NFR-19 | Ketersediaan email | Pengiriman verifikasi & reset | Retry 3×; kegagalan tercatat & terlihat di admin |
+| NFR-20 | Identitas visual | Kepatuhan Brand Guidelines v1.0 pada web publik & admin | Palet monokrom (ink/paper/mist/line) untuk permukaan & aksi, ditambah empat rona status muted (info/success/warning/error, D20); huruf Arial, tanpa bayangan; logo & favicon dari berkas resmi |
+| NFR-21 | Bahasa materi publik | Nada dan aturan wajib Brand Guidelines §07 | Sapaan "Anda", kalimat pendek, angka `Rp 1.500.000`, tidak ada klaim hasil/imbal pasti maupun risiko nol |
 
 ## 7. Aturan bisnis
 

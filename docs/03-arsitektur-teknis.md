@@ -184,6 +184,7 @@ bun run build
 | Web publik | SvelteKit 3 + `adapter-node` | SSR, routing berbasis file, form actions, ukuran bundel kecil | Next.js (lebih berat, ekosistem besar) |
 | Admin | SvelteKit 3 (app terpisah) | Isolasi origin & bundel, guard di server | Route group `/(admin)` di app yang sama (risiko bocor bundel & konfigurasi) |
 | CSS | Tailwind CSS 4 + daisyUI 5 | Komponen siap pakai, tema mudah diubah | CSS-in-JS, Bootstrap |
+| Tipografi | Arial (sistem) dengan cadangan Liberation Sans/Helvetica | Tanpa webfont: nol permintaan font, tanpa CLS font, sesuai Brand Guidelines §04 | Poppins/Inter self-hosted (+2 berkas font) |
 | Ikon | Iconify (`@iconify/svelte`) | Ikon on-demand, tidak menambah banyak bobot | Font icon |
 | Kontrak | TypeBox | Dipakai native Elysia; bisa dipakai validasi klien | Zod (butuh lapisan konversi ekstra di Elysia) |
 | Editor konten | Tiptap (WYSIWYG) | Tim non-teknis dapat menulis tanpa menghafal sintaks; ringan, MIT, dan dapat diperluas | Markdown textarea + preview (butuh pelatihan sintaks) |

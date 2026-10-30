@@ -1,10 +1,10 @@
 # Dokumen Perencanaan Azetta
 
-**Versi:** 1.3 (revisi D8 — editor WYSIWYG Tiptap)
-**Tanggal:** 27 Oktober 2026
+**Versi:** 1.5 (revisi identitas visual — Brand Guidelines v1.0 + rona status)
+**Tanggal:** 30 Oktober 2026
 **Status:** Menunggu persetujuan pemilik produk
 
-Dokumen ini adalah rencana lengkap pembangunan **website Azetta** — mulai dari latar belakang produk, model bisnis, arsitektur teknis, model data, spesifikasi API, desain UX, backlog pengembangan, estimasi biaya, rencana QA, strategi SEO, hingga operasional peluncuran.
+Dokumen ini adalah rencana lengkap pembangunan **website Azetta** — mulai dari latar belakang produk, model bisnis, arsitektur teknis, model data, spesifikasi API, desain UX, backlog pengembangan, estimasi biaya, rencana QA, strategi SEO, hingga operasional peluncuran. Identitas visual dan bahasa mengikuti [AZETTA Brand Guidelines v1.0](./AZETTA_Brand_Guidelines.pdf).
 
 ---
 
@@ -31,6 +31,7 @@ Azetta adalah developer properti yang menjual **gambar desain properti** dan mem
 | 10 | [Strategi SEO & Konten](./10-seo-konten.md) | Struktur URL, keyword map, schema markup, kalender konten | Marketing |
 | 11 | [Deployment & Operasional](./11-deployment-operations.md) | Pipeline CI/CD, environment, backup, monitoring, runbook | DevOps |
 | 12 | [Risiko, Asumsi & Keputusan](./12-risiko-asumsi-keputusan.md) | Register risiko, asumsi, pertanyaan terbuka, log keputusan | Semua pihak |
+| R | [AZETTA Brand Guidelines v1.0](./AZETTA_Brand_Guidelines.pdf) | Prinsip merek, logo, palet monokrom, tipografi, elemen grafis, format, suara & bahasa, kontak | Semua pihak |
 
 Urutan baca yang disarankan:
 
@@ -38,6 +39,8 @@ Urutan baca yang disarankan:
 - **Produk/desain:** 01 → 02 → 06 → 07
 - **Engineering:** 03 → 04 → 05 → 07 → 09 → 11
 - **Marketing:** 01 → 02 → 06 → 10
+
+Semua pihak: Brand Guidelines (`AZETTA_Brand_Guidelines.pdf`) sebelum menyetujui materi visual atau naskah publik.
 
 ---
 
@@ -57,6 +60,8 @@ Urutan baca yang disarankan:
 | Pasar | Indonesia, bahasa Indonesia |
 | Frontend customer | SvelteKit + Tailwind + daisyUI + Iconify |
 | Frontend admin | SvelteKit (aplikasi terpisah) + Tailwind + daisyUI |
+| Identitas visual | **Monokrom** (ink/paper/mist/line) untuk permukaan & aksi, huruf Arial tanpa webfont, bidang polos tanpa bayangan — mengikuti Brand Guidelines v1.0; empat rona status muted sebagai pengecualian (D20) |
+| Bahasa materi publik | Indonesia, sapaan "Anda", kalimat pendek, tanpa klaim hasil; nomor WhatsApp tidak dicetak di materi pemasaran (web tetap memakai tautan `wa.me`, D19) |
 | Backend | ElysiaJS (Bun) + Better Auth + Prisma |
 | Database | PostgreSQL |
 | Editor konten | Tiptap (WYSIWYG), konten disimpan sebagai HTML tersanitasi |
@@ -69,7 +74,7 @@ Rincian alasan tiap keputusan ada di [12 — Log Keputusan](./12-risiko-asumsi-k
 
 ## 4. Konvensi penulisan
 
-- **Mata uang:** Rupiah penuh tanpa desimal, ditulis `Rp1.500.000`.
+- **Mata uang:** Rupiah penuh tanpa desimal, ditulis `Rp 1.500.000` (spasi setelah `Rp`, titik ribuan). Desimal memakai koma: `11,3%`.
 - **Istilah lead:** "lead" = orang yang mengisi formulir minat; "prospect" = lead yang sudah dikualifikasi; "deal" = kerja sama yang disepakati (dicatat di luar sistem pada MVP).
 - **Penamaan teknis:** `camelCase` untuk JSON/TypeScript, `PascalCase` untuk model Prisma, `snake_case` untuk kolom database hasil `@map` bila diperlukan.
 - **Status dokumen:** draft → review → disetujui. Setiap perubahan besar dicatat di bagian *Change Log* pada [12](./12-risiko-asumsi-keputusan.md#5-change-log).
@@ -105,6 +110,7 @@ Rincian alasan tiap keputusan ada di [12 — Log Keputusan](./12-risiko-asumsi-k
 ## 7. Catatan penting
 
 - Dokumen ini **belum** berisi kode. Implementasi mengikuti backlog di [07](./07-backlog-sprint.md).
+- Identitas visual dan aturan bahasa materi publik mengikuti [Brand Guidelines v1.0](./AZETTA_Brand_Guidelines.pdf); token tema ada di [06 §7](./06-ux-sitemap-wireframe.md#7-inventaris-komponen-ui) dan di `apps/*/src/routes/layout.css`.
 - Semua estimasi biaya adalah **rentang indikatif** berbasis asumsi yang ditulis eksplisit di [08 §2](./08-estimasi-biaya.md#2-asumsi-estimasi).
 - Konten (foto, render, artikel) belum tersedia dan menjadi prasyarat peluncuran — lihat [10 §7](./10-seo-konten.md#7-rencana-konten-awal).
 - **Belum ada PIC konten khusus** (Q9) dan **belum ada badan hukum** (Q10); keduanya memengaruhi risiko R1 dan materi halaman legal.

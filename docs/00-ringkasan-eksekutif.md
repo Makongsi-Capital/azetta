@@ -130,9 +130,9 @@ Rincian task: [07](./07-backlog-sprint.md).
 | Komponen | Perkiraan |
 |----------|-----------|
 | Effort total | **187 person-day** — 147 developer, 17 desain, 15 QA, 8 konten (lihat [08 §3](./08-estimasi-biaya.md#3-rincian-effort)) |
-| Biaya tim (outsourced) | Rp142–214 juta; dengan kontingensi 15% → **Rp163–246 juta** |
-| Infrastruktur bulanan | Rp0,45–2,3 juta/bulan (baseline ±Rp1,5 juta) |
-| Biaya sekali bayar | Domain, aset visual, foto/render, legal review — Rp4,75–15,5 juta |
+| Biaya tim (outsourced) | Rp 142–214 juta; dengan kontingensi 15% → **Rp 163–246 juta** |
+| Infrastruktur bulanan | Rp 0,45–2,3 juta/bulan (baseline ±Rp 1,5 juta) |
+| Biaya sekali bayar | Domain, aset visual, foto/render, legal review — Rp 4,75–15,5 juta |
 | Kontingensi | 15% dari total |
 
 ## 8. Risiko utama

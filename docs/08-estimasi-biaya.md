@@ -10,11 +10,11 @@
 |-----|-------|
 | Effort total | **187 person-day** (147 developer, 17 desain, 15 QA, 8 konten) |
 | Durasi kalender | **±15 minggu** dengan 2 developer full-time |
-| Biaya tim (outsourced) | **Rp142–214 juta** (dihitung per peran, §3.3) |
-| Biaya tim + kontingensi 15% | **Rp163–246 juta** |
-| Infrastruktur bulanan | **Rp450 ribu–2,3 juta** (baseline ±Rp1,5 juta) |
-| Biaya sekali bayar | **Rp4,75–15,5 juta** (domain, aset visual, review legal, dsb.) |
-| TCO 12 bulan (build + infra + sekali bayar) | **±Rp152–258 juta** (tanpa kontingensi) |
+| Biaya tim (outsourced) | **Rp 142–214 juta** (dihitung per peran, §3.3) |
+| Biaya tim + kontingensi 15% | **Rp 163–246 juta** |
+| Infrastruktur bulanan | **Rp 450 ribu–2,3 juta** (baseline ±Rp 1,5 juta) |
+| Biaya sekali bayar | **Rp 4,75–15,5 juta** (domain, aset visual, review legal, dsb.) |
+| TCO 12 bulan (build + infra + sekali bayar) | **±Rp 152–258 juta** (tanpa kontingensi) |
 
 > Semua angka adalah **rentang indikatif**, bukan penawaran. Angka berubah bila asumsi di §2 berubah.
 
@@ -38,12 +38,12 @@ Rate acuan pasar (2026, Indonesia, proyek lepas):
 
 | Peran | Rate per person-day |
 |-------|---------------------|
-| Junior developer | Rp500–700 ribu |
-| Mid developer | Rp800 ribu–1,2 juta |
-| Senior developer / arsitek | Rp1,3–1,8 juta |
-| UI/UX designer | Rp700 ribu–1,1 juta |
-| QA engineer | Rp600–900 ribu |
-| Content writer | Rp400–700 ribu |
+| Junior developer | Rp 500–700 ribu |
+| Mid developer | Rp 800 ribu–1,2 juta |
+| Senior developer / arsitek | Rp 1,3–1,8 juta |
+| UI/UX designer | Rp 700 ribu–1,1 juta |
+| QA engineer | Rp 600–900 ribu |
+| Content writer | Rp 400–700 ribu |
 
 ## 3. Rincian effort
 
@@ -87,7 +87,7 @@ Rate acuan pasar (2026, Indonesia, proyek lepas):
 | Content | 8 | 400 – 700 rb | 3,2 – 5,6 jt |
 | **Total** | **187** | — | **141,7 – 214,2 jt** |
 
-Dengan kontingensi 15%: **Rp163,0 – 246,3 juta** (dibulatkan Rp163–246 juta).
+Dengan kontingensi 15%: **Rp 163,0 – 246,3 juta** (dibulatkan Rp 163–246 juta).
 
 Kenaikan dari v1.0 (155 → 185 pd) berasal dari: akun publik +14 pd pengembangan, portofolio proyek +5 pd, unggah aset legal/brand +2 pd, serta penyesuaian desain & QA +9 pd.
 
@@ -97,10 +97,10 @@ Kenaikan v1.2 (185 → 187 pd): permohonan hapus akun (Q12) +2 pd developer di S
 
 | Skenario | Komposisi | Biaya eksternal | Durasi | Catatan |
 |----------|-----------|-----------------|--------|---------|
-| **A. In-house penuh** | 2 dev + desainer + QA internal | Rp0 (biaya gaji tetap) | 15 minggu | Termurah secara kas, butuh kapasitas tim |
-| **B. Outsourced penuh** | Vendor/agency | Rp142–214 jt | 15 minggu | Cepat, perlu manajemen vendor & serah terima |
-| **C. Hybrid (disarankan)** | 1 dev internal + 1 dev senior lepas + desainer lepas | Rp70–110 jt | 15–17 minggu | Pengetahuan produk tetap di internal |
-| **D. Satu developer** | 1 dev full-stack | Rp58–87 jt (own cost) | 26–30 minggu | Risiko bottleneck & bus factor tinggi |
+| **A. In-house penuh** | 2 dev + desainer + QA internal | Rp 0 (biaya gaji tetap) | 15 minggu | Termurah secara kas, butuh kapasitas tim |
+| **B. Outsourced penuh** | Vendor/agency | Rp 142–214 jt | 15 minggu | Cepat, perlu manajemen vendor & serah terima |
+| **C. Hybrid (disarankan)** | 1 dev internal + 1 dev senior lepas + desainer lepas | Rp 70–110 jt | 15–17 minggu | Pengetahuan produk tetap di internal |
+| **D. Satu developer** | 1 dev full-stack | Rp 58–87 jt (own cost) | 26–30 minggu | Risiko bottleneck & bus factor tinggi |
 
 Rekomendasi: **C** — menjaga pengetahuan produk di internal sambil menambah kapasitas.
 
@@ -108,55 +108,55 @@ Rekomendasi: **C** — menjaga pengetahuan produk di internal sambil menambah ka
 
 | Komponen | Minimum | Baseline | Catatan |
 |----------|--------:|---------:|---------|
-| VPS aplikasi (4 vCPU / 8 GB, Docker: api+web+admin) | Rp400 rb | Rp800 rb | Cukup untuk 30 rb sesi/bulan |
-| PostgreSQL | Rp0 (self-host di VPS) | Rp700 rb | Managed (Neon/Supabase/RDS) untuk backup otomatis |
-| Object storage R2 (20 GB + operasi) | Rp20 rb | Rp60 rb | Egress gratis |
-| Email transaksional | Rp0 (free tier 3.000/bulan) | Rp320 rb | Notifikasi lead + verifikasi akun + reset sandi |
-| Error tracking (Sentry) | Rp0 (free) | Rp420 rb | Free tier cukup untuk MVP |
-| CDN/WAF (Cloudflare) | Rp0 (free) | Rp0 | Pro opsional Rp320 rb |
-| Domain `.id` | Rp21 rb | Rp21 rb | Rp250 rb/tahun |
-| Monitoring uptime | Rp0 | Rp0 | Layanan gratis |
-| **Total** | **±Rp441 rb** | **±Rp2,32 jt** | Baseline realistis **Rp1,4–1,8 jt** tanpa layanan opsional |
+| VPS aplikasi (4 vCPU / 8 GB, Docker: api+web+admin) | Rp 400 rb | Rp 800 rb | Cukup untuk 30 rb sesi/bulan |
+| PostgreSQL | Rp 0 (self-host di VPS) | Rp 700 rb | Managed (Neon/Supabase/RDS) untuk backup otomatis |
+| Object storage R2 (20 GB + operasi) | Rp 20 rb | Rp 60 rb | Egress gratis |
+| Email transaksional | Rp 0 (free tier 3.000/bulan) | Rp 320 rb | Notifikasi lead + verifikasi akun + reset sandi |
+| Error tracking (Sentry) | Rp 0 (free) | Rp 420 rb | Free tier cukup untuk MVP |
+| CDN/WAF (Cloudflare) | Rp 0 (free) | Rp 0 | Pro opsional Rp 320 rb |
+| Domain `.id` | Rp 21 rb | Rp 21 rb | Rp 250 rb/tahun |
+| Monitoring uptime | Rp 0 | Rp 0 | Layanan gratis |
+| **Total** | **±Rp 441 rb** | **±Rp 2,32 jt** | Baseline realistis **Rp 1,4–1,8 jt** tanpa layanan opsional |
 
-Catatan v1.1: komponen **WhatsApp gateway dihapus** (Q7). Asumsi kurs: USD 1 = Rp16.500 (perbarui saat pembelian).
+Catatan v1.1: komponen **WhatsApp gateway dihapus** (Q7). Asumsi kurs: USD 1 = Rp 16.500 (perbarui saat pembelian).
 
 ## 6. Biaya sekali bayar
 
 | Pos | Rentang | Catatan |
 |-----|--------:|---------|
-| Domain & SSL | Rp250–500 rb | SSL gratis (Let's Encrypt/Cloudflare) |
-| Aset visual (render 3D / fotografi) | Rp3–8 jt | 12 desain + 4 proyek; bisa dikerjakan internal |
-| Review legal (privasi & syarat) | Rp1,5–4 jt | Wajib sebelum rilis |
-| Setup akun bisnis & email domain | Rp0–500 rb | Termasuk SPF/DKIM/DMARC untuk deliverability |
-| Pelatihan tim (1 sesi) | Rp0–1 jt | Bisa internal |
-| Cadangan perangkat/alat | Rp0–1,5 jt | — |
-| **Total** | **Rp4,75–15,5 jt** | — |
+| Domain & SSL | Rp 250–500 rb | SSL gratis (Let's Encrypt/Cloudflare) |
+| Aset visual (render 3D / fotografi) | Rp 3–8 jt | 12 desain + 4 proyek; bisa dikerjakan internal |
+| Review legal (privasi & syarat) | Rp 1,5–4 jt | Wajib sebelum rilis |
+| Setup akun bisnis & email domain | Rp 0–500 rb | Termasuk SPF/DKIM/DMARC untuk deliverability |
+| Pelatihan tim (1 sesi) | Rp 0–1 jt | Bisa internal |
+| Cadangan perangkat/alat | Rp 0–1,5 jt | — |
+| **Total** | **Rp 4,75–15,5 jt** | — |
 
 ## 7. Total biaya kepemilikan 12 bulan
 
 | Komponen | Minimum | Maksimum |
 |----------|--------:|---------:|
-| Build (tim) | Rp141,7 jt | Rp246,3 jt (termasuk kontingensi) |
-| Infrastruktur 12 bulan | Rp5,3 jt | Rp27,8 jt |
-| Sekali bayar | Rp4,75 jt | Rp15,5 jt |
-| **TCO 12 bulan** | **±Rp152 jt** | **±Rp290 jt** |
+| Build (tim) | Rp 141,7 jt | Rp 246,3 jt (termasuk kontingensi) |
+| Infrastruktur 12 bulan | Rp 5,3 jt | Rp 27,8 jt |
+| Sekali bayar | Rp 4,75 jt | Rp 15,5 jt |
+| **TCO 12 bulan** | **±Rp 152 jt** | **±Rp 290 jt** |
 
-Tanpa kontingensi, TCO berada di **Rp152–258 juta**. Biaya operasional setelah tahun pertama: **Rp5,3–27,8 juta/tahun** + pemeliharaan bila diperlukan.
+Tanpa kontingensi, TCO berada di **Rp 152–258 juta**. Biaya operasional setelah tahun pertama: **Rp 5,3–27,8 juta/tahun** + pemeliharaan bila diperlukan.
 
 ## 8. Sensitivitas
 
 | Perubahan | Dampak effort | Dampak biaya (bottom-up) |
 |-----------|---------------|--------------------------|
-| Menunda portofolio proyek ke fase 2 | −7 pd | −Rp5–8 jt |
-| Menunda akun publik (kembali ke v1.0) | −17 pd | −Rp13–20 jt |
-| Tambah pembayaran online + order | +18–25 pd | +Rp14–31 jt |
-| Tambah dashboard investor | +20–30 pd | +Rp16–37 jt |
-| Tambah multi-bahasa | +8–12 pd | +Rp6–14 jt |
-| Tambah routing lead per tim + pengingat otomatis | +6–8 pd | +Rp5–10 jt |
-| Desain UI dibuat dari nol tanpa desainer | +10–14 pd dev | +Rp8–16 jt |
+| Menunda portofolio proyek ke fase 2 | −7 pd | −Rp 5–8 jt |
+| Menunda akun publik (kembali ke v1.0) | −17 pd | −Rp 13–20 jt |
+| Tambah pembayaran online + order | +18–25 pd | +Rp 14–31 jt |
+| Tambah dashboard investor | +20–30 pd | +Rp 16–37 jt |
+| Tambah multi-bahasa | +8–12 pd | +Rp 6–14 jt |
+| Tambah routing lead per tim + pengingat otomatis | +6–8 pd | +Rp 5–10 jt |
+| Desain UI dibuat dari nol tanpa desainer | +10–14 pd dev | +Rp 8–16 jt |
 | Konten terlambat 1 bulan | 0 pd, +4 minggu kalender | Opportunitas hilang |
-| Ganti Postgres ke managed + HA | +2–4 pd | +Rp3–6 jt/tahun |
-| Kebutuhan audit keamanan formal | +10–15 pd | +Rp8–18 jt |
+| Ganti Postgres ke managed + HA | +2–4 pd | +Rp 3–6 jt/tahun |
+| Kebutuhan audit keamanan formal | +10–15 pd | +Rp 8–18 jt |
 
 ## 9. Cara menekan biaya (tanpa merusak kualitas)
 
