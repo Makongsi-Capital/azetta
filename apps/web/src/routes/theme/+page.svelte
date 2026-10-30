@@ -35,8 +35,6 @@
 	];
 </script>
 
-<!-- eslint-disable svelte/no-navigation-without-resolve -- pratinjau tema, tautan mengarah ke rute yang belum dibangun -->
-
 <svelte:head>
 	<title>Panduan Tema — AZETTA</title>
 	<meta name="robots" content="noindex" />
@@ -46,26 +44,7 @@
 	/>
 </svelte:head>
 
-<div class="min-h-screen bg-base-100">
-	<header class="sticky top-0 z-40 border-b border-brand-line bg-base-100/95 backdrop-blur">
-		<div class="mx-auto flex h-20 max-w-6xl items-center gap-8 px-4">
-			<a class="text-base-content" href="/" aria-label="AZETTA — beranda">
-				<Logo size={30} />
-			</a>
-			<nav class="hidden items-center gap-6 text-sm md:flex">
-				<a class="link link-hover" href="/desain">Desain</a>
-				<a class="link link-hover" href="/kerjasama-lahan">Kerja Sama Lahan</a>
-				<a class="link link-hover" href="/investasi">Investasi</a>
-				<a class="link link-hover" href="/proyek">Proyek</a>
-				<a class="link link-hover" href="/artikel">Artikel</a>
-			</nav>
-			<div class="ml-auto flex items-center gap-2">
-				<button class="btn btn-ghost btn-sm">Masuk</button>
-				<button class="btn btn-primary btn-sm">Ajukan kajian</button>
-			</div>
-		</div>
-	</header>
-
+<div class="bg-base-100">
 	<section class="on-dark">
 		<div class="mx-auto max-w-6xl px-4 py-20 md:py-28">
 			<p class="eyebrow">Panduan tema</p>
@@ -363,35 +342,4 @@
 			</div>
 		</div>
 	</section>
-
-	<footer class="on-dark">
-		<div class="mx-auto grid max-w-6xl gap-8 border-t border-brand-ink-3 px-4 py-12 md:grid-cols-4">
-			<div class="md:col-span-2">
-				<Logo size={30} />
-				<p class="mt-4 max-w-sm text-sm text-brand-gray-300">
-					Developer properti: jual desain, kerja sama lahan, dan investasi.
-				</p>
-				<p class="mt-4 text-sm text-brand-gray-500">Makassar, Indonesia</p>
-			</div>
-			<div class="text-sm">
-				<p class="font-bold">Jelajahi</p>
-				<ul class="mt-3 space-y-2 text-brand-gray-300">
-					<li><a class="link link-hover" href="/desain">Katalog desain</a></li>
-					<li><a class="link link-hover" href="/proyek">Proyek</a></li>
-					<li><a class="link link-hover" href="/artikel">Artikel</a></li>
-				</ul>
-			</div>
-			<div class="text-sm">
-				<p class="font-bold">Kontak</p>
-				<ul class="mt-3 space-y-2 text-brand-gray-300">
-					<li><a class="link link-hover" href="/kontak">Formulir kontak</a></li>
-					<li>Instagram @azetta.indonesia</li>
-					<li>azettaidofficial@gmail.com</li>
-				</ul>
-			</div>
-		</div>
-		<div class="border-t border-brand-ink-3 py-4 text-center text-xs text-brand-gray-500">
-			Pratinjau internal — tidak diindeks mesin pencari.
-		</div>
-	</footer>
 </div>
