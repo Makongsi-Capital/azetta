@@ -41,7 +41,7 @@
                             │           │
               ┌─────────────▼──┐   ┌────▼─────────────────┐
               │ PostgreSQL     │   │ Object storage (R2/S3)│
-              │ (Prisma)       │   │ media desain, lampiran│
+              │ (Prisma)       │   │ media unit, lampiran  │
               └────────────────┘   └──────────────────────┘
                             │
               ┌─────────────▼──────────────────────────┐
@@ -74,9 +74,9 @@ azetta/
 │  │  │  │  ├─ rate-limit.ts
 │  │  │  │  └─ error-handler.ts
 │  │  │  ├─ modules/
-│  │  │  │  ├─ public/         # designs, projects, articles, site, leads
+│  │  │  │  ├─ public/         # units, projects, articles, site, leads
 │  │  │  │  ├─ account/        # profil, pengajuan milik user
-│  │  │  │  ├─ admin/          # leads, designs, projects, articles, users, stats, settings
+│  │  │  │  ├─ admin/          # leads, units, projects, articles, users, stats, settings
 │  │  │  │  └─ uploads/
 │  │  │  └─ jobs/              # cron: retensi data, pembersihan spam
 │  │  ├─ test/
@@ -90,9 +90,9 @@ azetta/
 │  │  │  ├─ routes/
 │  │  │  │  ├─ +layout.svelte / +layout.server.ts
 │  │  │  │  ├─ +page.svelte              # beranda
-│  │  │  │  ├─ desain/+page.svelte
-│  │  │  │  ├─ desain/[slug]/+page.svelte
-│  │  │  │  ├─ kerjasama-lahan/+page.svelte
+│  │  │  │  ├─ rumah/+page.svelte
+│  │  │  │  ├─ rumah/[slug]/+page.svelte
+│  │  │  │  ├─ kerja-sama-lahan/+page.svelte
 │  │  │  │  ├─ investasi/+page.svelte
 │  │  │  │  ├─ proyek/+page.svelte
 │  │  │  │  ├─ proyek/[slug]/+page.svelte
@@ -122,7 +122,7 @@ azetta/
 │     │     ├─ (app)/+layout.server.ts   # guard
 │     │     ├─ (app)/dashboard/
 │     │     ├─ (app)/leads/
-│     │     ├─ (app)/desain/
+│     │     ├─ (app)/unit/
 │     │     ├─ (app)/proyek/
 │     │     ├─ (app)/artikel/
 │     │     ├─ (app)/pengguna/
@@ -154,7 +154,7 @@ azetta/
 
 Aturan ini dijaga dengan `eslint-plugin-import` (`no-restricted-imports`) agar tidak dilanggar tanpa sengaja.
 
-Pengecualian: `apps/web` dan `apps/admin` boleh mengimpor **tipe** model Prisma dari `@azetta/db` memakai `import type` (mis. `import type { Design } from '@azetta/db'`). Impor runtime tetap dilarang karena hanya API yang boleh mengakses database; aturan ESLint membedakan keduanya lewat `allowTypeImports`.
+Pengecualian: `apps/web` dan `apps/admin` boleh mengimpor **tipe** model Prisma dari `@azetta/db` memakai `import type` (mis. `import type { Unit } from '@azetta/db'`). Impor runtime tetap dilarang karena hanya API yang boleh mengakses database; aturan ESLint membedakan keduanya lewat `allowTypeImports`.
 
 ### Perintah kerja
 
@@ -198,10 +198,10 @@ Catatan implementasi editor: admin memakai `@tiptap/core` + StarterKit dengan ek
 ### 5.1 Halaman publik (SSR)
 
 ```text
-Browser → GET /desain/rumah-minimalis-2-lantai
+Browser → GET /rumah/azetta-residence-tipe-45-a1
         → Cloudflare (cache hit? → sajikan)
         → SvelteKit +page.server.ts
-             └─ fetch API /api/v1/public/designs/rumah-minimalis-2-lantai
+             └─ fetch API /api/v1/public/units/azetta-residence-tipe-45-a1
                     └─ Elysia → Prisma → PostgreSQL
         → render HTML lengkap + data untuk hidrasi
         → Response dengan Cache-Control publik
@@ -225,7 +225,7 @@ Browser
         ├─ cek honeypot & waktu isi
         ├─ validasi TypeBox
         ├─ normalisasi nomor telepon
-        ├─ simpan Lead (+ LandSubmission / InvestmentInterest)
+        ├─ simpan Lead (+ LandSubmission untuk LAND_OFFER)
         ├─ simpan lampiran (presigned → metadata)
         └─ enqueue notifikasi (tidak menunggu)
               → 201 { data: { reference, ... } }
@@ -341,8 +341,8 @@ Aturan tambahan:
 | Halaman | Strategi | Cache |
 |---------|----------|-------|
 | Beranda | SSR | CDN 60 s, purge saat konten berubah |
-| Katalog (`/desain`) | SSR, filter via query | CDN 60 s (`s-maxage=60, stale-while-revalidate=300`) |
-| Detail desain | SSR | CDN 300 s, purge per URL saat publish |
+| Katalog (`/rumah`) | SSR, filter via query | CDN 60 s (`s-maxage=60, stale-while-revalidate=300`) |
+| Detail unit | SSR | CDN 300 s, purge per URL saat publish/perubahan status |
 | Proyek (`/proyek`, detail) | SSR | CDN 300 s, purge per URL saat publish |
 | Artikel | SSR | CDN 300 s, purge per URL |
 | Tentang/Kontak/FAQ | SSR | CDN 600 s |
@@ -352,7 +352,7 @@ Aturan tambahan:
 | Akun (`/akun/*`) | SSR guard + data per pengguna, `noindex` | no-store |
 | Admin | SSR guard + CSR tabel | no-store |
 
-Invalidasi: saat admin mem-publish desain/artikel, API memanggil endpoint purge Cloudflare (`POST /purge_cache` dengan `files` atau `tags`) melalui job. Bila purge gagal, TTL pendek tetap menjamin konten baru tampil ≤ 5 menit. Detail: [11 §6](./11-deployment-operations.md#6-cache--invalidasi).
+Invalidasi: saat admin mem-publish unit/artikel, API memanggil endpoint purge Cloudflare (`POST /purge_cache` dengan `files` atau `tags`) melalui job. Bila purge gagal, TTL pendek tetap menjamin konten baru tampil ≤ 5 menit. Detail: [11 §6](./11-deployment-operations.md#6-cache--invalidasi).
 
 Aturan tambahan:
 
@@ -366,11 +366,11 @@ Aturan tambahan:
 |-------|-----------|
 | Penyimpanan | Cloudflare R2 (bucket privat) |
 | Bucket produksi | `azetta-prod-media` dengan custom domain `media.azetta.id` |
-| Media publik desain | Disajikan lewat CDN dengan URL stabil; objek tidak dapat didaftar publik |
+| Media publik unit | Disajikan lewat CDN dengan URL stabil; objek tidak dapat didaftar publik |
 | Lampiran lead (foto lahan) | Bucket privat; akses hanya via URL presigned 15 menit |
 | Unggah admin | Presigned `PUT`, maks 10 MB, MIME diizinkan: JPEG/PNG/WebP |
 | Unggah publik | Presigned `PUT` dengan content-type & size dibatasi, dipakai sekali, kedaluwarsa 10 menit |
-| Nama objek | `designs/{designId}/{nanoid}.webp`, `leads/{leadId}/{nanoid}.jpg` |
+| Nama objek | `units/{unitId}/{nanoid}.webp`, `leads/{leadId}/{nanoid}.jpg` |
 | Optimasi | Varian 400/800/1600 px dibuat saat upload (sharp) atau on-the-fly Image Resizing Cloudflare |
 | Pembersihan | Objek tanpa referensi dihapus oleh job mingguan (orphan sweep) |
 
@@ -392,9 +392,8 @@ export const LandSubmissionSchema = t.Object({
     t.Literal('SHM'), t.Literal('SHGB'), t.Literal('AJB'),
     t.Literal('GIRIK'), t.Literal('LETTER_C'), t.Literal('OTHER'),
   ]),
-  expectedScheme: t.Union([
-    t.Literal('BAGI_HASIL'), t.Literal('SEWA'),
-    t.Literal('JUAL'), t.Literal('BELUM_TAHU'),
+  offerIntent: t.Union([
+    t.Literal('SALE'), t.Literal('PARTNERSHIP'), t.Literal('UNKNOWN'),
   ]),
   notes: t.Optional(t.String({ maxLength: 1000 })),
   attachmentKeys: t.Optional(t.Array(t.String(), { maxItems: 5 })),

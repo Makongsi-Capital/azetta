@@ -67,7 +67,7 @@ Aturan:
 
 - Semua timestamp: ISO 8601 UTC, contoh `2026-10-23T04:15:00.000Z`.
 - ID mengikuti jenis entitas:
-  - `Int` autoincrement untuk entitas internal (desain, media, tag, proyek, artikel, FAQ, testimoni, aktivitas lead, lampiran, audit log, funnel event).
+  - `Int` autoincrement untuk entitas internal (unit, media unit, proyek, artikel, FAQ, testimoni, aktivitas lead, lampiran, audit log, funnel event).
   - `nanoid()` untuk ID unik yang dikembalikan ke pengguna (`AccountDeletionRequest`).
   - **UUIDv7** untuk `Lead.id` — urut waktu sekaligus tidak mudah ditebak (dipakai di `/akun/pengajuan/[id]`).
   - Tabel Better Auth (`User`, `Session`, `Account`, `Verification`) memakai ID yang dibuat Better Auth.
@@ -133,7 +133,7 @@ Aturan:
 | Baca semua lead | ❌ | ❌ | ✅ | ✅ |
 | Ubah status/catat aktivitas/catatan pemohon | ❌ | ❌ | ✅ | ✅ |
 | Lihat lampiran lead | ❌ | ❌ | ✅ | ✅ |
-| Kelola desain/proyek/artikel | ❌ | ❌ | ✅ | ✅ |
+| Kelola unit/proyek/artikel | ❌ | ❌ | ✅ | ✅ |
 | Ekspor data pribadi | ❌ | ❌ | ✅ | ✅ |
 | Kelola pengguna & peran | ❌ | ❌ | ❌ | ✅ |
 | Ubah pengaturan situs & unggah aset | ❌ | ❌ | ✅ | ✅ |
@@ -147,10 +147,10 @@ Catatan: kolom `customer` **tidak** memiliki akses ke `/api/v1/admin/*`. Satu co
 
 | Metode | Path | Fungsi | Cache |
 |--------|------|--------|-------|
-| GET | `/public/designs` | Daftar desain publish | 60 s |
-| GET | `/public/designs/filters` | Nilai filter tersedia + jumlah | 300 s |
-| GET | `/public/designs/:slug` | Detail desain | 300 s |
-| GET | `/public/designs/:slug/related` | Desain terkait (maks 4) | 300 s |
+| GET | `/public/units` | Daftar unit rumah publish | 60 s |
+| GET | `/public/units/filters` | Nilai filter tersedia + jumlah (proyek, kota, tipe, rentang harga) | 300 s |
+| GET | `/public/units/:slug` | Detail unit rumah | 300 s |
+| GET | `/public/units/:slug/related` | Unit terkait (maks 4) | 300 s |
 | GET | `/public/projects` | Daftar proyek publish | 60 s |
 | GET | `/public/projects/:slug` | Detail proyek | 300 s |
 | GET | `/public/articles` | Daftar artikel publish | 60 s |
@@ -171,14 +171,14 @@ Catatan: kolom `customer` **tidak** memiliki akses ke `/api/v1/admin/*`. Satu co
 
 > Empat endpoint terakhir berada di prefiks `/api/v1` dan memerlukan sesi `customer` yang email-nya terverifikasi.
 
-### 4.2 `GET /public/designs`
+### 4.2 `GET /public/units`
 
-**Query:** `q`, `category`, `style`, `floors`, `bedrooms`, `minLandArea`, `maxPrice`, `sort` (`-publishedAt` \| `-viewCount` \| `priceFrom` \| `-priceFrom`), `page`, `perPage`.
+**Query:** `q`, `project`, `city`, `type`, `bedrooms`, `minLandArea`, `minBuildingArea`, `minPrice`, `maxPrice`, `salesStatus` (`AVAILABLE` \| `INDENT` \| `SOLD`), `sort` (`-publishedAt` \| `priceFrom` \| `-priceFrom` \| `-landAreaM2`), `page`, `perPage`.
 
 **Contoh:**
 
 ```http
-GET /api/v1/public/designs?category=RESIDENTIAL&floors=2&bedrooms=3&sort=-publishedAt&page=1
+GET /api/v1/public/units?city=Bandung&type=Tipe%2045&salesStatus=AVAILABLE&sort=priceFrom&page=1
 ```
 
 ```json
@@ -186,89 +186,104 @@ GET /api/v1/public/designs?category=RESIDENTIAL&floors=2&bedrooms=3&sort=-publis
   "data": [
     {
       "id": "clx1",
-      "slug": "rumah-minimalis-2-lantai-6x12",
-      "title": "Rumah Minimalis 2 Lantai 6×12",
-      "subtitle": "3 kamar tidur, cocok untuk lahan sempit",
-      "category": "RESIDENTIAL",
-      "style": "Minimalis",
+      "slug": "azetta-residence-tipe-45-a1",
+      "unitCode": "A1",
+      "typeName": "Tipe 45",
+      "title": "Azetta Residence Tipe 45",
+      "subtitle": "3 kamar tidur, 2 lantai, siap huni",
+      "project": { "slug": "azetta-residence", "title": "Azetta Residence", "city": "Bandung" },
       "floors": 2,
       "bedrooms": 3,
       "bathrooms": 2,
       "carports": 1,
-      "buildingAreaM2": 96,
-      "landAreaMinM2": 72,
-      "priceFrom": "4500000",
+      "buildingAreaM2": 90,
+      "landAreaM2": 96,
+      "priceFrom": "850000000",
+      "salesStatus": "AVAILABLE",
       "featured": true,
       "cover": {
-        "url": "https://media.azetta.id/designs/clx1/cover.webp",
-        "alt": "Tampak depan rumah minimalis dua lantai",
+        "url": "https://media.azetta.id/units/clx1/cover.webp",
+        "alt": "Tampak depan unit Tipe 45",
         "width": 1600,
         "height": 1067
-      },
-      "tags": ["Minimalis", "Lahan Sempit"]
+      }
     }
   ],
   "meta": { "page": 1, "perPage": 12, "total": 8, "totalPages": 1 }
 }
 ```
 
-**Catatan:** `description` **tidak** disertakan pada list (payload lebih kecil).
+**Catatan:**
 
-### 4.3 `GET /public/designs/:slug`
+- Hanya unit `publishStatus = PUBLISHED` yang proyeknya juga `PUBLISHED` yang dikembalikan.
+- `description` **tidak** disertakan pada list (payload lebih kecil).
+- `priceFrom` adalah harga indikatif "mulai dari" untuk tipe tersebut (diambil dari nilai terendah unit `AVAILABLE` pada proyek yang sama); harga final tidak pernah dikirim ke publik.
+
+### 4.3 `GET /public/units/:slug`
 
 ```json
 {
   "data": {
     "id": "clx1",
-    "slug": "rumah-minimalis-2-lantai-6x12",
-    "title": "Rumah Minimalis 2 Lantai 6×12",
-    "subtitle": "3 kamar tidur, cocok untuk lahan sempit",
-    "description": "## Konsep\nRumah ini …",
-    "category": "RESIDENTIAL",
-    "style": "Minimalis",
+    "slug": "azetta-residence-tipe-45-a1",
+    "unitCode": "A1",
+    "typeName": "Tipe 45",
+    "title": "Azetta Residence Tipe 45",
+    "subtitle": "3 kamar tidur, 2 lantai, siap huni",
+    "description": "<p>Unit ini …</p>",
+    "project": {
+      "slug": "azetta-residence",
+      "title": "Azetta Residence",
+      "city": "Bandung",
+      "province": "Jawa Barat",
+      "status": "ONGOING"
+    },
     "floors": 2,
     "bedrooms": 3,
     "bathrooms": 2,
     "carports": 1,
-    "buildingAreaM2": 96,
-    "landAreaMinM2": 72,
-    "priceFrom": "4500000",
+    "buildingAreaM2": 90,
+    "landAreaM2": 96,
+    "priceFrom": "850000000",
+    "salesStatus": "AVAILABLE",
     "media": [
-      { "id": "m1", "kind": "IMAGE", "url": "https://…", "alt": "…", "width": 1600, "height": 1067, "isCover": true },
+      { "id": "m1", "kind": "RENDER", "url": "https://…", "alt": "Render tampak depan", "width": 1600, "height": 1067, "isCover": true },
       { "id": "m2", "kind": "FLOOR_PLAN", "url": "https://…", "alt": "Denah lantai 1", "width": 1200, "height": 1600, "isCover": false }
     ],
-    "tags": ["Minimalis", "Lahan Sempit"],
     "publishedAt": "2026-10-01T02:00:00.000Z",
+    "updatedAt": "2026-10-28T09:00:00.000Z",
     "seo": { "title": "…", "description": "…" }
   }
 }
 ```
 
-> **Tidak dikirim ke publik:** `estimatedBuildCostMin`, `estimatedBuildCostMax`, `createdById`, dan catatan internal. Estimasi biaya hanya tersedia di endpoint admin (Q8).
+> **Tidak dikirim ke publik:** harga final per unit, skema pembayaran, `createdById`, dan catatan internal. Data tersebut hanya tersedia di endpoint admin.
 
-Respons `404 NOT_FOUND` untuk desain `DRAFT`/`ARCHIVED`/`deletedAt != null` — tanpa membedakan alasannya (menghindari kebocoran informasi).
+Respons `404 NOT_FOUND` untuk unit `DRAFT`/`ARCHIVED`/`deletedAt != null` maupun unit yang proyeknya belum publish — tanpa membedakan alasannya (menghindari kebocoran informasi).
+
+**`GET /public/units/:slug/related`** mengembalikan maksimal 4 unit lain dengan prioritas proyek → kota → tipe yang sama, semuanya `PUBLISHED`.
 
 ### 4.4 `POST /public/leads`
 
-Satu endpoint untuk tiga tipe. Skema bersifat diskriminatif berdasarkan `type`.
+Satu endpoint untuk dua tipe lead. Skema bersifat diskriminatif berdasarkan `type`. **Tidak ada `type = INVEST`**: halaman investasi tidak memiliki formulir.
 
-**Body — `BUY_DESIGN`:**
+**Body — `BUY_UNIT`:**
 
 ```json
 {
-  "type": "BUY_DESIGN",
+  "type": "BUY_UNIT",
   "name": "Budi Santoso",
   "phone": "081234567890",
   "email": "budi@example.com",
   "city": "Bandung",
-  "message": "Apakah bisa diubah jadi 3 kamar?",
-  "designId": 42,
+  "message": "Apakah unit A1 masih tersedia? Bisa KPR?",
+  "unitId": 42,
   "consent": true,
   "turnstileToken": "0.abc…",
   "honeypot": "",
   "idempotencyKey": "5c2f0a7e-3db5-4b1c-9a56-8a5f5f2a9c11",
-  "utm": { "source": "google", "medium": "cpc", "campaign": "desain-rumah" },
-  "landingPath": "/desain/rumah-minimalis-2-lantai-6x12",
+  "utm": { "source": "google", "medium": "cpc", "campaign": "rumah-bandung" },
+  "landingPath": "/rumah/azetta-residence-tipe-45-a1",
   "referrerUrl": "https://www.google.com/"
 }
 ```
@@ -282,7 +297,7 @@ Satu endpoint untuk tiga tipe. Skema bersifat diskriminatif berdasarkan `type`.
   "phone": "081298765432",
   "email": "sari@example.com",
   "city": "Sleman",
-  "message": "Lahan warisan, ingin dikerjasamakan.",
+  "message": "Lahan warisan, terbuka untuk dijual atau dikerjasamakan.",
   "consent": true,
   "turnstileToken": "0.abc…",
   "honeypot": "",
@@ -299,7 +314,7 @@ Satu endpoint untuk tiga tipe. Skema bersifat diskriminatif berdasarkan `type`.
     "currentUse": "Lahan kosong",
     "roadAccess": "Jalan aspal 6 meter",
     "estimatedValue": "1200000000",
-    "expectedScheme": "BAGI_HASIL",
+    "offerIntent": "PARTNERSHIP",
     "startTimeline": "M3_6",
     "notes": "Dekat kampus, ada akses air PDAM.",
     "attachmentKeys": ["leads/tmp/7c9f1.jpg", "leads/tmp/7c9f2.jpg"]
@@ -307,29 +322,7 @@ Satu endpoint untuk tiga tipe. Skema bersifat diskriminatif berdasarkan `type`.
 }
 ```
 
-**Body — `INVEST`:**
-
-```json
-{
-  "type": "INVEST",
-  "name": "Hendra Wijaya",
-  "phone": "081211112222",
-  "email": "hendra@example.com",
-  "city": "Jakarta Selatan",
-  "message": "Tertarik proyek residensial di Jabodetabek.",
-  "consent": true,
-  "turnstileToken": "0.abc…",
-  "honeypot": "",
-  "invest": {
-    "budgetRange": "B1_5",
-    "preferredLocations": ["Jakarta", "Bogor"],
-    "horizonMonths": 24,
-    "riskProfile": "MODERATE",
-    "instrument": "PROFIT_SHARE",
-    "notes": "Ingin laporan progres bulanan."
-  }
-}
-```
+**Body — `GENERAL`:** hanya `type`, `name`, `phone`, `email`, `message`, `consent`, token anti-spam, dan atribusi — tanpa objek detail.
 
 **Respons `201`:**
 
@@ -463,7 +456,7 @@ Memerlukan `requireUser` (sesi + `emailVerified = true`). **Semua** endpoint mem
       "updatedAt": "2026-10-24T02:10:00.000Z",
       "customerNote": "Lokasi sudah sesuai. Survei dijadwalkan minggu depan.",
       "customerNoteUpdatedAt": "2026-10-24T02:10:00.000Z",
-      "designSlug": null
+      "unitSlug": null
     }
   ],
   "meta": { "page": 1, "perPage": 20, "total": 1, "totalPages": 1 }
@@ -510,8 +503,8 @@ Batch maks 20 event; dipakai untuk funnel internal. Bila analitik pihak ketiga a
 {
   "sessionId": "s_9f2c…",
   "events": [
-    { "name": "design_view", "path": "/desain/rumah-minimalis-2-lantai-6x12", "designId": 42, "props": { "source": "catalog" } },
-    { "name": "lead_form_start", "path": "/desain/rumah-minimalis-2-lantai-6x12", "designId": 42 }
+    { "name": "unit_view", "path": "/rumah/azetta-residence-tipe-45-a1", "unitId": 42, "props": { "source": "catalog" } },
+    { "name": "lead_form_start", "path": "/rumah/azetta-residence-tipe-45-a1", "unitId": 42 }
   ]
 }
 ```
@@ -546,7 +539,7 @@ Semua endpoint di bawah memerlukan sesi + peran sesuai [§3.2](#32-matriks-otori
 
 Respons `200` mengembalikan lead terbaru. Aturan:
 
-- Transisi divalidasi terhadap tabel [04 §3.6](./04-data-model.md#36-pipeline-status).
+- Transisi divalidasi terhadap tabel [04 §3.5](./04-data-model.md#35-pipeline-status).
 - `LOST` tanpa `lostReason` → `400 VALIDATION_ERROR`.
 - Setiap transisi membuat `LeadActivity` bertipe `STATUS_CHANGE` dengan `meta: { from, to }`.
 - Transisi pertama ke `CONTACTED` mengisi `firstContactedAt` bila masih kosong.
@@ -554,32 +547,35 @@ Respons `200` mengembalikan lead terbaru. Aturan:
 **`POST /admin/leads/:id/activities`:**
 
 ```json
-{ "type": "WHATSAPP", "body": "Sudah kirim katalog paket desain.", "meta": { "templateId": "T1" } }
+{ "type": "WHATSAPP", "body": "Sudah kirim detail unit dan jadwal survei.", "meta": { "templateId": "T1" } }
 ```
 
 Aturan: `body` wajib untuk `NOTE`/`CALL`/`WHATSAPP`/`EMAIL`/`MEETING`; maks 2.000 karakter. Aktivitas tipe kontak memperbarui `lastContactedAt`. Aktivitas `NOTE` tidak mengubah status.
 
-**`GET /admin/leads/export`** mengembalikan `text/csv; charset=utf-8` dengan header `Content-Disposition`. Kolom: `reference, createdAt, type, status, priority, name, phone, email, city, designSlug, assignedTo, source, utmSource, utmCampaign, estimatedValue, firstContactedAt, closedAt, lostReason`.
+**`GET /admin/leads/export`** mengembalikan `text/csv; charset=utf-8` dengan header `Content-Disposition`. Kolom: `reference, createdAt, type, status, priority, name, phone, email, city, unitSlug, unitCode, projectTitle, assignedTo, source, utmSource, utmCampaign, estimatedValue, firstContactedAt, closedAt, lostReason`.
 
-### 5.2 Desain
+### 5.2 Unit rumah
 
 | Metode | Path | Fungsi |
 |--------|------|--------|
-| GET | `/admin/designs` | Daftar semua status, filter, urutan |
-| POST | `/admin/designs` | Buat draft |
-| GET | `/admin/designs/:id` | Detail untuk editor |
-| PATCH | `/admin/designs/:id` | Ubah field |
-| DELETE | `/admin/designs/:id` | Arsipkan (soft delete); `409` bila punya lead aktif |
-| POST | `/admin/designs/:id/publish` | Set `PUBLISHED` + `publishedAt` |
-| POST | `/admin/designs/:id/archive` | Set `ARCHIVED` |
-| POST | `/admin/designs/:id/duplicate` | Duplikasi sebagai draft baru |
-| POST | `/admin/designs/:id/media/presign` | URL unggah media |
-| POST | `/admin/designs/:id/media` | Daftarkan media setelah unggah |
-| PATCH | `/admin/designs/:id/media/:mediaId` | Ubah `alt`, `sortOrder`, `isCover` |
-| DELETE | `/admin/designs/:id/media/:mediaId` | Hapus media (objek R2 ikut dihapus) |
-| POST | `/admin/designs/:id/media/reorder` | Atur ulang urutan sekaligus |
+| GET | `/admin/units` | Daftar semua status, filter proyek/tipe/ketersediaan, urutan |
+| POST | `/admin/units` | Buat draft (wajib `projectId`, `unitCode`, `typeName`) |
+| GET | `/admin/units/:id` | Detail untuk editor |
+| PATCH | `/admin/units/:id` | Ubah field |
+| DELETE | `/admin/units/:id` | Arsipkan (soft delete); `409` bila punya lead aktif |
+| POST | `/admin/units/:id/publish` | Set `PUBLISHED` + `publishedAt` |
+| POST | `/admin/units/:id/archive` | Set `ARCHIVED` |
+| PATCH | `/admin/units/:id/sales-status` | Ubah `AVAILABLE`/`INDENT`/`SOLD`; tercatat di audit log |
+| POST | `/admin/units/:id/duplicate` | Duplikasi sebagai draft baru (unitCode wajib diubah) |
+| POST | `/admin/units/:id/media/presign` | URL unggah media |
+| POST | `/admin/units/:id/media` | Daftarkan media setelah unggah |
+| PATCH | `/admin/units/:id/media/:mediaId` | Ubah `alt`, `sortOrder`, `isCover` |
+| DELETE | `/admin/units/:id/media/:mediaId` | Hapus media (objek R2 ikut dihapus) |
+| POST | `/admin/units/:id/media/reorder` | Atur ulang urutan sekaligus |
 
-**Validasi publish:** minimal 1 media `IMAGE`, `description` ≥ 50 karakter, `seoTitle`/`seoDescription` terisi atau dapat diturunkan otomatis, `slug` unik.
+**Validasi publish:** minimal 1 media `RENDER`, `description` ≥ 50 karakter, `seoTitle`/`seoDescription` terisi atau dapat diturunkan otomatis, `slug` unik, proyek sudah `isPublished`, dan `priceFrom` terisi bila menampilkan harga.
+
+**Perubahan status ketersediaan** tidak memerlukan publish ulang; cache halaman unit di-purge per URL agar badge status langsung berubah.
 
 ### 5.3 Konten
 
@@ -596,7 +592,7 @@ Aturan: `body` wajib untuk `NOTE`/`CALL`/`WHATSAPP`/`EMAIL`/`MEETING`; maks 2.00
 | PATCH | `/admin/settings` | Ubah sebagian (`{ key: value }`) |
 | POST | `/admin/settings/assets/presign` | URL unggah logo/favicon/dokumen legal |
 
-**Konten kaya (D8).** Field `content` (artikel) dan `description` (desain/proyek) berisi **HTML dari editor Tiptap**; jawaban FAQ tetap teks biasa. API **wajib** menyaring dengan allowlist server-side sebelum menyimpan (tag: `h2`–`h4`, `p`, `ul`, `ol`, `li`, `strong`, `em`, `a`, `blockquote`, `code`, `pre`, `img`, `table`, `hr`, `br`; atribut: `href`, `src`, `alt`, `title`, `rel`, `target`). `script`, `style`, `iframe`, event handler, dan URL `javascript:` ditolak/dibuang. Gambar harus memakai URL hasil presign R2.
+**Konten kaya (D8).** Field `content` (artikel) dan `description` (unit/proyek) berisi **HTML dari editor Tiptap**; jawaban FAQ tetap teks biasa. API **wajib** menyaring dengan allowlist server-side sebelum menyimpan (tag: `h2`–`h4`, `p`, `ul`, `ol`, `li`, `strong`, `em`, `a`, `blockquote`, `code`, `pre`, `img`, `table`, `hr`, `br`; atribut: `href`, `src`, `alt`, `title`, `rel`, `target`). `script`, `style`, `iframe`, event handler, dan URL `javascript:` ditolak/dibuang. Gambar harus memakai URL hasil presign R2.
 
 **`POST /admin/settings/assets/presign`** menerima `{ purpose, fileName, mimeType, sizeBytes }` dengan `purpose` ∈ `BRAND_LOGO` | `BRAND_FAVICON` | `LEGAL_DOCUMENT`. MIME: gambar untuk brand, `application/pdf` untuk dokumen legal. Setelah unggah, URL disimpan melalui `PATCH /admin/settings` pada kunci `brand` atau `legal`.
 
@@ -637,7 +633,7 @@ Aturan: `galleryUrls` maks 10; `sortOrder` menentukan urutan tampil; proyek `del
     "newToday": 6,
     "notContacted": 11,
     "staleOver24h": 3,
-    "byType": { "BUY_DESIGN": 24, "LAND_OFFER": 9, "INVEST": 5, "GENERAL": 2 },
+    "byType": { "BUY_UNIT": 29, "LAND_OFFER": 9, "GENERAL": 2 },
     "byStatus": { "NEW": 11, "CONTACTED": 12, "QUALIFIED": 8, "PROPOSAL": 3, "NEGOTIATION": 2, "WON": 3, "LOST": 1, "SPAM": 0 },
     "medianFirstResponseMinutes": 74
   }
@@ -649,7 +645,7 @@ Aturan: `galleryUrls` maks 10; `sortOrder` menentukan urutan tampil; proyek `del
 ```json
 {
   "data": [
-    { "date": "2026-10-01", "BUY_DESIGN": 3, "LAND_OFFER": 1, "INVEST": 0, "GENERAL": 0 }
+    { "date": "2026-10-01", "BUY_UNIT": 3, "LAND_OFFER": 1, "GENERAL": 0 }
   ]
 }
 ```
@@ -680,7 +676,7 @@ Implementasi MVP: `@elysiajs/rate-limit` dengan penyimpanan in-memory per instan
 | `VALIDATION_ERROR` | Tampilkan pesan per field; fokus ke field pertama yang salah |
 | `INVALID_CAPTCHA` | Tampilkan ulang Turnstile + pesan "verifikasi gagal, coba lagi" |
 | `RATE_LIMITED` | Pesan "terlalu banyak percobaan", tampilkan sisa waktu dari `Retry-After` |
-| `DUPLICATE_RESOURCE` | Pada slug desain/artikel: sarankan slug alternatif; pada email: arahkan ke login |
+| `DUPLICATE_RESOURCE` | Pada slug unit/artikel: sarankan slug alternatif; pada email: arahkan ke login |
 | `EMAIL_NOT_VERIFIED` | Tampilkan banner "verifikasi email" + tombol kirim ulang |
 | `DUPLICATE_REQUEST` | Tampilkan permohonan yang sudah ada beserta statusnya |
 | `NOT_FOUND` | Halaman 404 kustom |

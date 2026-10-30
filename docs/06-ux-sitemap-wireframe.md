@@ -20,12 +20,12 @@
 
 ```text
 /
-├─ /desain                          katalog + filter
-│  └─ /desain/[slug]                detail desain
-├─ /proyek                          portofolio proyek
-│  └─ /proyek/[slug]                detail proyek
-├─ /kerjasama-lahan                 penawaran untuk pemilik lahan
-├─ /investasi                       penawaran untuk investor
+├─ /rumah                           katalog unit rumah + filter
+│  └─ /rumah/[slug]                 detail unit rumah
+├─ /proyek                          daftar proyek perumahan
+│  └─ /proyek/[slug]                detail proyek + unit yang tersedia
+├─ /kerja-sama-lahan                penawaran lahan (dijual / dikerjasamakan)
+├─ /investasi                       informasi untuk investor (tanpa form)
 ├─ /artikel                         daftar artikel
 │  └─ /artikel/[slug]               detail artikel
 ├─ /masuk                           login akun                (noindex)
@@ -39,7 +39,7 @@
 ├─ /tentang
 ├─ /kontak
 ├─ /faq
-├─ /terima-kasih/[type]             type: desain | lahan | investasi | umum  (noindex)
+├─ /terima-kasih/[type]             type: unit | lahan | umum  (noindex)
 ├─ /kebijakan-privasi
 ├─ /syarat-ketentuan
 ├─ /sitemap.xml
@@ -56,9 +56,9 @@
 /dashboard
 /leads
 /leads/[id]
-/desain
-/desain/baru
-/desain/[id]
+/unit
+/unit/baru
+/unit/[id]
 /proyek
 /proyek/baru
 /proyek/[id]
@@ -81,7 +81,7 @@
 
 ```text
 ┌───────────────────────────────────────────────────────────────────────────┐
-│ [Logo Azetta]  Desain  Proyek  Kerja Sama Lahan  Investasi  Artikel        │
+│ [Logo Azetta]  Rumah  Proyek  Kerja Sama Lahan  Investasi  Artikel         │
 │                                     [Masuk]  [Hubungi Kami ▸]             │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
@@ -89,7 +89,7 @@
 - Tinggi 64 px (mobile 56 px), sticky dengan latar semi-transparan setelah scroll.
 - Mobile: logo + tombol menu (drawer dari kanan). Drawer memuat tautan + CTA WhatsApp.
 - Item aktif ditandai garis bawah dan `aria-current="page"`.
-- CTA "Hubungi Kami" mengarah ke `/kontak`; di halaman detail desain diganti "Tanya Desain Ini" (scroll ke form).
+- CTA "Hubungi Kami" mengarah ke `/kontak`; di halaman detail unit diganti "Tanya Unit Ini" (scroll ke form).
 - Bila sesi aktif, "Masuk" berganti avatar dengan menu: **Akun saya**, **Pengajuan saya**, **Keluar**. Nama pengguna tidak ditampilkan di header publik (privasi di ruang bersama).
 - Halaman `/akun` tidak menampilkan header pemasaran penuh; header disederhanakan (logo + tombol keluar).
 
@@ -100,7 +100,7 @@ Empat kolom (mobile: akordeon):
 | Kolom | Isi |
 |-------|-----|
 | Merek | Logo, kalimat singkat, alamat, jam operasional |
-| Layanan | Desain, Kerja Sama Lahan, Investasi, Proyek |
+| Layanan | Rumah, Kerja Sama Lahan, Investasi, Proyek |
 | Informasi | Tentang, Artikel, FAQ, Kontak |
 | Legal | Kebijakan Privasi, Syarat & Ketentuan + nomor WhatsApp/email |
 
@@ -108,7 +108,7 @@ Baris bawah: `© 2026 Azetta. Seluruh hak cipta dilindungi.`
 
 ### 3.3 Navigasi admin
 
-Sidebar kiri 240 px (collapse jadi 64 px), berisi Dashboard, Lead (dengan badge jumlah `NEW`), Desain, Proyek, Artikel, FAQ, Testimoni, Pengguna*, Pelanggan*, Permohonan Hapus, Pengaturan, Audit. Header atas: pencarian global (lead), nama pengguna, menu keluar.
+Sidebar kiri 240 px (collapse jadi 64 px), berisi Dashboard, Lead (dengan badge jumlah `NEW`), Unit, Proyek, Artikel, FAQ, Testimoni, Pengguna*, Pelanggan*, Permohonan Hapus, Pengaturan, Audit. Header atas: pencarian global (lead), nama pengguna, menu keluar.
 
 ## 4. Spesifikasi halaman publik
 
@@ -116,144 +116,156 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 
 ### 4.1 Beranda `/`
 
-**Tujuan:** menyatakan siapa Azetta dan mengarahkan pengunjung ke tiga jalur yang tepat dalam < 10 detik.
+**Tujuan:** menyatakan siapa Azetta dan mengarahkan pengunjung ke jalur yang tepat dalam < 10 detik.
 
 **Struktur:**
 
-1. **Hero** — headline nilai (mis. "Desain rumah yang siap dibangun, lahan yang diolah bersama, modal yang tumbuh bersama"), subheadline 1 kalimat, dua CTA: "Lihat Katalog Desain" (utama) + "Tawarkan Lahan Anda" (sekunder), gambar render.
-2. **Tiga kartu jalur** — Desain / Kerja Sama Lahan / Investasi, masing-masing dengan ikon Iconify, 1 kalimat, tautan.
-3. **Desain unggulan** — 6 kartu desain (`featured`), tautan "Lihat semua desain".
+1. **Hero** — headline nilai (mis. "Rumah yang siap dihuni, dibangun oleh Azetta"), subheadline 1 kalimat, dua CTA: "Lihat Katalog Rumah" (utama) + "Tawarkan Lahan Anda" (sekunder), gambar render unit unggulan.
+2. **Tiga kartu jalur** — Rumah / Kerja Sama Lahan / Informasi Investasi, masing-masing dengan ikon Iconify, 1 kalimat, tautan.
+3. **Unit unggulan** — 6 kartu unit (`featured`, `PUBLISHED`), tautan "Lihat semua unit".
 4. **Proyek yang sedang & sudah berjalan** — 3 kartu proyek `ONGOING`/`COMPLETED`, tautan "Lihat semua proyek" (Q4).
-5. **Cara kerja** — 3–4 langkah bernomor (konsultasi → pilih desain/skema → kerja sama → konstruksi).
+5. **Cara kerja** — 3–4 langkah bernomor (pilih unit → konsultasi & survei → KPR/kesepakatan → serah terima).
 6. **Testimoni** — maks 3, karusel sederhana.
 7. **Artikel terbaru** — 3 kartu.
-8. **CTA penutup** — "Siap mulai? Bicara dengan tim kami" + tombol WhatsApp.
+8. **CTA penutup** — "Siap memiliki rumah? Bicara dengan tim kami" + tombol WhatsApp.
 
-**CTA utama:** ke `/desain`. **CTA sekunder:** ke `/kerjasama-lahan`.
+**CTA utama:** ke `/rumah`. **CTA sekunder:** ke `/kerja-sama-lahan`.
 
-**Status:** skeleton saat memuat data desain/artikel; bila kosong, sembunyikan seluruh section (bukan menampilkan placeholder).
+**Status:** skeleton saat memuat data unit/artikel; bila kosong, sembunyikan seluruh section (bukan menampilkan placeholder).
 
-**SEO:** title "Azetta — Desain Properti, Kerja Sama Lahan, dan Investasi", description 150–160 karakter, `Organization` + `WebSite` JSON-LD.
+**SEO:** title "Azetta — Rumah Tapak, Kerja Sama Lahan, dan Proyek Properti", description 150–160 karakter, `Organization` + `WebSite` JSON-LD.
 
 **Event:** `home_view`, `cta_click` (props: `cta`, `position`).
 
-### 4.2 Katalog `/desain`
+### 4.2 Katalog `/rumah`
 
-**Tujuan:** membantu pengunjung menemukan desain yang sesuai lahan & kebutuhan, lalu membuka detail.
+**Tujuan:** membantu pengunjung menemukan unit yang sesuai lokasi, anggaran, dan kebutuhan, lalu membuka detail.
 
 **Struktur:**
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│ Breadcrumb: Beranda / Desain                                 │
-│ H1: Katalog Desain Rumah                          [57 desain]│
-│ [🔍 Cari desain…]                    [Filter ▾]  [Urutkan ▾] │
+│ Breadcrumb: Beranda / Rumah                                  │
+│ H1: Rumah Dijual                                  [12 unit]  │
+│ [🔍 Cari unit, proyek, atau kota…]    [Filter ▾]  [Urutkan ▾]│
 │ ┌─ Filter (sidebar 260px, mobile: drawer) ─┐ ┌─ Grid 3 kolom ─┐│
-│ │ Kategori   ☐ Rumah  ☐ Komersial          │ │ [Kartu] [Kartu] ││
-│ │ Gaya       ☐ Minimalis ☐ Tropis …        │ │ [Kartu] [Kartu] ││
-│ │ Lantai     ○ 1 ○ 2 ○ 3+                  │ │ [Kartu] [Kartu] ││
-│ │ Kamar tidur○ 1 ○ 2 ○ 3 ○ 4+              │ │                 ││
-│ │ Luas lahan min ___ m²                    │ │                 ││
+│ │ Proyek    ☐ Azetta Residence ☐ …         │ │ [Kartu] [Kartu] ││
+│ │ Kota      ☐ Bandung ☐ Sleman …           │ │ [Kartu] [Kartu] ││
+│ │ Tipe      ☐ 36 ☐ 45 ☐ 60 ☐ 90            │ │ [Kartu] [Kartu] ││
+│ │ Kamar     ○ 2 ○ 3 ○ 4+                   │ │                 ││
+│ │ Luas tanah min ___ m²                    │ │                 ││
+│ │ Luas bangunan min ___ m²                 │ │                 ││
 │ │ Harga maks ___ juta                      │ │                 ││
+│ │ Ketersediaan ☐ Tersedia ☐ Indent ☐ Terjual│ │                ││
 │ │ [Reset filter]                           │ │                 ││
 │ └──────────────────────────────────────────┘ └─────────────────┘│
 │                          [ ‹ 1 2 3 4 5 › ]                    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Kartu desain:** cover 4:3 (lazy, `srcset`), badge kategori, judul, `3 KT · 2 KM · 2 Lantai · 96 m²`, "Mulai Rp 4,5 jt" atau "Hubungi kami", tombol "Lihat detail" (seluruh kartu dapat diklik).
+**Kartu unit:** cover 4:3 (lazy, `srcset`), badge status (`Tersedia`/`Indent`/`Terjual`), judul + kode unit, nama proyek & kota, `3 KT · 2 KM · 2 Lantai · LB 90 m² / LT 96 m²`, "Mulai Rp 850 juta" atau "Hubungi kami", tombol "Lihat detail" (seluruh kartu dapat diklik).
 
 **Perilaku filter:**
 
-- Semua filter tercermin di URL (`?category=RESIDENTIAL&floors=2`) sehingga bisa dibagikan & diindeks.
+- Semua filter tercermin di URL (`?city=Bandung&type=Tipe+45`) sehingga bisa dibagikan & diindeks.
 - Perubahan filter memakai navigasi SvelteKit (bukan reload penuh), dengan indikator loading pada grid.
 - Tombol "Filter" di mobile membuka drawer; jumlah filter aktif tampil di badge.
-- Filter kosong ("0 hasil") menampilkan saran: hapus filter, lihat semua desain, atau hubungi tim.
+- Filter kosong ("0 hasil") menampilkan saran: hapus filter, lihat semua unit, atau hubungi tim.
+- Default menyembunyikan `SOLD`; pengunjung dapat menampilkannya lewat filter (transparansi stok).
 
 **SEO:** `ItemList` JSON-LD untuk 12 item pertama; canonical menyertakan query yang diizinkan; `noindex` untuk kombinasi filter > 2 parameter (hindari duplikat) — lihat [10 §5](./10-seo-konten.md#5-aturan-teknis-seo).
 
-**Event:** `catalog_view`, `catalog_filter_apply` (`filter`, `value`), `design_card_click` (`designId`, `position`).
+**Event:** `catalog_view`, `catalog_filter_apply` (`filter`, `value`), `unit_card_click` (`unitId`, `position`).
 
-### 4.3 Detail desain `/desain/[slug]`
+### 4.3 Detail unit rumah `/rumah/[slug]`
 
-**Tujuan:** meyakinkan bahwa desain ini layak dibeli, lalu menangkap lead.
+**Tujuan:** meyakinkan bahwa unit ini layak dibeli dan masih tersedia, lalu menangkap lead.
 
 **Struktur (desktop 2 kolom):**
 
 ```text
 ┌───────────────────────────────────────────┬─────────────────────┐
 │ Breadcrumb                                │  ┌───────────────┐  │
-│ H1 Rumah Minimalis 2 Lantai 6×12          │  │ Mulai dari    │  │
-│ Minimalis · 2 Lantai · 3 KT · 2 KM        │  │ Rp 4.500.000    │  │
-│ ┌───────────────────────────────────────┐ │  │ [Tanya Desain]│  │
-│ │            GALERI (1 besar + 4 thumb) │ │  │ [WhatsApp]    │  │
+│ H1 Azetta Residence Tipe 45 · Unit A1     │  │ Mulai dari    │  │
+│ [Tersedia] Bandung · 2 Lantai · 3 KT · 2 KM│ │ Rp 850 juta   │  │
+│ ┌───────────────────────────────────────┐ │  │ [Tanya Unit]  │  │
+│ │            GALERI RENDER (1+4)        │ │  │ [WhatsApp]    │  │
 │ └───────────────────────────────────────┘ │  ├───────────────┤  │
-│ Spesifikasi (grid 2 kolom)                │  │ Luas bangunan │  │
-│  Luas bangunan 96 m²   Luas lahan 72 m²   │  │ 96 m²         │  │
-│  Kamar tidur 3         Kamar mandi 2      │  │ Lantai 2      │  │
-│  Carport 1             Gaya Minimalis     │  └───────────────┘  │
-│ Deskripsi (editor)                        │                     │
+│ Spesifikasi (grid 2 kolom)                │  │ Luas tanah    │  │
+│  LT 96 m²   LB 90 m²   Kamar 3            │  │ 96 m²         │  │
+│  KM 2       Carport 1   Lantai 2          │  │ Tipe 45       │  │
+│ Deskripsi (editor)                        │  └───────────────┘  │
 │ Denah (tab: Lantai 1 / Lantai 2)          │                     │
+│ Proyek: Azetta Residence →                │                     │
 │ ─────────────────────────────────────────  │                     │
-│ FORM "Tanya desain ini" (inline)          │                     │
+│ FORM "Tanya unit ini" (inline)            │                     │
 │ Nama · WhatsApp · Email · Pesan · ☐ setuju│                     │
 │ [Kirim pertanyaan]                        │                     │
 │ ─────────────────────────────────────────  │                     │
-│ Desain terkait (4 kartu)                  │                     │
+│ Unit terkait (4 kartu)                    │                     │
 └───────────────────────────────────────────┴─────────────────────┘
 ```
 
 **Aturan tampilan:**
 
-- Field kosong disembunyikan (mis. tanpa `carports` → baris tidak ditampilkan).
+- Field kosong disembunyikan.
 - `priceFrom` kosong → "Hubungi kami untuk harga".
-- **Estimasi biaya bangun tidak ditampilkan** (Q8). Bila pengunjung bertanya, jawab lewat sales/WhatsApp; tidak ada angka di halaman.
-- Galeri: klik membuka lightbox; panah keyboard berfungsi; `alt` deskriptif.
-- Sticky sidebar di desktop; di mobile, bar aksi menempel di bawah (`sticky bottom-0`) berisi harga + tombol "Tanya Desain".
+- **Harga final dan skema pembayaran tidak ditampilkan**; dibahas sales.
+- Badge status + teks "Status diperbarui {tanggal}" agar pengunjung tahu kesegaran data.
+- Unit `SOLD`: halaman tetap tampil, badge "Terjual", form diganti CTA "Lihat unit sejenis" dan "Tanya ketersediaan unit lain".
+- Galeri: render & denah dipisah tab; klik membuka lightbox; panah keyboard berfungsi; `alt` deskriptif.
+- Sticky sidebar di desktop; di mobile, bar aksi menempel di bawah (`sticky bottom-0`) berisi harga + tombol "Tanya Unit".
 - Bila pengunjung sudah login, form menampilkan "Mengirim sebagai {email}" dan lead otomatis tertaut ke akun.
 
-**CTA:** submit form (utama), WhatsApp (sekunder — membuka `wa.me` dengan pesan berisi judul desain).
+**CTA:** submit form (utama), WhatsApp (sekunder — membuka `wa.me` dengan pesan berisi judul unit).
 
 **Status:** 404 kustom bila tidak ditemukan; skeleton galeri saat hidrasi.
 
-**SEO:** `Product` **tidak** dipakai (tidak ada transaksi); gunakan `CreativeWork` + `BreadcrumbList`. Title: "{Judul} — Desain {Kategori} {Gaya} | Azetta". OG image = cover.
+**SEO:** `Residence` + `BreadcrumbList`; title "{Judul Unit} — Rumah {Tipe} di {Kota} | Azetta". OG image = cover render.
 
-**Event:** `design_view` (`designId`), `design_lead_click`, `lead_form_start`, `lead_submit_success`, `whatsapp_click` (`placement`).
+**Event:** `unit_view` (`unitId`, `salesStatus`), `unit_lead_click`, `lead_form_start`, `lead_submit_success`, `whatsapp_click` (`placement`).
 
-### 4.4 Kerja sama lahan `/kerjasama-lahan`
+### 4.4 Kerja sama lahan `/kerja-sama-lahan`
 
-**Tujuan:** meyakinkan pemilik lahan bahwa skema aman dan menguntungkan, lalu mengumpulkan data lahan.
+**Tujuan:** meyakinkan pemilik lahan bahwa tawarannya aman dan menguntungkan — baik dijual maupun dikerjasamakan — lalu mengumpulkan data lahan.
 
 **Struktur:**
 
-1. **Hero** — "Punya lahan? Kami yang bangun, Anda dapat hasilnya." Subheadline + CTA "Ajukan Lahan Saya".
-2. **Masalah yang dipahami** — 3 poin (tidak punya modal, tidak mau repot, takut lahan terbengkalai).
-3. **Skema kerja sama** — 3 kartu: Bagi Hasil, Sewa Lahan, Beli Lahan. Masing-masing: cara kerja, cocok untuk, catatan.
-4. **Alur 5 langkah** — Ajukan → Verifikasi & survei → Proposal skema → Perjanjian → Pembangunan & bagi hasil.
+1. **Hero** — "Punya lahan? Jual, atau bangun bersama Azetta." Subheadline + CTA "Tawarkan Lahan Saya".
+2. **Dua opsi** — kartu **Dijual ke Azetta** (harga dibahas setelah survei & appraisal) dan **Dikerjasamakan** (Azetta membangun, hasil penjualan unit dibagi sesuai perjanjian). Masing-masing: cara kerja, cocok untuk, catatan.
+3. **Masalah yang dipahami** — 3 poin (tidak punya modal, tidak mau repot, takut lahan terbengkalai).
+4. **Alur 5 langkah** — Ajukan → Verifikasi & survei → Penawaran harga / proposal skema → Perjanjian → Pembangunan & bagi hasil.
 5. **Dokumen yang disiapkan** — sertifikat, KTP, dll. (transparansi mengurangi keraguan).
 6. **FAQ** — 6 pertanyaan (dari CMS, kategori `lahan`).
-7. **Form pengajuan** (3 langkah, inline atau halaman `/kerjasama-lahan/ajukan` — dipilih inline agar tidak kehilangan konteks).
+7. **Form pengajuan** (3 langkah, inline). Langkah 3 memuat pilihan **maksud penawaran**: dijual / dikerjasamakan / belum tahu.
 8. **Testimoni pemilik lahan** (bila ada).
 
 **CTA:** mulai form. **Event:** `offer_view` (`type: land`), `land_form_start`, `land_form_step` (`step`), `lead_submit_success`.
 
+**Catatan:** tidak ada form terpisah untuk "jual lahan" dan "kerja sama" di MVP — satu form dengan pilihan maksud, agar pemilik lahan tidak harus memutuskan sebelum tahu skemanya.
+
 ### 4.5 Investasi `/investasi`
 
-**Tujuan:** memberi gambaran proyek & skema, menyaring investor berdasarkan kapasitas, lalu menjadwalkan diskusi.
+**Tujuan:** memberi informasi yang cukup bagi calon investor untuk menilai Azetta, lalu menghubungi manajemen. **Halaman ini bukan kanal pendaftaran.**
 
 **Struktur:**
 
-1. **Hero** — "Ikut membangun proyek properti bersama Azetta." CTA "Minta Proposal".
-2. **Ringkasan peluang** — 3–4 poin: jenis proyek, lokasi, horizon, skema imbal hasil (tanpa janji angka pasti).
-3. **Skema kemitraan** — tabel/kartu: Profit Sharing, Equity, Fixed Return (dengan catatan "bukan jaminan").
-4. **Tata kelola & transparansi** — laporan progres, rekening proyek, audit.
-5. **Risiko** — bagian eksplisit (wajib, membangun kepercayaan): risiko pasar, perizinan, konstruksi, likuiditas.
-6. **FAQ investor** — 6 pertanyaan.
-7. **Form minat investasi**.
+1. **Hero** — "Mengenal proyek dan tata kelola Azetta." CTA "Hubungi Manajemen" (WhatsApp/email).
+2. **Profil perusahaan** — pengalaman, struktur, rekam jejak.
+3. **Proyek berjalan** — ringkasan proyek yang boleh dipublikasikan (tautan ke `/proyek`).
+4. **Skema kemitraan** — penjelasan umum (bagi hasil/ekuitas) dengan catatan "bukan jaminan" dan "detail dibahas langsung".
+5. **Tata kelola & transparansi** — laporan progres, rekening proyek, audit.
+6. **Risiko** — bagian eksplisit: risiko pasar, perizinan, konstruksi, likuiditas.
+7. **FAQ investor** — 6 pertanyaan.
 
-**Aturan konten:** tidak boleh memuat klaim imbal hasil terjamin; setiap angka disertai periode & asumsi. Ini bukan hanya etika, tetapi juga mengurangi risiko hukum.
+**Aturan:**
 
-**Event:** `offer_view` (`type: invest`), `invest_form_start`, `lead_submit_success`.
+- **Tanpa formulir**, tanpa field data pribadi, dan tanpa `Lead` yang dibuat.
+- Satu-satunya aksi adalah tautan `wa.me` / `mailto:` ke kontak manajemen (dari `SiteSetting.contact`).
+- Tidak boleh memuat klaim imbal hasil terjamin; setiap angka disertai periode & asumsi.
+- Tidak menampilkan data proyek yang belum disetujui untuk publik.
+
+**Event:** `invest_page_view`, `contact_click` (`channel`, `placement`). Tidak ada event funnel lead.
 
 ### 4.6 Proyek `/proyek` & `/proyek/[slug]`
 
@@ -272,7 +284,7 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 2. Meta: lokasi, tahun mulai/selesai, luas lahan, jumlah unit (bila diisi).
 3. Cover + galeri (grid, lightbox).
 4. Deskripsi kaya (HTML tersanitasi dari Tiptap).
-5. CTA: "Tawarkan lahan Anda" dan "Minta proposal investasi" (maks 2).
+5. CTA: "Tawarkan lahan Anda" dan "Hubungi manajemen" (maks 2).
 
 **Aturan:**
 
@@ -287,7 +299,7 @@ Format tiap halaman: **tujuan → struktur → CTA → status → SEO → event*
 ### 4.7 Artikel `/artikel` & `/artikel/[slug]`
 
 - Daftar: kartu (cover, judul, ringkasan, tanggal, estimasi baca), pagination 9/halaman, filter tag sederhana.
-- Detail: judul, meta (tanggal, waktu baca), cover, isi kaya (heading, list, gambar, tabel, blockquote), CTA di tengah/akhir ("Lihat katalog desain" / "Tanya tim"), artikel terkait 3.
+- Detail: judul, meta (tanggal, waktu baca), cover, isi kaya (heading, list, gambar, tabel, blockquote), CTA di tengah/akhir ("Lihat katalog rumah" / "Tanya tim"), artikel terkait 3.
 - `Article` + `BreadcrumbList` JSON-LD.
 - Event: `article_view`, `article_cta_click`.
 
@@ -315,7 +327,7 @@ Isi:
 
 ### 4.11 FAQ `/faq`
 
-Akordeon per kategori (Umum, Desain, Lahan, Investasi) + form kontak di bawah. `FAQPage` JSON-LD.
+Akordeon per kategori (Umum, Rumah, Lahan, Investasi) + form kontak di bawah. `FAQPage` JSON-LD.
 
 ### 4.12 Akun saya
 
@@ -342,7 +354,7 @@ Akordeon per kategori (Umum, Desain, Lahan, Investasi) + form kontak di bawah. `
 │ └──────────────────────────────────────────────────────────┘ │
 │ ┌──────────────────────────────────────────────────────────┐ │
 │ │ AZT-DS-2610-P3M8Q            [ Selesai ]                │ │
-│ │ Tanya desain · Rumah Minimalis 2 Lantai 6×12             │ │
+│ │ Tanya unit · Azetta Residence Tipe 45 (A1)               │ │
 │ │                                         [Lihat detail →] │ │
 │ └──────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────┘
@@ -353,7 +365,7 @@ Akordeon per kategori (Umum, Desain, Lahan, Investasi) + form kontak di bawah. `
 1. Header: referensi, tipe, tanggal, badge status ramah pengguna.
 2. Linimasa status: `Diterima → Dihubungi → Ditinjau → Penawaran → Selesai` — hanya tahap yang sudah dilalui yang terisi, dengan tanggal.
 3. Catatan terbaru dari tim (`customerNote`), bila ada.
-4. Ringkasan data yang dikirim (tanpa catatan internal): desain yang ditanyakan / luas & lokasi lahan / rentang modal.
+4. Ringkasan data yang dikirim (tanpa catatan internal): unit yang ditanyakan / luas & lokasi lahan.
 5. Lampiran milik pengguna (foto lahan) dengan pratinjau.
 6. CTA: "Chat tim kami" (WhatsApp berisi referensi) + "Kembali".
 
@@ -367,7 +379,7 @@ Akordeon per kategori (Umum, Desain, Lahan, Investasi) + form kontak di bawah. `
 
 **Aturan tampilan:**
 
-- Status internal tidak pernah ditampilkan apa adanya; gunakan label di [04 §3.6](./04-data-model.md#36-pipeline-status).
+- Status internal tidak pernah ditampilkan apa adanya; gunakan label di [04 §3.5](./04-data-model.md#35-pipeline-status).
 - Lead `SPAM` tidak muncul.
 - Bila pengguna membuka pengajuan milik orang lain → 404.
 - Tidak ada data internal (assignee, estimasi nilai, catatan aktivitas) di halaman ini.
@@ -379,12 +391,12 @@ Akordeon per kategori (Umum, Desain, Lahan, Investasi) + form kontak di bawah. `
 ### 4.13 Halaman legal
 
 - `/kebijakan-privasi`: data yang dikumpulkan, tujuan, dasar pemrosesan (consent), retensi, hak subjek data, kontak.
-- `/syarat-ketentuan`: penggunaan situs, hak kekayaan intelektual gambar desain, batasan tanggung jawab, hukum yang berlaku.
+- `/syarat-ketentuan`: penggunaan situs, hak kekayaan intelektual gambar/render unit, batasan tanggung jawab, hukum yang berlaku.
 - Keduanya wajib direview pihak legal sebelum rilis.
 
 ### 4.14 Halaman 404
 
-Pesan ramah + pencarian desain + tautan ke tiga alur utama. Status HTTP 404 sungguhan.
+Pesan ramah + pencarian unit + tautan ke dua alur utama. Status HTTP 404 sungguhan.
 
 ## 5. Spesifikasi formulir
 
@@ -404,7 +416,7 @@ Pesan ramah + pencarian desain + tautan ke tiga alur utama. Status HTTP 404 sung
 | Privasi | Tautan ke kebijakan privasi di samping checkbox consent |
 | Login | Bila sesi aktif, nama & email terisi otomatis dan dapat diubah; lead tertaut ke akun |
 
-### 5.2 Form "Tanya desain ini" (`BUY_DESIGN`)
+### 5.2 Form "Tanya unit ini" (`BUY_UNIT`)
 
 | Field | Tipe | Wajib | Validasi | Pesan error |
 |-------|------|:-----:|----------|-------------|
@@ -415,7 +427,7 @@ Pesan ramah + pencarian desain + tautan ke tiga alur utama. Status HTTP 404 sung
 | `message` | textarea | — | ≤1000 | "Pesan maksimal 1000 karakter" |
 | `consent` | checkbox | ✅ | harus `true` | "Anda perlu menyetujui pemrosesan data" |
 
-Helper text di bawah tombol: "Kami akan menghubungi Anda via WhatsApp pada jam kerja."
+Field tersembunyi: `unitId` (dari halaman), `utm`, `landingPath`. Helper text: "Kami akan menghubungi Anda via WhatsApp pada jam kerja."
 
 ### 5.3 Form pengajuan lahan (`LAND_OFFER`) — 3 langkah
 
@@ -448,38 +460,24 @@ Helper text di bawah tombol: "Kami akan menghubungi Anda via WhatsApp pada jam k
 
 Bantuan di atas field foto: "Foto membantu kami menilai potensi lahan. Maksimal 5 foto, masing-masing 5 MB."
 
-**Langkah 3 — Rencana kerja sama**
+**Langkah 3 — Maksud penawaran**
 
 | Field | Tipe | Wajib | Pilihan |
 |-------|------|:-----:|---------|
-| `expectedScheme` | radio card | ✅ | Bagi hasil / Sewa / Jual / Belum tahu |
+| `offerIntent` | radio card | ✅ | **Dijual ke Azetta** / **Dikerjasamakan** / Belum tahu |
 | `startTimeline` | select | — | Segera / 3–6 bulan / 6–12 bulan / >12 bulan / Belum tahu |
 | `notes` | textarea | — | ≤1000 |
 | `consent` | checkbox | ✅ | — |
 
+Salinan bantuan di bawah `offerIntent`: "Dijual: Azetta membeli lahan Anda. Dikerjasamakan: Azetta membangun, lalu hasil penjualan unit dibagi sesuai perjanjian."
+
 **Perilaku stepper:** indikator 1-2-3, tombol "Kembali"/"Lanjut", validasi per langkah, draft di `sessionStorage` (dihapus setelah sukses), peringatan bila halaman ditinggalkan dengan isian.
 
-### 5.4 Form minat investasi (`INVEST`)
-
-| Field | Tipe | Wajib | Pilihan / validasi |
-|-------|------|:-----:|--------------------|
-| `name` | text | ✅ | 2–80 |
-| `phone` | tel | ✅ | regex Indonesia |
-| `email` | email | ✅ | format email |
-| `city` | text | — | ≤80 |
-| `budgetRange` | radio card | ✅ | <500 jt / 500 jt–1 M / 1–5 M / 5–20 M / >20 M |
-| `preferredLocations` | multi-select | ✅ | maks 5 kota |
-| `horizonMonths` | select | ✅ | 6–12, 13–24, 25–36, >36 bulan |
-| `riskProfile` | radio | ✅ | Konservatif / Moderat / Agresif / Belum tahu |
-| `instrument` | select | — | Bagi hasil / Ekuitas / Imbal tetap / Terbuka |
-| `notes` | textarea | — | ≤1000 |
-| `consent` | checkbox | ✅ | — |
-
-### 5.5 Form kontak umum (`GENERAL`)
+### 5.4 Form kontak umum (`GENERAL`)
 
 `name`, `phone`, `email`, `city`, `message` (wajib, ≤1000), `consent`.
 
-### 5.6 Form akun
+### 5.5 Form akun
 
 **Daftar (`/daftar`)**
 
@@ -513,11 +511,11 @@ Setelah submit: halaman "Cek email Anda" + tombol kirim ulang (maks 3×/jam). Ti
 │ ☰  AZETTA          [Hubungi] │
 ├──────────────────────────────┤
 │                              │
-│  Desain siap bangun,         │
-│  lahan diolah bersama,       │
-│  modal tumbuh bersama.       │
+│  Rumah siap dihuni,          │
+│  dibangun oleh Azetta.       │
+│  Lahan Anda, kami kelola.    │
 │                              │
-│  [ Lihat Katalog Desain  ]   │
+│  [ Lihat Katalog Rumah   ]   │
 │  [ Tawarkan Lahan Anda   ]   │
 │                              │
 │  ┌────────────────────────┐  │
@@ -526,13 +524,13 @@ Setelah submit: halaman "Cek email Anda" + tombol kirim ulang (maks 3×/jam). Ti
 ├──────────────────────────────┤
 │  Pilih jalur Anda            │
 │  ┌────────┐ ┌────────┐       │
-│  │ Desain │ │ Lahan  │       │
+│  │ Rumah  │ │ Lahan  │       │
 │  └────────┘ └────────┘       │
 │  ┌────────┐                  │
-│  │Investasi│                 │
+│  │Investasi│ (info)          │
 │  └────────┘                  │
 ├──────────────────────────────┤
-│  Desain unggulan   Lihat →   │
+│  Unit unggulan     Lihat →   │
 │  ┌────────┐ ┌────────┐       │
 │  │ kartu  │ │ kartu  │       │
 │  └────────┘ └────────┘       │
@@ -549,7 +547,7 @@ Setelah submit: halaman "Cek email Anda" + tombol kirim ulang (maks 3×/jam). Ti
 └──────────────────────────────┘
 ```
 
-### 6.2 Detail desain (mobile, dengan sticky CTA)
+### 6.2 Detail unit rumah (mobile, dengan sticky CTA)
 
 ```text
 ┌──────────────────────────────┐
@@ -558,25 +556,26 @@ Setelah submit: halaman "Cek email Anda" + tombol kirim ulang (maks 3×/jam). Ti
 │ │        foto utama        │ │
 │ └──────────────────────────┘ │
 │ ● ○ ○ ○  (indikator galeri)  │
-│ Rumah Minimalis 2 Lantai     │
-│ 3 KT · 2 KM · 96 m² · 2 lt   │
+│ Azetta Residence · Tipe 45   │
+│ A1 · [Tersedia] · Bandung    │
+│ 3 KT · 2 KM · LB 90 · LT 96  │
 │ ┌────────────┬─────────────┐ │
 │ │ 3 KT       │ 2 KM        │ │
 │ ├────────────┼─────────────┤ │
-│ │ 96 m²      │ 72 m² lahan │ │
+│ │ LB 90 m²   │ LT 96 m²    │ │
 │ └────────────┴─────────────┘ │
 │ Deskripsi …                  │
 │ Denah  [Lantai 1][Lantai 2]  │
-│ ── Tanya desain ini ──       │
+│ ── Tanya unit ini ──         │
 │ [Nama]                       │
 │ [WhatsApp]                   │
 │ [Email (opsional)]           │
 │ [Pesan]                      │
 │ ☐ Saya setuju data diproses  │
 │ [ Kirim pertanyaan ]         │
-│ Desain terkait               │
+│ Unit terkait                 │
 ├──────────────────────────────┤
-│ Rp 4,5 jt   [Tanya Desain]    │ ← sticky
+│ Rp 850 jt   [Tanya Unit]      │ ← sticky
 └──────────────────────────────┘
 ```
 
@@ -584,7 +583,7 @@ Setelah submit: halaman "Cek email Anda" + tombol kirim ulang (maks 3×/jam). Ti
 
 ```text
 ┌──────────────────────────────┐
-│ Ajukan Lahan                 │
+│ Tawarkan Lahan               │
 │ ①─────②─────③                │
 │ Tentang lahan                │
 │                              │
@@ -622,7 +621,7 @@ Setelah submit: halaman "Cek email Anda" + tombol kirim ulang (maks 3×/jam). Ti
 │          ├──────────────────────────────────────────────────────┤
 │ Dashboard│ [Semua 42][Baru 11][Belum dihubungi 3][Milik saya 8] │
 │ Lead  11 │ ┌──────────────────────────────────────────────────┐ │
-│ Desain   │ │ 🔍 Cari nama / nomor / referensi…  ▾ Filter       │ │
+│ Unit     │ │ 🔍 Cari nama / nomor / referensi…  ▾ Filter       │ │
 │ Artikel  │ ├────┬─────────┬────────┬────────┬─────────┬───────┤ │
 │ FAQ      │ │Tipe│ Nama    │ Kota   │ Status │ Sumber  │ Waktu │ │
 │ Testimoni│ ├────┼─────────┼────────┼────────┼─────────┼───────┤ │
@@ -668,10 +667,10 @@ Semua di `packages/ui`, dibangun di atas daisyUI + Tailwind, dengan variabel tem
 | `Button` | `btn` (+ `btn-primary`, `btn-ghost`) | Semua |
 | `Input`, `Textarea`, `Select` | `input`, `textarea`, `select` | Form |
 | `Checkbox`, `Radio` | `checkbox`, `radio` | Form |
-| `RadioCard` | `radio` + `card` | Skema/rentang modal |
+| `RadioCard` | `radio` + `card` | Maksud penawaran lahan |
 | `FileDropzone` | kustom + `file-input` | Foto lahan |
-| `Badge` | `badge` | Status, kategori |
-| `DesignCard` | `card` | Katalog, beranda |
+| `Badge` | `badge` | Status unit, status pengajuan |
+| `UnitCard` | `card` | Katalog, beranda |
 | `ProjectCard` | `card` | Beranda, `/proyek` |
 | `StatusBadge` | `badge` | Status pengajuan (label ramah pengguna) |
 | `Stat` | `stat` | Dashboard |
@@ -726,6 +725,8 @@ Halaman pratinjau `/theme` (`noindex`) menampilkan palet, rasio kontras, skala t
 | Situasi | Perilaku |
 |---------|----------|
 | Data kosong (katalog) | Empty state + saran hapus filter |
+| Unit sudah terjual | Halaman tetap tampil dengan badge `Terjual`; form dinonaktifkan, CTA ke unit sejenis |
+| Unit `INDENT` | Badge `Indent`; form tetap aktif dengan catatan estimasi serah terima |
 | Gambar gagal dimuat | Placeholder abu-abu dengan ikon + `alt` tetap ada |
 | Koneksi lambat | Skeleton untuk katalog; tombol submit menampilkan spinner |
 | Sesi admin kedaluwarsa | Redirect ke `/login?next=…` setelah menyimpan tujuan |
@@ -747,9 +748,11 @@ Halaman pratinjau `/theme` (`noindex`) menampilkan palet, rasio kontras, skala t
 | `home_view` | Beranda dimuat | `referrer` |
 | `catalog_view` | Katalog dimuat | `filterCount`, `resultCount` |
 | `catalog_filter_apply` | Filter berubah | `filter`, `value` |
-| `design_card_click` | Kartu diklik | `designId`, `position` |
-| `design_view` | Detail desain dimuat | `designId`, `source` |
-| `offer_view` | Halaman lahan/investasi dimuat | `type` |
+| `unit_card_click` | Kartu unit diklik | `unitId`, `position` |
+| `unit_view` | Detail unit dimuat | `unitId`, `salesStatus` |
+| `offer_view` | Halaman lahan dimuat | `type` |
+| `invest_page_view` | Halaman informasi investasi dimuat | `referrer` |
+| `contact_click` | Kanal kontak diklik | `channel`, `placement` |
 | `project_list_view` | Daftar proyek dimuat | `filterCount` |
 | `project_view` | Detail proyek dibuka | `slug` |
 | `project_cta_click` | CTA proyek diklik | `slug`, `target` |
@@ -760,12 +763,12 @@ Halaman pratinjau `/theme` (`noindex`) menampilkan palet, rasio kontras, skala t
 | `account_view` | `/akun` dibuka | `submissionCount` |
 | `account_deletion_request` | Permohonan hapus akun terkirim | — |
 | `submission_view` | Detail pengajuan dibuka | `type`, `statusLabel` |
-| `lead_form_start` | Field pertama difokuskan | `type`, `designId` |
+| `lead_form_start` | Field pertama difokuskan | `type`, `unitId` |
 | `lead_form_step` | Langkah form lahan selesai | `step` |
 | `lead_submit_attempt` | Tombol submit ditekan | `type` |
 | `lead_submit_success` | Respons sukses | `type`, `reference` |
 | `lead_submit_error` | Respons gagal | `type`, `code` |
-| `whatsapp_click` | Tombol WA diklik | `placement`, `designId` |
+| `whatsapp_click` | Tombol WA diklik | `placement`, `unitId` |
 | `article_view` | Artikel dibuka | `slug` |
 | `article_cta_click` | CTA dalam artikel | `slug`, `target` |
 
@@ -814,6 +817,6 @@ Tambahan untuk UI:
 
 - Hindari jargon teknis properti yang tidak dijelaskan (mis. "KDB", "GSB") — jelaskan dalam kurung.
 - Angka konkret lebih baik daripada superlatif ("96 m²" bukan "sangat luas").
-- CTA berupa kata kerja: "Lihat katalog", "Ajukan lahan", "Minta proposal".
+- CTA berupa kata kerja: "Lihat katalog", "Tawarkan lahan", "Hubungi manajemen".
 - Tanpa emoji; pemisah butir memakai mark AZETTA, bukan titik atau emoji.
 - Setiap materi publik ditutup dengan satu ajakan.

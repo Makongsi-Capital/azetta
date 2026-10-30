@@ -19,48 +19,52 @@
 
 Dikelompokkan per niat pencarian agar setiap klaster punya halaman tujuan yang jelas.
 
-### 2.1 Klaster A — Desain (volume tertinggi, kompetisi sedang–tinggi)
+### 2.1 Klaster A — Rumah dijual (volume tertinggi, niat komersial)
 
 | Kata kunci | Niat | Halaman tujuan | Prioritas |
 |------------|------|----------------|:---------:|
-| desain rumah minimalis 2 lantai | Informasi/komersial | `/desain/[slug]` (desain terkait) | Tinggi |
-| desain rumah 6x12 2 lantai | Komersial | detail desain dengan lahan 72 m² | Tinggi |
-| desain rumah 7x12 | Komersial | detail desain | Sedang |
-| desain rumah type 36 / 45 / 70 | Komersial | filter katalog + artikel | Sedang |
-| desain rumah tropis modern | Komersial | detail desain + artikel | Sedang |
-| desain ruko minimalis 2 lantai | Komersial | detail desain komersial | Sedang |
-| desain rumah kecil 2 lantai | Informasi | artikel + katalog | Rendah |
-| jasa desain rumah custom | Transaksi (lead) | `/desain` + form | Tinggi |
+| rumah dijual {kota} | Komersial | `/rumah` (filter kota) | **Sangat tinggi** |
+| rumah baru {kota} | Komersial | `/rumah` + `/proyek` | Tinggi |
+| perumahan {kota} | Komersial | `/proyek/[slug]` | Tinggi |
+| rumah type 36 / 45 / 60 | Komersial | detail unit + filter tipe | Tinggi |
+| rumah 2 lantai {kota} | Komersial | `/rumah` (filter lantai) | Tinggi |
+| rumah tapak minimalis | Komersial | `/rumah` + artikel | Sedang |
+| rumah siap huni {kota} | Komersial | `/rumah` (status `AVAILABLE`) | Sedang |
+| rumah KPR {kota} | Komersial | artikel + `/rumah` | Sedang |
+| rumah subsidi {kota} | Informasi/komersial | artikel + `/rumah` | Rendah |
 
-### 2.2 Klaster B — Kerja sama lahan (volume rendah, nilai tinggi)
+### 2.2 Klaster B — Lahan (volume rendah, nilai tinggi, sumber pasokan)
 
 | Kata kunci | Niat | Halaman tujuan | Prioritas |
 |------------|------|----------------|:---------:|
-| kerja sama lahan dengan developer | Komersial | `/kerjasama-lahan` | **Sangat tinggi** |
-| bagi hasil tanah dengan developer | Komersial | `/kerjasama-lahan` | Sangat tinggi |
-| mau bangun rumah tapi tidak punya modal | Informasi | `/kerjasama-lahan` + artikel | Tinggi |
-| jual tanah ke developer | Transaksi | `/kerjasama-lahan` | Tinggi |
+| kerja sama lahan dengan developer | Komersial | `/kerja-sama-lahan` | **Sangat tinggi** |
+| bagi hasil tanah dengan developer | Komersial | `/kerja-sama-lahan` | Sangat tinggi |
+| jual tanah ke developer | Transaksi | `/kerja-sama-lahan` (opsi "Dijual") | Tinggi |
+| mau bangun rumah tapi tidak punya modal | Informasi | `/kerja-sama-lahan` + artikel | Tinggi |
 | syarat kerja sama lahan perumahan | Informasi | artikel + FAQ | Sedang |
 | tanah warisan mau dibangun | Informasi | artikel | Sedang |
 
-### 2.3 Klaster C — Investasi (volume rendah, nilai tertinggi)
+### 2.3 Klaster C — Investasi (informasi, volume rendah)
 
 | Kata kunci | Niat | Halaman tujuan | Prioritas |
 |------------|------|----------------|:---------:|
-| investasi properti untuk pemula | Informasi | artikel → `/investasi` | Tinggi |
+| investasi properti untuk pemula | Informasi | artikel → `/investasi` | Sedang |
 | investasi tanah kavling | Informasi | artikel | Sedang |
 | modal investasi properti 500 juta | Informasi | `/investasi` | Sedang |
 | keuntungan investasi properti | Informasi | artikel | Sedang |
 | developer properti terpercaya | Komersial | `/tentang` + `/proyek` | Sedang |
 
-### 2.4 Klaster D — Biaya & teknis (pintu masuk trafik)
+> Klaster ini **tidak** diarahkan ke formulir. Halaman `/investasi` hanya menyediakan CTA kontak; targetnya kunjungan informasional dan kredibilitas, bukan lead.
+
+### 2.4 Klaster D — Biaya, KPR & teknis (pintu masuk trafik)
 
 | Kata kunci | Niat | Halaman tujuan |
 |------------|------|----------------|
-| estimasi biaya bangun rumah 2 lantai | Informasi | artikel (panduan umum, bukan angka per desain) |
-| harga jasa desain rumah per meter | Komersial | artikel + `/desain` |
-| RAB rumah type 45 | Informasi | artikel |
+| harga rumah type 45 | Informasi/komersial | detail unit + artikel |
+| estimasi biaya bangun rumah 2 lantai | Informasi | artikel (panduan umum, bukan angka per unit) |
+| simulasi KPR rumah | Informasi | artikel |
 | berapa lama bangun rumah 2 lantai | Informasi | artikel/FAQ |
+| biaya notaris & BPHTB membeli rumah | Informasi | artikel |
 
 ### 2.5 Klaster E — Merek & lokal
 
@@ -68,23 +72,23 @@ Dikelompokkan per niat pencarian agar setiap klaster punya halaman tujuan yang j
 |------------|---------|
 | azetta | Beranda |
 | azetta properti / azetta developer | `/tentang` |
-| desain rumah + nama kota (mis. "desain rumah jogja") | halaman kota (fase 2) atau artikel berbasis lokasi |
+| rumah dijual + nama kota (mis. "rumah dijual jogja") | `/rumah?city=…` (fase 1) atau artikel berbasis lokasi |
 
-> **Catatan:** halaman per-kota (programmatic SEO) **tidak** dibuat di MVP. Tanpa konten unik per kota, halaman seperti ini menjadi *doorway page* yang berisiko dan tidak berguna.
+> **Catatan:** halaman per-kota (programmatic SEO) **tidak** dibuat di MVP. Tanpa konten unik per kota, halaman seperti ini menjadi *doorway page* yang berisiko dan tidak berguna. Filter kota pada `/rumah` sudah menangkap niat ini.
 
 ## 3. Peta URL
 
 | URL | Tipe | Diindeks? | Catatan |
 |-----|------|:---------:|---------|
 | `/` | Beranda | ✅ | |
-| `/desain` | Katalog | ✅ | Filter default |
-| `/desain?category=…&floors=…` | Katalog terfilter | ⚠️ | Diindeks hanya bila ≤ 2 parameter dan ada ≥ 1 hasil |
-| `/desain?q=…` | Hasil pencarian | ❌ | `noindex` |
-| `/desain/[slug]` | Detail desain | ✅ | Satu-satunya URL kanonis per desain |
+| `/rumah` | Katalog unit | ✅ | Filter default |
+| `/rumah?city=…&type=…` | Katalog terfilter | ⚠️ | Diindeks hanya bila ≤ 2 parameter dan ada ≥ 1 hasil |
+| `/rumah?q=…` | Hasil pencarian | ❌ | `noindex` |
+| `/rumah/[slug]` | Detail unit | ✅ | Satu-satunya URL kanonis per unit |
 | `/proyek` | Daftar proyek | ✅ | |
 | `/proyek/[slug]` | Detail proyek | ✅ | |
-| `/kerjasama-lahan` | Landing | ✅ | |
-| `/investasi` | Landing | ✅ | |
+| `/kerja-sama-lahan` | Landing | ✅ | |
+| `/investasi` | Halaman informasi | ✅ | Tanpa form; `noindex` bila konten belum siap |
 | `/artikel` | Daftar artikel | ✅ | Pagination `?page=2` `noindex,follow` |
 | `/artikel/[slug]` | Artikel | ✅ | |
 | `/tentang`, `/kontak`, `/faq` | Statis | ✅ | |
@@ -96,7 +100,7 @@ Dikelompokkan per niat pencarian agar setiap klaster punya halaman tujuan yang j
 
 **Aturan slug:**
 
-- Kebab-case, tanpa stop word berlebih: `/desain/rumah-minimalis-2-lantai-6x12`.
+- Kebab-case, tanpa stop word berlebih: `/rumah/azetta-residence-tipe-45-a1`.
 - Tidak berubah setelah publish. Bila terpaksa berubah, buat **301 redirect** permanen dan perbarui internal link.
 - Tidak memuat ID numerik.
 
@@ -104,13 +108,13 @@ Dikelompokkan per niat pencarian agar setiap klaster punya halaman tujuan yang j
 
 | Halaman | `<title>` | Meta description | H1 |
 |---------|-----------|------------------|-----|
-| Beranda | `Azetta — Desain Properti, Kerja Sama Lahan & Investasi` | 150–160 char, memuat 3 aliran | `Desain siap bangun, lahan diolah bersama, modal tumbuh bersama` |
-| Katalog | `Katalog Desain Rumah & Properti — Azetta` | `Jelajahi {n} desain rumah, ruko, dan interior dengan denah lengkap. Filter sesuai luas lahan Anda.` | `Katalog Desain` |
-| Detail desain | `{Judul} — Desain {Kategori} {Gaya} \| Azetta` | 150–160 char dari ringkasan + spesifikasi | `{Judul}` |
+| Beranda | `Azetta — Rumah Tapak, Kerja Sama Lahan & Proyek Properti` | 150–160 char, memuat aliran utama | `Rumah siap dihuni, dibangun oleh Azetta` |
+| Katalog | `Rumah Dijual — Katalog Unit Azetta` | `Lihat {n} unit rumah tapak dari proyek Azetta: tipe, luas tanah, harga mulai dari, dan status ketersediaan terbaru.` | `Rumah Dijual` |
+| Detail unit | `{Judul Unit} — Rumah {Tipe} di {Kota} \| Azetta` | 150–160 char dari ringkasan + spesifikasi | `{Judul Unit}` |
 | Proyek | `Proyek Azetta — Portofolio Pengembangan Lahan` | `Lihat proyek yang sedang berjalan dan telah selesai dikembangkan Azetta, lengkap dengan lokasi dan spesifikasinya.` | `Proyek Azetta` |
 | Detail proyek | `{Judul Proyek} — Proyek Azetta di {Kota}` | 150–160 char dari ringkasan proyek | `{Judul Proyek}` |
-| Kerja sama lahan | `Kerja Sama Lahan dengan Developer — Tanpa Modal, Bagi Hasil \| Azetta` | `Punya lahan tapi tidak punya modal? Azetta mengolah lahan Anda dengan skema bagi hasil yang transparan. Ajukan lahan Anda.` | `Kerja Sama Lahan` |
-| Investasi | `Investasi Properti Bersama Azetta — Skema & Proyek` | `Kenali skema investasi properti Azetta: bagi hasil, ekuitas, dan imbal tetap, beserta risiko dan tata kelolanya.` | `Investasi Properti` |
+| Kerja sama lahan | `Jual atau Kerja Sama Lahan dengan Developer — Azetta` | `Punya lahan? Azetta membeli lahan atau membangun bersama Anda, lalu unitnya dijual. Lihat skema, syarat, dan alurnya.` | `Kerja Sama Lahan` |
+| Investasi | `Informasi Investasi & Tata Kelola — Azetta` | `Profil perusahaan, proyek berjalan, skema kemitraan, dan risiko yang perlu diketahui sebelum menghubungi Azetta.` | `Informasi Investasi` |
 | Artikel | `{Judul Artikel} \| Azetta` | 150–160 char dari excerpt | `{Judul Artikel}` |
 | FAQ | `Pertanyaan Umum — Azetta` | Ringkasan topik FAQ | `Pertanyaan Umum` |
 
@@ -127,10 +131,10 @@ Aturan:
 
 | Aturan | Detail |
 |--------|--------|
-| Canonical | Self-referencing di semua halaman; filter memakai canonical ke `/desain` bila > 2 parameter |
+| Canonical | Self-referencing di semua halaman; filter memakai canonical ke `/rumah` bila > 2 parameter |
 | `noindex` | Pencarian, halaman terima kasih, halaman staging, pagination artikel |
 | `robots.txt` | `Allow: /` + `Disallow: /api/`, `/admin/`, `/terima-kasih/`; `Sitemap:` absolut |
-| Sitemap | Dinamis: desain publish, artikel publish, halaman statis; `lastmod` akurat |
+| Sitemap | Dinamis: unit publish, artikel publish, halaman statis; `lastmod` akurat |
 | Redirect | Slug berubah → 301; HTTP→HTTPS → 301; `www`→non-www (pilih satu) |
 | 404 | Status 404 sungguhan (bukan 200 dengan halaman "tidak ditemukan") |
 | Trailing slash | Konsisten (tanpa trailing slash) + redirect |
@@ -162,41 +166,42 @@ Aturan:
 | Tipe | Halaman | Field wajib |
 |------|---------|-------------|
 | `Organization` | Semua (layout) | `name`, `url`, `logo`, `sameAs`, `contactPoint` |
-| `WebSite` | Beranda | `name`, `url`, `potentialAction` (SearchAction ke `/desain?q=`) |
+| `WebSite` | Beranda | `name`, `url`, `potentialAction` (SearchAction ke `/rumah?q=`) |
 | `BreadcrumbList` | Semua kecuali beranda | `itemListElement` |
-| `CreativeWork` (subtipe `House` bila sesuai) | Detail desain | `name`, `description`, `image`, `creator`, `datePublished` |
+| `Residence` (subtipe `House`) | Detail unit | `name`, `description`, `image`, `address`, `numberOfRooms`, `floorSize` |
 | `CreativeWork` | Detail proyek | `name`, `description`, `image`, `dateCreated`, `locationCreated` |
+| `ItemList` | Katalog `/rumah` | `itemListElement` (maks 12 unit pertama) |
 | `Article` | Detail artikel | `headline`, `image`, `datePublished`, `dateModified`, `author` |
 | `FAQPage` | `/faq` dan FAQ di landing | `mainEntity[]` |
-| `Service` | `/kerjasama-lahan`, `/investasi` | `name`, `description`, `provider` |
+| `Service` | `/kerja-sama-lahan` | `name`, `description`, `provider` |
 | `LocalBusiness` | `/kontak` (bila ada alamat fisik) | `address`, `telephone`, `openingHours` |
 
 **Yang sengaja tidak dipakai:**
 
-- `Product` + `Offer` pada desain — karena tidak ada transaksi online dan harga tidak selalu tersedia; berisiko melanggar pedoman Google.
+- `Product` + `Offer` pada unit — harga hanya indikatif dan transaksi terjadi di luar situs; berisiko melanggar pedoman Google.
 - `Review`/`AggregateRating` fiktif — dilarang dan merusak kepercayaan.
-- `RealEstateListing` — tidak sesuai (yang dijual adalah jasa desain, bukan listing properti).
+- `RealEstateListing` — tidak memberi rich result dan menyiratkan ketersediaan real-time yang tidak dijamin data kami.
 
 ## 7. Rencana konten awal
 
-### 7.1 12 desain (konten produk)
+### 7.1 12 unit rumah (konten produk)
 
-| # | Judul | Kategori | Gaya | Lahan min | KT/KM | Kata kunci utama |
-|---|-------|----------|------|-----------|-------|------------------|
-| 1 | Rumah Minimalis 2 Lantai 6×12 | Residential | Minimalis | 72 m² | 3/2 | desain rumah 6x12 2 lantai |
-| 2 | Rumah Tropis Modern 2 Lantai 8×15 | Residential | Tropis | 120 m² | 4/3 | desain rumah tropis modern |
-| 3 | Rumah Skandinavia 1 Lantai 7×12 | Residential | Skandinavia | 84 m² | 3/2 | desain rumah skandinavia |
-| 4 | Rumah Type 45 Modern | Residential | Modern | 90 m² | 2/1 | desain rumah type 45 |
-| 5 | Rumah Type 36 Hemat Lahan | Residential | Minimalis | 72 m² | 2/1 | desain rumah type 36 |
-| 6 | Rumah Industrial 2 Lantai 9×15 | Residential | Industrial | 135 m² | 3/3 | desain rumah industrial |
-| 7 | Rumah Klasik Modern 2 Lantai | Residential | Klasik Modern | 150 m² | 4/3 | desain rumah klasik modern |
-| 8 | Rumah Tumbuh 1 Lantai + Rencana Lantai 2 | Residential | Minimalis | 100 m² | 2/2 | desain rumah tumbuh |
-| 9 | Ruko Minimalis 2 Lantai 5×15 | Commercial | Minimalis | 75 m² | — | desain ruko minimalis 2 lantai |
-| 10 | Ruko Modern 3 Lantai Sudut | Commercial | Modern | 120 m² | — | desain ruko 3 lantai |
-| 11 | Renovasi Rumah Lama Jadi Modern | Renovation | Modern | 90 m² | 3/2 | renovasi rumah jadi modern |
-| 12 | Interior Ruang Tamu Minimalis 4×5 | Interior | Minimalis | — | — | desain interior ruang tamu minimalis |
+| # | Proyek | Kode | Tipe | LT / LB | KT/KM | Status | Kata kunci utama |
+|---|--------|------|------|---------|-------|--------|------------------|
+| 1 | Azetta Residence | A1 | Tipe 45 | 96 / 90 m² | 3/2 | Tersedia | rumah type 45 {kota} |
+| 2 | Azetta Residence | A2 | Tipe 45 | 96 / 90 m² | 3/2 | Tersedia | rumah 2 lantai {kota} |
+| 3 | Azetta Residence | B1 | Tipe 60 | 120 / 110 m² | 4/3 | Indent | rumah type 60 {kota} |
+| 4 | Azetta Residence | B2 | Tipe 60 | 120 / 110 m² | 4/3 | Terjual | rumah siap huni {kota} |
+| 5 | Griya Ngaglik | C1 | Tipe 36 | 72 / 60 m² | 2/1 | Tersedia | rumah type 36 {kota} |
+| 6 | Griya Ngaglik | C2 | Tipe 36 | 72 / 60 m² | 2/1 | Tersedia | rumah murah {kota} |
+| 7 | Griya Ngaglik | D1 | Tipe 45 | 90 / 78 m² | 3/2 | Indent | rumah tapak minimalis |
+| 8 | Griya Ngaglik | D2 | Tipe 45 | 90 / 78 m² | 3/2 | Terjual | rumah keluarga {kota} |
+| 9 | Azetta Garden | E1 | Tipe 70 | 140 / 120 m² | 4/3 | Tersedia | rumah 2 lantai hook |
+| 10 | Azetta Garden | E2 | Tipe 70 | 140 / 120 m² | 4/3 | Tersedia | rumah taman {kota} |
+| 11 | Azetta Garden | F1 | Tipe 90 | 180 / 150 m² | 4/4 | Indent | rumah mewah {kota} |
+| 12 | Azetta Garden | F2 | Tipe 90 | 180 / 150 m² | 4/4 | Terjual | rumah cluster {kota} |
 
-Setiap desain wajib memiliki: 5–8 gambar (eksterior, interior, denah per lantai), deskripsi 300–600 kata, spesifikasi lengkap, harga paket "mulai dari", dan 1 CTA. **Estimasi biaya bangun tidak dicantumkan** (Q8) — angka biaya hanya ada di artikel panduan umum.
+Setiap unit wajib memiliki: 5–8 media (render eksterior, interior, denah per lantai, foto progres bila ada), deskripsi 300–600 kata, spesifikasi lengkap, harga "mulai dari" per tipe, status ketersediaan, dan 1 CTA. **Harga final dan skema pembayaran tidak dicantumkan** — angka biaya hanya ada di artikel panduan umum.
 
 ### 7.2 4 proyek (bukti sosial)
 
@@ -217,8 +222,8 @@ Proyek hanya dipublikasikan setelah ada persetujuan tertulis (R21). Tanpa foto &
 | 2 | Bagi Hasil Tanah dengan Developer: Bagaimana Hitungannya? | Lahan | bagi hasil tanah dengan developer | MOFU |
 | 3 | Punya Tanah tapi Tidak Punya Modal: Ini Pilihan Anda | Lahan | bangun rumah tanpa modal | TOFU |
 | 4 | Estimasi Biaya Bangun Rumah 2 Lantai 6×12 (Rincian 2026) | Biaya | estimasi biaya bangun rumah 2 lantai | TOFU |
-| 5 | Harga Jasa Desain Rumah: Apa yang Mempengaruhi? | Desain | harga jasa desain rumah per meter | MOFU |
-| 6 | 7 Hal yang Perlu Dicek Sebelum Memilih Desain Rumah | Desain | cara memilih desain rumah | TOFU |
+| 5 | Harga Rumah Type 45: Apa Saja yang Mempengaruhi? | Rumah | harga rumah type 45 | MOFU |
+| 6 | 7 Hal yang Perlu Dicek Sebelum Membeli Rumah Baru | Rumah | cara memilih rumah baru | TOFU |
 | 7 | Investasi Properti untuk Pemula: Mulai dari Mana? | Investasi | investasi properti untuk pemula | TOFU |
 | 8 | Risiko Investasi Properti dan Cara Memitigasinya | Investasi | risiko investasi properti | MOFU |
 
@@ -226,7 +231,7 @@ Aturan artikel: 900–1.500 kata, minimal 1 tabel/gambar orisinal, 3 internal li
 
 ### 7.4 FAQ (10 pertanyaan awal)
 
-Umum (3), Desain (3), Lahan (2), Investasi (2). Contoh: "Apakah bisa konsultasi sebelum membeli desain?", "Apakah harga desain termasuk RAB?", "Bagaimana skema bagi hasil lahan?", "Apakah investasi dijamin untung?" (jawaban jujur: tidak ada jaminan).
+Umum (3), Rumah (3), Lahan (2), Investasi (2). Contoh: "Apakah harga yang tampil sudah final?", "Bisakah unit dibeli dengan KPR?", "Apa beda 'dijual' dan 'dikerjasamakan' untuk lahan?", "Apakah investasi dijamin untung?" (jawaban jujur: tidak ada jaminan).
 
 ### 7.5 Aturan bahasa & visual materi (Brand Guidelines §07–§08)
 
@@ -257,8 +262,8 @@ Kontak materi publik: formulir `forms.gle/FjX6A6XZjksGbASU9`, Instagram `@azetta
 
 | Minggu | Konten | Pemilik |
 |--------|--------|---------|
-| 1–2 | 6 desain pertama (foto + deskripsi), 2 proyek, halaman statis | Tim internal (no dedicated PIC) + fotografer |
-| 3–4 | 6 desain berikutnya, 2 proyek, artikel #4 & #5 | Tim internal |
+| 1–2 | 6 unit pertama (foto/render + deskripsi), 2 proyek, halaman statis | Tim internal (no dedicated PIC) + fotografer |
+| 3–4 | 6 unit berikutnya, 2 proyek, artikel #4 & #5 | Tim internal |
 | 5–6 | Artikel #1 & #2 (klaster lahan), FAQ lahan | Tim internal + sales |
 | 7–8 | Artikel #3 & #6 | Tim internal |
 | 9–10 | Artikel #7 & #8, FAQ investasi | Tim internal + manajemen |
@@ -282,7 +287,7 @@ Setiap artikel baru dipublikasikan **setelah** halaman tujuannya siap (jangan me
 |------|--------|-------|
 | Google Search Console | Kinerja pencarian, indexing, Core Web Vitals | Gratis |
 | GA4 atau Umami | Sesi, sumber, konversi | Gratis / murah |
-| `funnel_event` internal | Konversi per halaman & desain | Gratis |
+| `funnel_event` internal | Konversi per halaman & unit | Gratis |
 | Lighthouse CI | Regresi performa per PR | Gratis |
 | Rank tracker (opsional) | Posisi kata kunci | Rp 100–300 rb/bulan |
 
@@ -303,8 +308,8 @@ Hindari: beli backlink, PBN, komentar spam, dan pertukaran link massal.
 ## 12. Guardrail konten
 
 1. **Tidak ada klaim hasil investasi pasti.** Selalu sertakan bagian risiko.
-2. **Artikel biaya** memakai label "estimasi" dengan tanggal & asumsi; **halaman desain tidak menampilkan angka biaya** (Q8).
-3. **Tidak menyalin** deskripsi desain dari sumber lain; setiap desain punya penjelasan orisinal.
+2. **Artikel biaya** memakai label "estimasi" dengan tanggal & asumsi; **halaman unit tidak menampilkan harga final atau skema pembayaran**.
+3. **Tidak menyalin** deskripsi unit dari sumber lain; setiap unit punya penjelasan orisinal.
 4. **Tidak membuat halaman kota** tanpa konten unik.
 5. **Tidak mengubah slug** tanpa 301.
 6. **Tidak mengindeks** halaman dengan konten tipis (< 300 kata) kecuali halaman fungsional.
@@ -317,10 +322,10 @@ Hindari: beli backlink, PBN, komentar spam, dan pertukaran link massal.
 - [ ] Canonical self-referencing; filter > 2 parameter `noindex`.
 - [ ] Halaman terima kasih & staging `noindex`.
 - [ ] Halaman auth (`/masuk`, `/daftar`, `/lupa-sandi`, `/reset-sandi`, `/verifikasi-email`) dan `/akun*` `noindex,nofollow`.
-- [ ] Sitemap memuat desain, proyek, artikel, dan halaman statis yang publish.
+- [ ] Sitemap memuat unit, proyek, artikel, dan halaman statis yang publish.
 - [ ] JSON-LD valid (Rich Results Test) tanpa error.
 - [ ] Gambar punya `alt` + dimensi; hero di-preload.
 - [ ] Redirect 301 untuk slug yang berubah.
 - [ ] GSC & analytics terpasang dan terverifikasi.
 - [ ] Tidak ada halaman 200 untuk konten yang tidak ada.
-- [ ] Internal link: setiap desain terhubung ke minimal 1 artikel relevan dan sebaliknya.
+- [ ] Internal link: setiap unit terhubung ke minimal 1 artikel relevan dan sebaliknya.

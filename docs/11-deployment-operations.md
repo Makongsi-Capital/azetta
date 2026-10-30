@@ -95,7 +95,7 @@ Aturan:
 | `R2_ACCOUNT_ID` | ✅ | — | Cloudflare |
 | `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | ✅ | — | Kredensial terbatas pada bucket |
 | `R2_BUCKET` | ✅ | `azetta-prod-media` | — |
-| `R2_PUBLIC_BASE_URL` | ✅ | `https://media.azetta.id` | Media publik desain |
+| `R2_PUBLIC_BASE_URL` | ✅ | `https://media.azetta.id` | Media publik unit |
 | `TURNSTILE_SECRET_KEY` | ✅ | — | Verifikasi server |
 | `PUBLIC_TURNSTILE_SITE_KEY` | ✅ | — | Klien |
 | `RESEND_API_KEY` / `MAIL_FROM` | ✅ | `no-reply@azetta.id` | Notifikasi |
@@ -148,9 +148,9 @@ Aturan:
 Alur invalidasi:
 
 ```text
-Admin publish desain
+Admin publish unit / ubah status ketersediaan
    → API memperbarui status di DB
-   → job purge memanggil Cloudflare API (URL terkait + /desain + /)
+   → job purge memanggil Cloudflare API (URL terkait + /rumah + /)
    → bila gagal: dicatat, dicoba ulang 3× (30 s, 2 mnt, 10 mnt)
    → TTL pendek menjamin konten baru muncul ≤ 5 menit
 ```
@@ -231,7 +231,7 @@ docker compose up -d api && sleep 10 && curl -fsS https://api.azetta.id/health
 docker compose up -d web admin
 
 # 5. Smoke test
-curl -fsS https://azetta.id/desain > /dev/null
+curl -fsS https://azetta.id/rumah > /dev/null
 curl -fsS https://admin.azetta.id/login > /dev/null
 
 # 6. Purge cache
@@ -264,7 +264,7 @@ createdb azetta_restore
 pg_restore -d azetta_restore --clean --if-exists backup-2026-10-20.dump
 
 # 3. Verifikasi jumlah baris tabel kunci
-psql -d azetta_restore -c "select count(*) from lead; select count(*) from property_design;"
+psql -d azetta_restore -c "select count(*) from lead; select count(*) from unit; select count(*) from project;"
 
 # 4. Arahkan DATABASE_URL ke DB hasil restore, jalankan API, smoke test
 # 5. Catat insiden & penyebab di log insiden

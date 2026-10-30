@@ -55,16 +55,16 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 
 | ID | Skenario | Harapan |
 |----|----------|---------|
-| TC-PUB-01 | Buka `/desain` tanpa filter | Menampilkan maks 12 desain `PUBLISHED`, urut terbaru |
-| TC-PUB-02 | Filter kategori + lantai | Hasil sesuai; URL memuat query; reload mempertahankan filter |
-| TC-PUB-03 | Pencarian "minimalis" | Hasil relevan; pencarian kosong mengembalikan semua |
+| TC-PUB-01 | Buka `/rumah` tanpa filter | Menampilkan maks 12 unit `PUBLISHED` dari proyek publish, urut terbaru; unit `SOLD` tidak tampil secara default |
+| TC-PUB-02 | Filter kota + tipe + status | Hasil sesuai; URL memuat query; reload mempertahankan filter |
+| TC-PUB-03 | Pencarian "tipe 45 bandung" | Hasil relevan; pencarian kosong mengembalikan semua |
 | TC-PUB-04 | Filter tanpa hasil | Empty state + tombol reset; status 200 (bukan error) |
 | TC-PUB-05 | Halaman 2 pagination | Data berbeda dari halaman 1; tidak ada duplikat |
-| TC-PUB-06 | Buka detail desain `PUBLISHED` | Galeri, spesifikasi, denah, harga "mulai dari" tampil; **tidak ada** angka estimasi biaya bangun |
+| TC-PUB-06 | Buka detail unit `PUBLISHED` | Galeri render, spesifikasi, denah, harga "mulai dari", badge ketersediaan tampil; **tidak ada** harga final/skema pembayaran |
 | TC-PUB-07 | Buka slug `DRAFT` | 404 kustom; tidak membocorkan data |
 | TC-PUB-08 | Field opsional kosong (mis. carport) | Baris tidak ditampilkan; tidak ada "null"/"—" berlebihan |
 | TC-PUB-09 | Klik galeri | Lightbox terbuka; panah & Esc berfungsi; fokus kembali ke thumbnail |
-| TC-PUB-10 | Desain terkait | Maks 4; tidak memuat desain yang sedang dibuka |
+| TC-PUB-10 | Unit terkait | Maks 4; tidak memuat unit yang sedang dibuka |
 | TC-PUB-11 | Share URL filter | Orang lain melihat hasil filter yang sama |
 | TC-PUB-12 | Artikel & FAQ | Konten dari CMS; `FAQPage` JSON-LD valid |
 
@@ -72,7 +72,7 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 
 | ID | Skenario | Harapan |
 |----|----------|---------|
-| TC-LEAD-01 | Submit form desain lengkap | 201; redirect terima kasih; lead muncul di admin; email terkirim |
+| TC-LEAD-01 | Submit form tanya unit lengkap | 201; redirect terima kasih; lead `BUY_UNIT` muncul di admin dengan `unitId`; email terkirim |
 | TC-LEAD-02 | Submit tanpa nama | Error di field nama; tidak ada request tersimpan |
 | TC-LEAD-03 | Nomor `0812-3456-7890` | Tersimpan `+6281234567890`; `phoneNormalized=6281234567890` |
 | TC-LEAD-04 | Nomor tidak valid (`12345`) | Ditolak dengan pesan jelas |
@@ -87,7 +87,9 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 | TC-LEAD-13 | Form lahan: foto 6 MB | Ditolak dengan pesan ukuran |
 | TC-LEAD-14 | Form lahan: unggah lalu batalkan | Objek `tmp` dibersihkan dalam 24 jam |
 | TC-LEAD-15 | Refresh di tengah form lahan | Draft dipulihkan (dari `sessionStorage`) |
-| TC-LEAD-16 | Form investasi tanpa email | Ditolak (email wajib untuk tipe ini) |
+| TC-LEAD-16 | Submit form unit yang sudah `SOLD` | Ditolak ramah (`422 UNIT_NOT_AVAILABLE`); CTA diarahkan ke unit sejenis |
+| TC-LEAD-16a | Halaman `/investasi` | Tidak ada formulir; tidak ada `Lead` yang dibuat saat CTA kontak diklik |
+| TC-LEAD-16b | Kirim `type=INVEST` ke API | Ditolak `400 VALIDATION_ERROR` (enum tidak mengenal `INVEST`) |
 | TC-LEAD-17 | Submit dengan JS dimatikan | Form tetap terkirim (progressive enhancement) |
 | TC-LEAD-18 | Koneksi terputus saat submit | Pesan error + tombol coba lagi; isian tidak hilang |
 | TC-LEAD-19 | Atribusi UTM | `utm_source`/`campaign`/`landingPath` tersimpan |
@@ -154,11 +156,13 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 
 | ID | Skenario | Harapan |
 |----|----------|---------|
-| TC-CMS-01 | Buat desain draft | Tidak tampil di publik; tampil di admin |
+| TC-CMS-01 | Buat unit draft | Tidak tampil di publik; tampil di admin |
 | TC-CMS-02 | Publish tanpa media | Ditolak dengan daftar kekurangan |
 | TC-CMS-03 | Publish lengkap | Tampil di katalog ≤ 5 menit; sitemap memuat URL |
-| TC-CMS-04 | Ubah slug desain yang sudah tayang | URL lama 301 ke URL baru (atau ditolak — lihat kebijakan) |
-| TC-CMS-05 | Hapus desain yang punya lead | Ditolak 409; sarankan arsipkan |
+| TC-CMS-04 | Ubah slug unit yang sudah tayang | URL lama 301 ke URL baru (atau ditolak — lihat kebijakan) |
+| TC-CMS-05 | Hapus unit yang punya lead | Ditolak 409; sarankan arsipkan |
+| TC-CMS-05a | Ubah `salesStatus` unit `AVAILABLE` → `SOLD` | Badge berubah di publik ≤ 5 menit; form dinonaktifkan; perubahan tercatat di audit log |
+| TC-CMS-05b | Publish unit pada proyek yang belum publish | Ditolak dengan pesan jelas |
 | TC-CMS-06 | Hapus media cover | Cover otomatis pindah ke media berikutnya |
 | TC-CMS-07 | Artikel dengan HTML berisi `<script>` | Skrip tidak dieksekusi (disanitasi) |
 | TC-CMS-08 | Tautan `javascript:alert(1)` di editor | Atribut `href` berbahaya dibuang; tautan aman tetap |
@@ -184,11 +188,11 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 
 | Alur | Langkah | Kriteria lulus |
 |------|---------|----------------|
-| **E2E-1** Desain | Beranda → katalog → filter → detail → isi form → terima kasih | Referensi tampil; lead ada di DB |
-| **E2E-2** Lahan | `/kerjasama-lahan` → 3 langkah → unggah 2 foto → submit | Lead + `LandSubmission` + 2 lampiran tersimpan |
-| **E2E-3** Investasi | `/investasi` → form → submit | `InvestmentInterest` tersimpan |
+| **E2E-1** Unit rumah | Beranda → katalog → filter → detail → isi form → terima kasih | Referensi tampil; lead `BUY_UNIT` ada di DB |
+| **E2E-2** Lahan | `/kerja-sama-lahan` → 3 langkah (maksud: dikerjasamakan) → unggah 2 foto → submit | Lead + `LandSubmission` (`offerIntent=PARTNERSHIP`) + 2 lampiran tersimpan |
+| **E2E-3** Informasi investasi | `/investasi` → klik CTA kontak | Tidak ada form; tidak ada `Lead` baru; event `contact_click` tercatat |
 | **E2E-4** CRM | Login → daftar lead → buka E2E-1 → ubah status → catat aktivitas | Status & aktivitas persist setelah reload |
-| **E2E-5** CMS | Login → buat desain → unggah media → publish → buka halaman publik | Desain tampil dengan media |
+| **E2E-5** CMS | Login → buat unit → unggah media → publish → buka halaman publik | Unit tampil dengan media dan badge status |
 | **E2E-6** Otorisasi | Akses endpoint admin tanpa cookie | 401/403; tidak ada data bocor |
 | E2E-7 | Anti-spam | Submit dengan honeypot terisi | Tidak ada notifikasi; status `SPAM` |
 | **E2E-8** Akun | Daftar → verifikasi (Mailpit) → login → `/akun` → buka pengajuan | Hanya melihat pengajuannya sendiri; status tampil ramah pengguna |
@@ -277,13 +281,13 @@ Skenario UAT:
 
 | # | Skenario | Peran | Lulus bila |
 |---|----------|-------|-----------|
-| U1 | Menemukan desain sesuai lahan 6×12 | Marketing | ≤ 3 menit, tanpa bantuan |
-| U2 | Mengirim pertanyaan desain dari ponsel | Marketing | ≤ 90 detik, tanpa error |
+| U1 | Menemukan unit sesuai anggaran & kota | Marketing | ≤ 3 menit, tanpa bantuan |
+| U2 | Mengirim pertanyaan unit dari ponsel | Marketing | ≤ 90 detik, tanpa error |
 | U3 | Mengajukan lahan 800 m² dengan 3 foto | Marketing | Selesai tanpa bertanya |
 | U4 | Merespons lead baru dari daftar | Sales | ≤ 60 detik sampai tombol WhatsApp |
 | U5 | Mengubah status & mencatat hasil telepon | Sales | ≤ 60 detik, data tersimpan |
 | U6 | Menemukan lead yang belum dihubungi | Sales | ≤ 15 detik |
-| U7 | Menambah desain baru & publish | Marketing | ≤ 10 menit, tanpa developer |
+| U7 | Menambah unit baru & publish | Marketing | ≤ 10 menit, tanpa developer |
 | U8 | Menulis artikel & publish | Marketing | ≤ 15 menit |
 | U9 | Mengubah nomor WhatsApp situs | Manajemen | ≤ 2 menit, langsung tampil |
 | U10 | Mengekspor lead bulan ini | Manajemen | File terbuka rapi di Excel |

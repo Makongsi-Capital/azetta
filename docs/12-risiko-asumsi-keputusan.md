@@ -8,28 +8,29 @@
 
 Dokumen ini mencatat tiga hal yang menentukan keberhasilan rencana:
 
-1. **Keputusan atas pertanyaan terbuka** — Q1–Q10 dijawab pada v1.1, Q11–Q12 dijawab pada v1.2 (27 Oktober 2026); rincian yang sengaja ditunda dicatat terpisah.
+1. **Keputusan atas pertanyaan terbuka** — Q1–Q10 dijawab pada v1.1, Q11–Q12 pada v1.2 (27 Oktober 2026), Q13 pada v1.6 (30 Oktober 2026); rincian yang sengaja ditunda dicatat terpisah.
 2. **Keputusan arsitektur/produk** — agar tidak diperdebatkan ulang tanpa alasan baru.
 3. **Risiko** — beserta mitigasi dan pemiliknya.
 
 ## 2. Keputusan atas pertanyaan terbuka
 
-Seluruh pertanyaan di bawah **sudah dijawab**: Q1–Q10 pada 23 Oktober 2026 (v1.1) dan Q11–Q12 pada 27 Oktober 2026 (v1.2). Jawaban ini menjadi baseline dan sudah diterapkan ke seluruh dokumen terkait.
+Seluruh pertanyaan di bawah **sudah dijawab**: Q1–Q10 pada 23 Oktober 2026 (v1.1), Q11–Q12 pada 27 Oktober 2026 (v1.2), dan Q13 pada 30 Oktober 2026 (v1.6). Jawaban ini menjadi baseline dan sudah diterapkan ke seluruh dokumen terkait.
 
 | # | Pertanyaan | Keputusan | Dampak ke dokumen |
 |---|------------|-----------|-------------------|
 | Q1 | Apakah pengunjung perlu akun/login di MVP? | **Ya** — pengunjung dapat membuat akun untuk memantau progres pengajuan | Ruang lingkup + sprint baru (S5), model `User` dipakai, halaman `/masuk`, `/daftar`, `/akun`; lihat [01 §4](./01-prd.md#4-ruang-lingkup) & [06 §4.12](./06-ux-sitemap-wireframe.md#412-akun-saya) |
 | Q2 | Domain final & nama merek | **`azetta.id`** (+ `admin.`, `api.`, `media.`) | Tidak berubah dari default |
-| Q3 | Nomor WhatsApp, email, alamat, jam operasional | **Dikelola lewat halaman Pengaturan admin** agar bisa diubah saat produksi | [01 FR-ADM-12](./01-prd.md#53-modul-admin), [04 §3.5](./04-data-model.md#35-article-faq-testimonial-sitesetting) |
-| Q4 | Proyek yang boleh dipublikasikan | **Ya, ada** — portofolio proyek masuk MVP | Model `Project`, halaman `/proyek`, admin CRUD; lihat [04 §3.7](./04-data-model.md#37-project) |
-| Q5 | Harga desain ditampilkan? | **Ya** — `priceFrom` bila diisi, sisanya "hubungi kami" | Tidak berubah dari default |
+| Q3 | Nomor WhatsApp, email, alamat, jam operasional | **Dikelola lewat halaman Pengaturan admin** agar bisa diubah saat produksi | [01 FR-ADM-12](./01-prd.md#53-modul-admin), [04 §3.4](./04-data-model.md#34-article-faq-testimonial-sitesetting) |
+| Q4 | Proyek yang boleh dipublikasikan | **Ya, ada** — portofolio proyek masuk MVP | Model `Project`, halaman `/proyek`, admin CRUD; lihat [04 §3.6](./04-data-model.md#36-project) |
+| Q5 | Harga rumah ditampilkan? | **Ya** — harga "mulai dari" per tipe (`priceFrom`); harga final tidak ditampilkan | [01 BR-11](./01-prd.md#7-aturan-bisnis), [06 §4.3](./06-ux-sitemap-wireframe.md#43-detail-unit-rumah-rumahslug) |
 | Q6 | Pemilik lead per tipe | **Semua lead ditangani admin**; tidak ada routing per tipe | Peran `staff` dihapus; satu antrean lead; [05 §3.2](./05-spesifikasi-api.md#32-matriks-otorisasi) |
 | Q7 | WhatsApp gateway berbayar? | **Tidak** — notifikasi email saja | [05 §8](./05-spesifikasi-api.md#8-notifikasi), [11 §4](./11-deployment-operations.md#4-konfigurasi-environment) |
-| Q8 | Estimasi biaya bangun ditampilkan publik? | **Tidak** — hanya dipakai internal sales | Field tetap ada di DB sebagai data internal, tidak dikirim API publik; [06 §4.3](./06-ux-sitemap-wireframe.md#43-detail-desain-desainslug) |
+| Q8 | Harga final unit dan skema pembayaran ditampilkan publik? | **Tidak** — hanya harga "mulai dari" yang tampil; sisanya dibahas sales | Tidak ada field harga final di API publik; [06 §4.3](./06-ux-sitemap-wireframe.md#43-detail-unit-rumah-rumahslug) |
 | Q9 | Penanggung jawab konten | **Belum ada PIC khusus**; dikerjakan tim internal secara best-effort, opsi penambahan tetap terbuka | Risiko R1 naik; [10 §8](./10-seo-konten.md#8-kalender-konten) |
 | Q10 | Badan hukum & dokumen perusahaan | **Belum ada**; halaman Pengaturan menyediakan unggah dokumen agar bisa ditambahkan kemudian | Setting `legal` + unggah berkas; [06 §4.8](./06-ux-sitemap-wireframe.md#48-tentang-tentang) |
 | Q11 | Apakah akun publik memakai verifikasi email wajib? | **Ya** — akun wajib memverifikasi email sebelum dapat melihat pengajuan | [01 FR-ACC-02](./01-prd.md#55-modul-akun-publik), [03 §6.1](./03-arsitektur-teknis.md#61-konfigurasi-better-auth) |
-| Q12 | Apakah pemilik akun boleh menghapus akun sendiri di MVP? | **Hanya mengajukan permohonan** — pemohon mengirim permohonan dari `/akun/profil`; admin melihatnya sebagai daftar dan memproses penghapusan. Penghapusan/anonimisasi otomatis ditunda | Model `AccountDeletionRequest`, endpoint `/me/deletion-request` & `/admin/account-deletion-requests`, halaman profil + admin, Sprint 5 (+2 pd); [04 §3.8](./04-data-model.md#38-accountdeletionrequest), [05 §4.7](./05-spesifikasi-api.md#47-akun-saya) |
+| Q12 | Apakah pemilik akun boleh menghapus akun sendiri di MVP? | **Hanya mengajukan permohonan** — pemohon mengirim permohonan dari `/akun/profil`; admin melihatnya sebagai daftar dan memproses penghapusan. Penghapusan/anonimisasi otomatis ditunda | Model `AccountDeletionRequest`, endpoint `/me/deletion-request` & `/admin/account-deletion-requests`, halaman profil + admin, Sprint 5 (+2 pd); [04 §3.7](./04-data-model.md#37-accountdeletionrequest), [05 §4.7](./05-spesifikasi-api.md#47-akun-saya) |
+| Q13 | Apakah website menerima pendaftaran investor? | **Tidak** — `/investasi` hanya halaman pemberitahuan berisi profil perusahaan, proyek, skema umum, dan risiko; kontak lewat WhatsApp/email | Tidak ada `type = INVEST`, tidak ada `InvestmentInterest`, tidak ada formulir/endpoint lead investor; [01 FR-PUB-14](./01-prd.md#51-modul-publik--katalog), [04 §3.1](./04-data-model.md#31-lead) |
 
 Rincian yang sengaja **belum diputuskan** (tidak memblokir MVP, tetapi harus jelas sebelum rilis):
 
@@ -42,7 +43,7 @@ Rincian yang sengaja **belum diputuskan** (tidak memblokir MVP, tetapi harus jel
 
 | ID | Keputusan | Alasan | Konsekuensi | Alternatif yang ditolak |
 |----|-----------|--------|-------------|-------------------------|
-| D1 | MVP bersifat **lead-gen**, tanpa pembayaran online | Transaksi properti butuh negosiasi, verifikasi, dan dokumen; payment gateway menambah kompleksitas & risiko | Pendapatan tidak terukur langsung; butuh disiplin pencatatan sales | Checkout desain digital, eskrow |
+| D1 | MVP bersifat **lead-gen**, tanpa pembayaran online | Transaksi properti butuh negosiasi, verifikasi, dan dokumen; payment gateway menambah kompleksitas & risiko | Pendapatan tidak terukur langsung; butuh disiplin pencatatan sales | Checkout/booking unit online, eskrow |
 | D2 | **Monorepo Bun workspaces** | Elysia berjalan di Bun; satu perintah dev, kontrak & tipe dibagi | Semua tim harus memakai Bun | Turborepo, multi-repo |
 | D3 | **Admin sebagai aplikasi terpisah** | Isolasi origin & bundel; memudahkan pembatasan akses | Dua deployment, dua konfigurasi | Route group di app yang sama |
 | D4 | **Satu instance Better Auth di API** | Menghindari dua sumber sesi; guard terpusat; dipakai admin maupun customer | SvelteKit harus meneruskan cookie | Auth di masing-masing app |
@@ -55,12 +56,14 @@ Rincian yang sengaja **belum diputuskan** (tidak memblokir MVP, tetapi harus jel
 | D11 | **Hanya bahasa Indonesia** | Pasar awal Indonesia; mengurangi effort & risiko konten | Investor asing belum terlayani | ID+EN |
 | D12 | **8 sprint / ±15 minggu** | Tambahan akun publik & portofolio proyek menaikkan effort | Beban developer 98% kapasitas; tanpa buffer lingkup | 7 sprint dengan lingkup lama |
 | D13 | **Portofolio proyek masuk MVP** | Ada proyek yang boleh dipublikasikan (Q4); bukti sosial penting untuk lahan & investasi | +1 model, +2 halaman, +CRUD admin | Menunda proyek ke fase 2 |
-| D14 | **Estimasi biaya bangun tidak ditampilkan publik** | Menghindari ekspektasi harga yang tidak mengikat (Q8) | Data tetap disimpan untuk sales; UI publik tidak memuatnya | Menampilkan dengan disclaimer |
+| D14 | **Harga final unit tidak ditampilkan publik** | Menghindari ekspektasi harga yang tidak mengikat ketika harga berubah per tahap (Q8) | Yang tampil hanya harga "mulai dari" per tipe; skema pembayaran dibahas sales | Menampilkan harga per unit dengan disclaimer |
 | D15 | **Tanpa WhatsApp gateway** | Email dinilai cukup pada volume awal (Q7) | Notifikasi bergantung pada email; risiko email masuk spam dimitigasi dengan domain terautentikasi | Gateway berbayar sejak MVP |
 | D16 | **Satu peran internal (`admin`) + `super_admin`** | Semua lead ditangani admin (Q6); peran tambahan tanpa pembedaan tugas hanya menambah kompleksitas | Tidak ada pembatasan per tim; kehati-hatian lewat audit log | Peran `staff` dengan akses terbatas |
 | D17 | **Hapus akun lewat permohonan ke admin**, bukan self-service | Pemilik produk memutuskan (Q12); penghapusan menyentuh data lead dan kewajiban retensi sehingga perlu keputusan admin | Ada daftar permohonan di panel admin; penghapusan data tetap manual di MVP; tidak ada tombol hapus langsung | Penghapusan mandiri seketika; tiket manual lewat email |
 | D18 | **Identitas visual mengikuti Brand Guidelines v1.0**: palet monokrom (ink/paper/mist/line), Arial tanpa webfont, tanpa warna aksen, tanpa bayangan/gradasi, logo mark asterisk resmi | Satu identitas untuk web, admin, dan materi pemasaran; monokrom memaksa hierarki lewat kontras, ukuran, dan ruang kosong | Warna status dibedakan lewat tingkat kontras (mist → gray-300 → ink-3 → ink) dan wajib disertai label/ikon; tidak ada webfont sehingga nol permintaan font | Tema berwarna dengan aksen steel-blue, font Poppins self-hosted |
 | D19 | **Tautan WhatsApp tetap ada di web** (pengecualian aturan Brand Guidelines §08 "nomor WhatsApp tidak dicantumkan di materi publik") | WhatsApp adalah kanal follow-up utama di pasar Indonesia (lihat [02 §5](./02-model-bisnis-funnel.md#5-sla-follow-up)); menghapusnya menurunkan konversi lead | Tombol `wa.me` tampil sebagai CTA sekunder bergaya `btn-outline` monokrom; nomor tidak dicetak sebagai teks pada materi pemasaran (media sosial, poster, PDF, presentasi). Pengecualian ini dicatat dan ditinjau ulang bila materi pemasaran mulai memuat nomor | Menghapus seluruh kanal WhatsApp dari web (formulir & email saja) |
+| D21 | **Produk yang dijual adalah unit rumah**, bukan gambar desain | Klarifikasi pemilik produk (30 Okt 2026): Azetta adalah developer yang menjual rumah dan menerima lahan untuk dibeli/dikerjasamakan; desain hanyalah visual akhir yang disepakati dengan pembeli | Model `PropertyDesign`/tag diganti `Unit` + `UnitMedia`; katalog `/desain` → `/rumah`; `LeadType` menjadi `BUY_UNIT`/`LAND_OFFER`/`GENERAL`; `salesStatus` per unit; harga "mulai dari" per tipe | Tetap menjual paket gambar desain, katalog terpisah untuk desain |
+| D22 | **Halaman investor bersifat informasi, tanpa lead capture** | Investor tidak dicari lewat situs; hubungan dibangun lewat manajemen. Formulir tanpa tindak lanjut justru menciptakan ekspektasi palsu | Tidak ada form, tipe lead, atau model investasi; hanya CTA WhatsApp/email; dampak effort −1 pd | Form minat investasi + pipeline investor |
 | D20 | **Status memakai rona warna muted** (info `#2C4F63`, success `#2E5D46`, warning `#7A5216`, error `#8A3232`) sebagai pengecualian aturan monokrom Brand Guidelines §03 | Umpan balik sistem (gagal simpan, dokumen kurang, akun terverifikasi) harus dikenali cepat; rona muted menjaga nada tenang tanpa menjadi aksen merek | Warna hanya untuk umpan balik sistem, tidak untuk tombol utama, navigasi, atau dekorasi; kontras teks paper 6,3–8,0:1; status tetap wajib disertai label teks/ikon | Status sepenuhnya monokrom (dibedakan kontras saja) |
 
 Keputusan dapat diubah, tetapi perubahan harus mencatat: alasan baru, dampak jadwal/biaya, dan siapa yang menyetujui.
@@ -71,7 +74,7 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 
 | ID | Risiko | Kategori | P | D | Skor | Mitigasi | Pemilik |
 |----|--------|----------|:-:|:-:|:----:|----------|---------|
-| R1 | Konten (render, foto, artikel) belum siap saat rilis | Konten | 5 | 5 | **25** | Belum ada PIC konten khusus (Q9): jadwalkan blok waktu tim internal 2×/minggu; pesan jasa render di Sprint 1; target 6 desain siap sebelum Sprint 3; siapkan daftar aset per desain | Manajemen |
+| R1 | Konten (render, foto, artikel) belum siap saat rilis | Konten | 5 | 5 | **25** | Belum ada PIC konten khusus (Q9): jadwalkan blok waktu tim internal 2×/minggu; pesan jasa render di Sprint 1; target 6 unit siap sebelum Sprint 3; siapkan daftar aset per unit | Manajemen |
 | R2 | Lead masuk tetapi tidak ditindaklanjuti ≤ 2 jam | Operasional | 4 | 4 | **16** | Notifikasi real-time, dashboard "belum dihubungi", SLA tertulis, tinjauan harian | Sales lead |
 | R3 | Spam formulir membanjiri CRM | Teknis | 3 | 3 | 9 | Honeypot + Turnstile + rate limit + dedup; tinjauan spam mingguan | Developer |
 | R4 | Kebocoran/penyalahgunaan data pribadi | Legal/Keamanan | 2 | 5 | **10** | Consent, minimasi, akses berbasis peran, audit log, retensi, enkripsi | Tech lead |
@@ -92,7 +95,9 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 | R19 | Akun publik membuka permukaan serangan baru (credential stuffing, enumerasi akun, spam registrasi) | Keamanan | 3 | 4 | 12 | Verifikasi email wajib, rate limit login & registrasi, Turnstile di form daftar, pesan error seragam, audit akses | Tech lead |
 | R20 | Data pribadi akun menambah kewajiban UU PDP (hak akses/hapus) | Legal | 3 | 4 | 12 | Kebijakan privasi diperluas, prosedur permintaan ≤ 30 hari, minimasi data, anonimisasi saat penghapusan | Manajemen |
 | R21 | Publikasi proyek melanggar kerahasiaan klien/investor | Legal/Relasi | 2 | 4 | 8 | Persetujuan tertulis per proyek sebelum publish; field `isPublished` default `false`; tanpa angka keuangan sensitif | Manajemen |
-| R22 | Tanpa estimasi biaya publik, calon pembeli desain ragu atau membanjiri sales dengan pertanyaan harga | Bisnis | 3 | 2 | 6 | Tampilkan `priceFrom` paket desain, FAQ biaya, artikel estimasi biaya sebagai jawaban tidak langsung | Marketing |
+| R22 | Harga hanya "mulai dari" sehingga calon pembeli ragu atau membanjiri sales dengan pertanyaan harga | Bisnis | 3 | 2 | 6 | Tampilkan `priceFrom` per tipe, FAQ harga & KPR, artikel simulasi KPR sebagai jawaban tidak langsung | Marketing |
+| R26 | Status ketersediaan unit tidak diperbarui sehingga unit terjual masih tampil `TERSEDIA` | Operasional/Reputasi | 4 | 3 | 12 | Status per unit di CMS, audit 10 unit/minggu, tanggal pembaruan tampil di halaman, badge jelas | Admin konten |
+| R27 | Halaman investasi tanpa formulir membuat sebagian calon investor tidak menemukan jalur kontak | Bisnis | 2 | 2 | 4 | CTA WhatsApp/email yang menonjol di hero dan akhir halaman; kontak dikelola di Pengaturan | Manajemen |
 | R23 | Semua lead ditangani satu tim admin tanpa routing → lead menumpuk saat sibuk | Operasional | 3 | 3 | 9 | Antrean tunggal + prioritas + filter "belum dihubungi"; tinjauan harian; opsi routing di fase 2 | Sales lead |
 | R24 | Permohonan hapus akun menumpuk dan melewati target ≤ 30 hari | Legal/Operasional | 3 | 4 | 12 | Daftar `PENDING` di panel admin, tinjauan mingguan, penanggung jawab eksplisit, catat tanggal proses | Manajemen |
 | R25 | XSS melalui HTML yang dihasilkan editor WYSIWYG | Keamanan | 3 | 5 | **15** | Sanitasi server-side ber-allowlist, larang `script`/`iframe`/event handler/`javascript:`, uji payload XSS otomatis, CSP ketat | Tech lead |
@@ -101,7 +106,7 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 
 | Risiko | Tindakan konkret | Tenggat |
 |--------|------------------|---------|
-| R1 | Tetapkan daftar 12 desain + PIC aset; pesan jasa render; buffer konten 2 minggu sebelum Sprint 5 | Sebelum Sprint 2 |
+| R1 | Tetapkan daftar 12 unit + PIC aset; pesan jasa render; buffer konten 2 minggu sebelum Sprint 5 | Sebelum Sprint 2 |
 | R2 | Tentukan sales lead, jam kerja, dan aturan eskalasi; aktifkan alert lead baru | Sebelum Sprint 3 |
 | R5 | Tandatangani ruang lingkup MVP (dokumen ini) oleh manajemen | Sebelum Sprint 1 |
 | R25 | Terapkan sanitasi HTML ber-allowlist + uji XSS otomatis pada konten Tiptap | Sebelum Sprint 4 |
@@ -116,6 +121,7 @@ Skor = probabilitas (1–5) × dampak (1–5). Prioritas: ≥15 tinggi, 8–14 s
 | 2026-10-27 | 1.3 | **D8 diubah**: CMS Markdown → **WYSIWYG Tiptap** dengan penyimpanan HTML tersanitasi; risiko XSS (R25) dicatat | Permintaan pemilik produk | Pemilik produk |
 | 2026-10-30 | 1.4 | **D18 & D19 ditambahkan**: identitas visual & bahasa mengikuti **Brand Guidelines v1.0** — tema daisyUI monokrom (ink/paper/mist/line), Arial tanpa webfont, tanpa warna aksen/bayangan, logo & favicon resmi; tautan WhatsApp di web dipertahankan sebagai **pengecualian resmi** D19; dokumentasi UX, QA, dan konten disesuaikan | Berkas `docs/AZETTA_Brand_Guidelines.pdf` ditambahkan | Pemilik produk |
 | 2026-10-30 | 1.5 | **D20 ditambahkan**: rona status muted untuk `info`/`success`/`warning`/`error`; token tema web & admin, halaman `/theme`, serta checklist brand disesuaikan | Umpan balik sistem perlu dikenali cepat tanpa menjadi aksen merek | Pemilik produk |
+| 2026-10-30 | 1.6 | **D21 & D22 ditambahkan**: produk utama berubah dari gambar desain menjadi **unit rumah**; katalog `/rumah` per unit dengan status ketersediaan; lahan diterima untuk **dibeli atau dikerjasamakan**; **halaman investor menjadi informasi tanpa formulir** (Q13); seluruh dokumen 00–12, model data, API, UX, backlog, QA, SEO, dan estimasi biaya disesuaikan; effort 187 → 186 pd | Klarifikasi model bisnis dari pemilik produk | Pemilik produk |
 
 ## 6. Dependensi eksternal
 

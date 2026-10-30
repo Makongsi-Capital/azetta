@@ -22,10 +22,10 @@
 | Epic | Nama | Hasil yang bisa didemokan | Sprint |
 |------|------|---------------------------|--------|
 | E0 | Fondasi | Repo jalan, DB & auth siap, staging hidup | 0 |
-| E1 | Katalog publik | Pengunjung bisa menjelajah desain | 1 |
-| E2 | Penangkapan lead | Tiga formulir mengirim lead nyata | 2 |
+| E1 | Katalog publik | Pengunjung bisa menjelajah unit rumah | 1 |
+| E2 | Penangkapan lead | Dua formulir mengirim lead nyata | 2 |
 | E3 | CRM admin | Admin mengelola lead end-to-end | 3 |
-| E4 | CMS & proyek | Desain, artikel, proyek, pengaturan dikelola tanpa developer | 4 |
+| E4 | CMS & proyek | Unit, artikel, proyek, pengaturan dikelola tanpa developer | 4 |
 | E5 | Akun publik | Pengunjung bisa memantau progres pengajuan | 5 |
 | E6 | Konten & kualitas | Situs lengkap, performa & aksesibilitas memenuhi target | 6 |
 | E7 | Pengerasan & rilis | Produksi stabil, tim terlatih | 7 |
@@ -48,29 +48,29 @@
 
 ### Sprint 1 — Katalog publik (20 pd)
 
-**Sprint goal:** pengunjung dapat membuka beranda, memfilter katalog, dan membaca detail desain dari data nyata di database.
+**Sprint goal:** pengunjung dapat membuka beranda, memfilter katalog, dan membaca detail unit rumah dari data nyata di database.
 
 | ID | Task | Acceptance | pd | Depends |
 |----|------|------------|:--:|---------|
 | E1-01 | UI kit + tema + shell aplikasi | Button/Input/Select/Badge/Card/Skeleton tersedia dan terdokumentasi; header/footer web + sidebar admin; tema daisyUI **monokrom sesuai Brand Guidelines v1.0** dari satu preset (token saat ini di `apps/*/src/routes/layout.css`, dipindahkan ke `packages/ui`); logo mark + favicon resmi; halaman contoh semua komponen di `/theme` | 4 | E0-01 |
-| E1-02 | API daftar desain (filter, cari, urut, paginasi) | Semua filter di [05 §4.2](./05-spesifikasi-api.md#42-get-publicdesigns) berfungsi; query < 100 ms pada seed 12 desain; hasil hanya `PUBLISHED` | 3 | E0-03 |
-| E1-03 | API detail & terkait | Detail mengembalikan media + tag + seo; `DRAFT`/`ARCHIVED` → 404; related maks 4 dengan fallback; **estimasi biaya tidak ikut dikirim** | 2 | E1-02 |
-| E1-04 | Halaman beranda | Section sesuai [06 §4.1](./06-ux-sitemap-wireframe.md#41-beranda-); section kosong disembunyikan; tanpa "estimasi biaya"; skor Lighthouse awal ≥ 85 | 2 | E1-01, E1-02 |
+| E1-02 | API daftar unit (filter, cari, urut, paginasi) | Semua filter di [05 §4.2](./05-spesifikasi-api.md#42-get-publicunits) berfungsi; query < 100 ms pada seed 12 unit; hasil hanya `PUBLISHED` dan proyeknya publish | 3 | E0-03 |
+| E1-03 | API detail & terkait | Detail mengembalikan media (render/denah), proyek, status ketersediaan, seo; `DRAFT`/`ARCHIVED` → 404; related maks 4; **harga final tidak dikirim** | 2 | E1-02 |
+| E1-04 | Halaman beranda | Section sesuai [06 §4.1](./06-ux-sitemap-wireframe.md#41-beranda-); section kosong disembunyikan; tanpa harga final; skor Lighthouse awal ≥ 85 | 2 | E1-01, E1-02 |
 | E1-05 | Halaman katalog | Filter sidebar (desktop) & drawer (mobile); state di URL; pagination; empty state; skeleton; kartu sesuai desain | 4 | E1-01, E1-02 |
-| E1-06 | Halaman detail desain | Galeri + lightbox keyboard; tab denah; spesifikasi; sticky CTA mobile; 404 kustom | 3 | E1-01, E1-03 |
-| E1-07 | Pipeline media + seed 12 desain | Presign admin berfungsi; varian 400/800/1600 dibuat; cover & alt tersimpan; seed menghasilkan 12 desain dengan gambar nyata | 2 | E0-02 |
+| E1-06 | Halaman detail unit | Galeri render + lightbox keyboard; tab denah; spesifikasi; badge status ketersediaan; sticky CTA mobile; 404 kustom | 3 | E1-01, E1-03 |
+| E1-07 | Pipeline media + seed 12 unit | Presign admin berfungsi; varian 400/800/1600 dibuat; cover & alt tersimpan; seed menghasilkan 12 unit (campuran `AVAILABLE`/`INDENT`/`SOLD`) dengan gambar nyata | 2 | E0-02 |
 
-### Sprint 2 — Penangkapan lead (20 pd)
+### Sprint 2 — Penangkapan lead (19 pd)
 
-**Sprint goal:** lead dari ketiga alur tersimpan ke database, memicu notifikasi, dan tampil di halaman terima kasih dengan nomor referensi.
+**Sprint goal:** lead dari kedua alur (unit rumah & lahan) tersimpan ke database, memicu notifikasi, dan tampil di halaman terima kasih dengan nomor referensi.
 
 | ID | Task | Acceptance | pd | Depends |
 |----|------|------------|:--:|---------|
 | E2-01 | SEO dasar | Title/description unik tiap halaman; canonical; OG/Twitter card; `sitemap.xml` dinamis; `robots.txt`; JSON-LD Organization/WebSite/Breadcrumb | 2 | E1-04, E1-05, E1-06 |
-| E2-02 | API `POST /public/leads` | 3 tipe tervalidasi; normalisasi nomor; dedup 60 s; idempotensi; referensi `AZT-…` unik; transaksi atomik lead + detail; `userId` diambil dari sesi bila ada | 4 | E0-03, E0-04 |
+| E2-02 | API `POST /public/leads` | 2 tipe (`BUY_UNIT`, `LAND_OFFER`) + `GENERAL` tervalidasi; normalisasi nomor; dedup 60 s; idempotensi; referensi `AZT-…` unik; transaksi atomik lead + detail; `userId` diambil dari sesi bila ada | 4 | E0-03, E0-04 |
 | E2-03 | Anti-spam | Honeypot, Turnstile server-side, waktu isi, `spamScore`; bot mendapat 201 palsu; rate limit sesuai [05 §6](./05-spesifikasi-api.md#6-rate-limit); ada unit test untuk tiap sinyal | 2 | E2-02 |
 | E2-04 | Presign unggah publik + pemindahan objek | Maks 5 file/5 MB; MIME divalidasi; objek `tmp` dipindah ke `leads/{id}/`; objek tak terpakai dibersihkan | 2 | E0-02 |
-| E2-05 | Form tanya desain + form investasi | Validasi klien & server konsisten; prefill `designId`; submit sukses → redirect; error per field; berfungsi tanpa JS | 3 | E1-06, E2-02 |
+| E2-05 | Form tanya unit | Validasi klien & server konsisten; prefill `unitId`; submit sukses → redirect; error per field; berfungsi tanpa JS; ditolak ramah bila unit `SOLD` | 2 | E1-06, E2-02 |
 | E2-06 | Form pengajuan lahan 3 langkah | Stepper; validasi per langkah; draft `sessionStorage`; unggah foto dengan progres & hapus; kembali tanpa kehilangan data | 4 | E2-02, E2-04 |
 | E2-07 | Halaman terima kasih + funnel event | Referensi tampil & bisa disalin; pesan lanjutan per tipe; `noindex`; ajakan membuat akun (opsional); event `lead_submit_success` | 2 | E2-05, E2-06 |
 | E2-08 | Notifikasi lead baru (email) | Email terkirim < 60 s; retry 3×; kegagalan dicatat sebagai aktivitas `SYSTEM`; tidak menggagalkan respons | 1 | E2-02 |
@@ -92,11 +92,11 @@
 
 ### Sprint 4 — CMS & proyek (20 pd)
 
-**Sprint goal:** staf non-teknis dapat menambah desain, proyek, artikel, FAQ, testimoni, serta mengubah kontak dan aset merek.
+**Sprint goal:** staf non-teknis dapat menambah unit, proyek, artikel, FAQ, testimoni, serta mengubah kontak dan aset merek.
 
 | ID | Task | Acceptance | pd | Depends |
 |----|------|------------|:--:|---------|
-| E4-01 | CRUD desain + alur publish | Form lengkap dengan validasi; slug otomatis & bisa diubah; draft/publish/archive; validasi publish di [05 §5.2](./05-spesifikasi-api.md#52-desain); duplikasi desain; estimasi biaya tersimpan sebagai data internal | 4 | E1-02 |
+| E4-01 | CRUD unit + alur publish + status ketersediaan | Form lengkap dengan validasi; `projectId`, `unitCode`, `typeName` wajib; slug otomatis & bisa diubah; draft/publish/archive; ubah `salesStatus` tercatat di audit; validasi publish di [05 §5.2](./05-spesifikasi-api.md#52-unit-rumah); duplikasi unit | 4 | E1-02 |
 | E4-02 | Media manager | Unggah banyak file; urutkan drag-drop; pilih cover; hapus (objek R2 ikut); `alt` wajib sebelum publish | 3 | E1-07, E4-01 |
 | E4-03 | CRUD artikel + halaman publik | Editor WYSIWYG Tiptap (toolbar di [06 §7](./06-ux-sitemap-wireframe.md#7-inventaris-komponen-ui)); gambar via presign; sanitasi HTML server-side; publish/archive; daftar & detail publik dengan pagination; `Article` JSON-LD | 4 | E2-01 |
 | E4-04 | FAQ & testimoni | CRUD; urutan; aktif/nonaktif; tampil di `/faq` dan beranda; `FAQPage` JSON-LD | 2 | E4-03 |
@@ -125,7 +125,7 @@
 | ID | Task | Acceptance | pd | Depends |
 |----|------|------------|:--:|---------|
 | E6-01 | Halaman statis & 404 | Tentang, kontak (+form `GENERAL`), FAQ, privasi, syarat, 404; semua konten dari CMS/settings | 3 | E4-05 |
-| E6-02 | Halaman publik proyek | `/proyek` + `/proyek/[slug]`; filter status/kota; lightbox galeri; CTA ke lahan/investasi; JSON-LD | 2 | E4-07, E1-01 |
+| E6-02 | Halaman publik proyek | `/proyek` + `/proyek/[slug]`; filter status/kota; lightbox galeri; CTA ke lahan & unit; JSON-LD | 2 | E4-07, E1-01 |
 | E6-03 | Unggah aset merek & dokumen legal | Logo/favicon/PDF dapat diunggah dari Pengaturan; URL tersimpan di setting; tampil di footer/halaman tentang; validasi MIME & ukuran | 2 | E4-05, E2-04 |
 | E6-04 | Cache & invalidasi | Header cache sesuai [03 §7](./03-arsitektur-teknis.md#7-rendering--caching); purge terpicu saat publish; konten baru tampil ≤ 5 menit meski purge gagal | 2 | E4-01, E4-07 |
 | E6-05 | Observability | Sentry menerima error API & frontend dengan `requestId`; log terstruktur tanpa data pribadi; uptime monitor aktif | 2 | E0-05 |
@@ -133,7 +133,7 @@
 | E6-07 | Audit aksesibilitas | axe tanpa error kritis pada 7 halaman utama (termasuk `/akun`); navigasi keyboard & fokus lulus; perbaikan diterapkan | 2 | E6-01, E5-04 |
 | E6-08 | Audit performa | Lighthouse mobile ≥ 90 (Perf/SEO/A11y/BP) pada 4 halaman; LCP ≤ 2,5 s; gambar WebP/AVIF + `srcset` | 2 | E6-01 |
 
-> Input konten (12 desain, 4 proyek, 8 artikel, teks halaman) berjalan **paralel** oleh tim internal sepanjang Sprint 4–6 — bukan task developer. Lihat [08 §3](./08-estimasi-biaya.md#3-rincian-effort).
+> Input konten (12 unit, 4 proyek, 8 artikel, teks halaman) berjalan **paralel** oleh tim internal sepanjang Sprint 4–6 — bukan task developer. Lihat [08 §3](./08-estimasi-biaya.md#3-rincian-effort).
 
 ### Sprint 7 — Pengerasan & rilis (20 pd)
 
@@ -155,17 +155,17 @@
 |--------|--------|:-------------:|:---------:|-------|------|
 | 0 | 1 minggu | 10 pd | 10 pd | Fondasi | `bun run dev` + login admin |
 | 1 | 2 minggu | 20 pd | 20 pd | Katalog | Jelajah katalog & detail |
-| 2 | 2 minggu | 20 pd | 20 pd | Lead | Kirim 3 jenis lead |
+| 2 | 2 minggu | 20 pd | 19 pd | Lead | Kirim lead unit & lahan |
 | 3 | 2 minggu | 20 pd | 20 pd | CRM | Kelola lead end-to-end |
-| 4 | 2 minggu | 20 pd | 20 pd | CMS & proyek | Tambah desain, proyek, artikel |
+| 4 | 2 minggu | 20 pd | 20 pd | CMS & proyek | Tambah unit, proyek, artikel |
 | 5 | 2 minggu | 20 pd | 20 pd | Akun publik | Daftar → verifikasi → pantau status |
 | 6 | 2 minggu | 20 pd | 17 pd | Konten & kualitas | Situs lengkap + skor audit |
 | 7 | 2 minggu | 20 pd | 20 pd | Rilis | Produksi |
-| **Total** | **15 minggu** | **150 pd** | **147 pd** | | |
+| **Total** | **15 minggu** | **150 pd** | **146 pd** | | |
 
-Beban developer 147/150 pd ≈ **98% kapasitas**. Sangat ketat: satu hambatan 3 hari akan menggeser rilis. Jika ingin buffer 15%, tambahkan 2–3 minggu (total ±17–18 minggu) atau kurangi lingkup (mis. tunda portofolio proyek ke fase 2).
+Beban developer 146/150 pd ≈ **97% kapasitas**. Sangat ketat: satu hambatan 3 hari akan menggeser rilis. Jika ingin buffer 15%, tambahkan 2–3 minggu (total ±17–18 minggu) atau kurangi lingkup (mis. tunda portofolio proyek ke fase 2).
 
-Effort non-developer (tidak masuk 147 pd): desain UI 17 pd, QA 15 pd, konten 8 pd. Rincian: [08 §3](./08-estimasi-biaya.md#3-rincian-effort).
+Effort non-developer (tidak masuk 146 pd): desain UI 17 pd, QA 15 pd, konten 8 pd. Rincian: [08 §3](./08-estimasi-biaya.md#3-rincian-effort).
 
 ## 5. Jalur kritis
 
@@ -214,11 +214,11 @@ Dicatat agar tidak hilang; **tidak** masuk estimasi MVP.
 
 | ID | Item | Nilai |
 |----|------|-------|
-| F2-01 | Pembayaran online + order desain | Monetisasi langsung |
-| F2-02 | Unduhan file desain otomatis | Skalabilitas penjualan |
+| F2-01 | Pembayaran online / booking unit | Monetisasi langsung |
+| F2-02 | Pengajuan KPR terintegrasi | Mengurangi gesekan pembelian |
 | F2-03 | Favorit, notifikasi email/WA, ubah email sendiri | Retensi pengguna |
 | F2-04 | Penghapusan akun otomatis/self-service (tanpa campur tangan admin) | Kepatuhan & kenyamanan |
-| F2-05 | Dashboard investor (proyek, laporan, distribusi) | Kepercayaan investor |
+| F2-05 | Portal investor berbasis undangan (proyek, laporan, distribusi) | Kepercayaan investor |
 | F2-06 | WhatsApp Business API (notifikasi & balasan otomatis) | Kecepatan respons |
 | F2-07 | Pengingat follow-up & routing lead per tim | Disiplin sales |
 | F2-08 | Kategori & tag dinamis dari admin | Skalabilitas katalog |

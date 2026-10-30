@@ -6,8 +6,8 @@
 
 ## 1. Prinsip pemodelan
 
-1. **Lead adalah pusat data.** Ketiga aliran bisnis bermuara ke satu tabel `Lead`, dengan tabel detail terpisah per tipe (`LandSubmission`, `InvestmentInterest`). Ini membuat antrean sales tunggal dan pelaporan lintas aliran.
-2. **Soft delete untuk konten.** Desain dan artikel yang sudah tayang tidak dihapus fisik; gunakan `status = ARCHIVED` + `deletedAt`.
+1. **Lead adalah pusat data.** Dua aliran yang menghasilkan lead (pembelian unit dan penawaran lahan) bermuara ke satu tabel `Lead`, dengan tabel detail terpisah untuk `LandSubmission`. Ini membuat antrean sales tunggal dan pelaporan lintas aliran. Halaman investasi tidak menghasilkan lead.
+2. **Soft delete untuk konten.** Unit rumah dan artikel yang sudah tayang tidak dihapus fisik; gunakan `publishStatus = ARCHIVED` + `deletedAt`.
 3. **Data pribadi seminimal mungkin.** Hanya field yang benar-benar dipakai sales. Tidak ada NIK, nomor kartu, atau dokumen identitas pada MVP.
 4. **Semua waktu dalam UTC**, ditampilkan dalam `Asia/Jakarta`.
 5. **Uang dalam rupiah utuh** (`BigInt`), tanpa desimal. Serialisasi API: string (lihat [05 §2.4](./05-spesifikasi-api.md#24-tipe-data-khusus)).
@@ -16,7 +16,7 @@
 
 | Kebutuhan | Tipe ID | Contoh model |
 |-----------|---------|--------------|
-| Urut, internal, tidak diekspos | `Int @id @default(autoincrement())` | `PropertyDesign`, `Project`, `Article`, `LeadActivity`, `AuditLog`, `FunnelEvent` |
+| Urut, internal, tidak diekspos | `Int @id @default(autoincrement())` | `Unit`, `Project`, `Article`, `LeadActivity`, `AuditLog`, `FunnelEvent` |
 | Unik, dikembalikan ke pengguna | `String @id @default(nanoid())` | `AccountDeletionRequest` |
 | Urut waktu + acak (tidak mudah ditebak) | `String @id @default(uuid(7)) @db.Uuid` | `Lead` |
 | Dikelola Better Auth | `String @id` tanpa default; `generateId` → `nanoid()` | `User`, `Session`, `Account`, `Verification` |
@@ -36,13 +36,11 @@ erDiagram
     USER ||--o{ ACCOUNT_DELETION_REQUEST : "mengajukan"
     USER ||--o{ ACCOUNT_DELETION_REQUEST : "memproses"
 
-    PROPERTY_DESIGN ||--o{ DESIGN_MEDIA : "memiliki"
-    PROPERTY_DESIGN ||--o{ DESIGN_TAG_ON_DESIGN : "diberi tag"
-    DESIGN_TAG ||--o{ DESIGN_TAG_ON_DESIGN : "dipakai"
-    PROPERTY_DESIGN ||--o{ LEAD : "sumber minat"
+    PROJECT ||--o{ UNIT : "menaungi"
+    UNIT ||--o{ UNIT_MEDIA : "memiliki"
+    UNIT ||--o{ LEAD : "sumber minat"
 
     LEAD ||--o| LAND_SUBMISSION : "detail lahan"
-    LEAD ||--o| INVESTMENT_INTEREST : "detail investasi"
     LEAD ||--o{ LEAD_ACTIVITY : "riwayat"
     LEAD ||--o{ LEAD_ATTACHMENT : "lampiran"
 
@@ -59,16 +57,16 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 |-------|------|:----:|---------|------------|
 | `id` | uuid | ✗ | uuid v7 | PK |
 | `reference` | text | ✗ | — | Nomor manusiawi, mis. `AZT-LD-2610-A7K2Q`. Unik |
-| `type` | enum | ✗ | — | `BUY_DESIGN` / `LAND_OFFER` / `INVEST` / `GENERAL` |
+| `type` | enum | ✗ | — | `BUY_UNIT` / `LAND_OFFER` / `GENERAL` |
 | `status` | enum | ✗ | `NEW` | Lihat [§3.6](#36-pipeline-status) |
 | `priority` | enum | ✗ | `NORMAL` | `LOW`/`NORMAL`/`HIGH`/`URGENT` |
 | `name` | text | ✗ | — | 2–80 karakter |
 | `phone` | text | ✗ | — | Dinormalisasi `+62…` |
 | `phoneNormalized` | text | ✗ | — | Digit saja (`62812…`), dipakai untuk deduplikasi |
-| `email` | text | ✓ | — | Wajib untuk `INVEST` |
+| `email` | text | ✓ | — | Opsional; dipakai untuk menautkan pengajuan ke akun |
 | `city` | text | ✓ | — | Kota pemohon (bukan selalu lokasi lahan) |
 | `message` | text | ✓ | — | Maks 1000 karakter |
-| `designId` | int | ✓ | — | Terisi untuk `BUY_DESIGN` |
+| `unitId` | int | ✓ | — | Terisi untuk `BUY_UNIT` |
 | `source` | enum | ✗ | `WEBSITE` | Kanal asal |
 | `landingPath` | text | ✓ | — | Path halaman saat submit |
 | `referrerUrl` | text | ✓ | — | Referrer (di-truncate 500 char) |
@@ -89,7 +87,7 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 | `customerNoteUpdatedAt` | timestamptz | ✓ | — | Kapan catatan terakhir diperbarui |
 | `createdAt` / `updatedAt` | timestamptz | ✗ | now | — |
 
-**Index:** `(status, createdAt)`, `(type, status)`, `(assignedToId, status)`, `(phoneNormalized)`, `(createdAt)`, `(designId)`.
+**Index:** `(status, createdAt)`, `(type, status)`, `(assignedToId, status)`, `(phoneNormalized)`, `(createdAt)`, `(unitId)`.
 
 ### 3.2 `LandSubmission` (1:1 dengan Lead)
 
@@ -107,51 +105,61 @@ Relasi `Lead ↔ User` ada dua (pemilik akun dan penanggung jawab), karenanya me
 | `currentUse` | text | ✓ | Kondisi saat ini (kosong, bangunan, sawah) |
 | `roadAccess` | text | ✓ | Lebar jalan/akses |
 | `estimatedValue` | bigint | ✓ | Perkiraan harga lahan |
-| `expectedScheme` | enum | ✗ | `BAGI_HASIL`/`SEWA`/`JUAL`/`BELUM_TAHU` |
-| `startTimeline` | enum | ✓ | `IMMEDIATE`/`M3_6`/`M6_12`/`OVER_12`/`UNKNOWN` |
+| `offerIntent` | enum | ✗ | Maksud penawaran: `SALE` (dijual ke Azetta) / `PARTNERSHIP` (dikerjasamakan) / `UNKNOWN` |
+| `startTimeline` | enum | ✓ | `IMMEDIATE`/`M3_6`/`M6_12`/`OVER_12`/`UNKNOWN` — kesiapan pemilik lahan |
 | `notes` | text | ✓ | Maks 1000 |
 
-### 3.3 `InvestmentInterest` (1:1 dengan Lead)
+### 3.3 `Unit`
+
+Unit rumah yang dijual. Selalu terikat pada satu `Project` (lihat [§3.6](#36-project)). **Desain bukan entitas produk**: render dan denah disimpan sebagai media unit.
 
 | Kolom | Tipe | Null | Keterangan |
 |-------|------|:----:|------------|
 | `id` | int | ✗ | PK (autoincrement) |
-| `leadId` | uuid | ✗ | Unik |
-| `budgetRange` | enum | ✗ | `UNDER_500M`/`M500_1B`/`B1_5`/`B5_20`/`ABOVE_20B` |
-| `preferredLocations` | text[] | ✗ | Maks 5 kota |
-| `horizonMonths` | int | ✓ | 6–60 |
-| `riskProfile` | enum | ✗ | `CONSERVATIVE`/`MODERATE`/`AGGRESSIVE`/`UNKNOWN` |
-| `instrument` | enum | ✓ | `EQUITY`/`PROFIT_SHARE`/`FIXED_RETURN`/`OPEN` |
-| `notes` | text | ✓ | Maks 1000 |
-
-### 3.4 `PropertyDesign`
-
-| Kolom | Tipe | Null | Keterangan |
-|-------|------|:----:|------------|
-| `id` | int | ✗ | PK (autoincrement) |
-| `slug` | text | ✗ | Unik, `kebab-case`, 3–80 |
-| `title` | text | ✗ | 5–120 |
+| `projectId` | int | ✗ | FK ke `Project`; unit tidak dapat dipublikasikan bila proyeknya belum publish |
+| `slug` | text | ✗ | Unik, `kebab-case`, 3–100; dipakai di `/rumah/[slug]` |
+| `unitCode` | text | ✗ | Kode unit, mis. `A1`, `B12`; unik per proyek |
+| `typeName` | text | ✗ | Nama tipe, mis. `Tipe 45`, `Tipe 60`; dasar tampilan harga "mulai dari" |
+| `title` | text | ✗ | 5–120, mis. `Azetta Residence Tipe 45` |
 | `subtitle` | text | ✓ | Maks 160 |
 | `description` | text | ✗ | HTML tersanitasi (Tiptap), maks 10.000 karakter |
-| `category` | enum | ✗ | `RESIDENTIAL`/`COMMERCIAL`/`RENOVATION`/`INTERIOR` |
-| `style` | text | ✗ | Mis. `Minimalis`, `Modern Tropis`, `Skandinavia` |
-| `floors` | int | ✗ | 1–4 |
+| `floors` | int | ✗ | 1–3 |
 | `bedrooms` | int | ✗ | 0–10 |
 | `bathrooms` | int | ✗ | 0–10 |
 | `carports` | int | ✗ | 0–5 |
-| `buildingAreaM2` | int | ✗ | 20–5.000 |
-| `landAreaMinM2` | int | ✗ | 20–100.000 |
-| `estimatedBuildCostMin` | bigint | ✓ | Rupiah |
-| `estimatedBuildCostMax` | bigint | ✓ | Rupiah |
-| `priceFrom` | bigint | ✓ | Harga paket desain mulai dari |
-| `status` | enum | ✗ | `DRAFT`/`PUBLISHED`/`ARCHIVED` |
+| `buildingAreaM2` | int | ✗ | 20–2.000 |
+| `landAreaM2` | int | ✗ | 20–10.000 |
+| `priceFrom` | bigint | ✓ | Harga indikatif "mulai dari" untuk tipe ini; kosong → "Hubungi kami" |
+| `publishStatus` | enum | ✗ | `DRAFT`/`PUBLISHED`/`ARCHIVED` |
+| `salesStatus` | enum | ✗ | `AVAILABLE`/`INDENT`/`SOLD` — terpisah dari status publish |
 | `featured` | bool | ✗ | Tampil di beranda |
 | `viewCount` | int | ✗ | 0 |
 | `publishedAt` | timestamptz | ✓ | Diisi saat publish |
 | `seoTitle` / `seoDescription` | text | ✓ | Fallback ke `title`/`subtitle` |
 | `deletedAt` | timestamptz | ✓ | Soft delete |
 
-### 3.5 `Article`, `Faq`, `Testimonial`, `SiteSetting`
+**Aturan:**
+
+- `salesStatus` **tidak** mengubah `publishStatus`. Unit `SOLD` tetap tayang (badge "Terjual") agar tautan lama tidak mati dan unit sejenis bisa ditawarkan.
+- Harga disimpan per unit karena tipe yang sama dapat memiliki harga berbeda antar-tahap pembangunan; tampilan publik tetap memakai label "mulai dari" dan mengambil nilai terendah di antara unit `AVAILABLE` pada proyek yang sama.
+- Kombinasi `(projectId, unitCode)` unik.
+
+### 3.3a `UnitMedia`
+
+| Kolom | Tipe | Null | Keterangan |
+|-------|------|:----:|------------|
+| `id` | int | ✗ | PK (autoincrement) |
+| `unitId` | int | ✗ | FK ke `Unit`, cascade delete |
+| `kind` | enum | ✗ | `RENDER`/`FLOOR_PLAN`/`PHOTO`/`SITE_PLAN`/`VIDEO` |
+| `storageKey` / `url` | text | ✗ | Objek R2/S3 + URL CDN |
+| `alt` | text | ✓ | Wajib untuk gambar yang bermakna (aksesibilitas) |
+| `width` / `height` | int | ✓ | Piksel |
+| `sortOrder` | int | ✗ | 0 |
+| `isCover` | bool | ✗ | Satu cover per unit (ditegakkan di service) |
+
+> Render = visual akhir yang ditampilkan ke pembeli dan akan disepakati sebelum pembangunan; secara data ia hanya media unit, bukan produk terpisah.
+
+### 3.4 `Article`, `Faq`, `Testimonial`, `SiteSetting`
 
 | Entitas | Field kunci |
 |---------|-------------|
@@ -171,13 +179,13 @@ Kunci `SiteSetting` yang dipakai MVP:
 | `offer.invest` | `{ headline, highlights[], riskNotes[], faqs[] }` |
 | `about` | `{ story, vision, values[], team[], legalEntityNote }` |
 | `legal` | `{ privacyUpdatedAt, termsUpdatedAt, documents: [{ label, url, uploadedAt }] }` |
-| `wa.templates` | `{ design, land, invest, followUp }` |
+| `wa.templates` | `{ unit, land, followUp }` |
 | `analytics` | `{ ga4Id, umamiId, metaPixelId }` |
 | `seo.default` | `{ titleTemplate, defaultDescription, ogImageUrl }` |
 
 Key `brand` dan `legal` menyimpan URL hasil unggah melalui presign (gambar/PDF) — halaman Pengaturan menyediakan unggah, ganti, dan hapus. Ini memungkinkan dokumen legal ditambahkan kapan pun tanpa deploy (Q10).
 
-### 3.6 Pipeline status
+### 3.5 Pipeline status
 
 ```text
 NEW ──► CONTACTED ──► QUALIFIED ──► PROPOSAL ──► NEGOTIATION ──► WON
@@ -214,9 +222,9 @@ Transisi yang diizinkan (divalidasi server):
 | `LOST` | Ditutup | netral |
 | `SPAM` | *tidak ditampilkan* | — |
 
-### 3.7 Project
+### 3.6 Project
 
-Portofolio proyek (Q4). Tidak memiliki relasi ke `Lead` pada MVP — atribusi tetap lewat `landingPath`.
+Proyek perumahan yang dikembangkan Azetta. Menjadi induk `Unit` dan tampil sebagai portofolio di `/proyek` (Q4). Tidak memiliki relasi langsung ke `Lead` pada MVP — atribusi tetap lewat `landingPath`.
 
 | Kolom | Tipe | Null | Keterangan |
 |-------|------|:----:|------------|
@@ -230,7 +238,7 @@ Portofolio proyek (Q4). Tidak memiliki relasi ke `Lead` pada MVP — atribusi te
 | `status` | enum | ✗ | `PLANNED` / `ONGOING` / `COMPLETED` |
 | `yearStarted` / `yearCompleted` | int | ✓ | 2000–2100 |
 | `landAreaM2` | int | ✓ | Opsional |
-| `unitCount` | int | ✓ | Opsional |
+| `unitCount` | int | ✓ | Opsional; angka pemasaran. Jumlah unit sebenarnya dihitung dari relasi `Unit` |
 | `coverImageUrl` | text | ✓ | Wajib sebelum publish |
 | `galleryUrls` | text[] | ✗ | 0–10 URL, urutan dipertahankan |
 | `isPublished` | bool | ✗ | Default `false` |
@@ -241,7 +249,7 @@ Portofolio proyek (Q4). Tidak memiliki relasi ke `Lead` pada MVP — atribusi te
 
 > Galeri memakai array URL (bukan tabel media terpisah) karena portofolio jarang berubah dan tidak memerlukan `alt` per gambar di MVP. Bila kebutuhan ini tumbuh, migrasi ke tabel media dapat dilakukan tanpa mengubah URL publik.
 
-### 3.8 `AccountDeletionRequest`
+### 3.7 `AccountDeletionRequest`
 
 Permohonan hapus akun (Q12). Pemohon hanya **mengajukan**; admin memutuskan dan menghapus/menganonimkan data di luar sistem pada MVP.
 
@@ -399,114 +407,93 @@ model Verification {
 }
 
 // ============================================================
-// Katalog desain
+// Katalog unit rumah
 // ============================================================
 
-enum DesignCategory {
-  RESIDENTIAL
-  COMMERCIAL
-  RENOVATION
-  INTERIOR
-}
-
-enum DesignStatus {
+enum UnitPublishStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
 }
 
-enum MediaKind {
-  IMAGE
+enum UnitSalesStatus {
+  AVAILABLE
+  INDENT
+  SOLD
+}
+
+enum UnitMediaKind {
+  RENDER
   FLOOR_PLAN
-  RENDER_3D
+  PHOTO
+  SITE_PLAN
   VIDEO
 }
 
-model PropertyDesign {
+model Unit {
   id Int @id @default(autoincrement())
   slug        String  @unique
+  unitCode    String
+  typeName    String
   title       String
   subtitle    String?
   /// HTML tersanitasi (Tiptap)
   description String  @db.Text
 
-  category       DesignCategory
-  style          String
-  floors         Int    @default(1)
-  bedrooms       Int    @default(0)
-  bathrooms      Int    @default(0)
-  carports       Int    @default(0)
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
+
+  floors         Int @default(1)
+  bedrooms       Int @default(0)
+  bathrooms      Int @default(0)
+  carports       Int @default(0)
   buildingAreaM2 Int
-  landAreaMinM2  Int
+  landAreaM2     Int
 
-  estimatedBuildCostMin BigInt?
-  estimatedBuildCostMax BigInt?
-  priceFrom             BigInt?
+  /// Harga indikatif "mulai dari" untuk tipe ini
+  priceFrom BigInt?
 
-  status      DesignStatus @default(DRAFT)
-  featured    Boolean      @default(false)
-  viewCount   Int          @default(0)
-  publishedAt DateTime?
-  seoTitle       String?
+  publishStatus UnitPublishStatus @default(DRAFT)
+  salesStatus   UnitSalesStatus   @default(AVAILABLE)
+  featured      Boolean           @default(false)
+  viewCount     Int               @default(0)
+  publishedAt   DateTime?
+  seoTitle      String?
   seoDescription String?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  media PropertyDesignMedia[]
-  /// @prismabox.hide
-  tags  DesignTagOnDesign[]
+  media UnitMedia[]
   leads Lead[]
 
-  @@index([status, publishedAt])
-  @@index([category, style])
-  @@index([featured, status])
+  @@unique([projectId, unitCode])
+  @@index([publishStatus, publishedAt])
+  @@index([projectId, publishStatus])
+  @@index([salesStatus, publishStatus])
+  @@index([typeName])
   @@index([deletedAt])
-  @@map("property_design")
+  @@map("unit")
 }
 
-model PropertyDesignMedia {
+model UnitMedia {
   id Int @id @default(autoincrement())
-  designId   Int
-  kind       MediaKind @default(IMAGE)
+  unitId     Int
+  kind       UnitMediaKind @default(RENDER)
   storageKey String
   url        String
   alt        String?
   width      Int?
   height     Int?
-  sortOrder  Int       @default(0)
-  isCover    Boolean   @default(false)
-  createdAt  DateTime  @default(now())
+  sortOrder  Int           @default(0)
+  isCover    Boolean       @default(false)
+  createdAt  DateTime      @default(now())
 
-  design PropertyDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
+  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
 
-  @@index([designId, sortOrder])
-  @@map("property_design_media")
-}
-
-model DesignTag {
-  id Int @id @default(autoincrement())
-  slug String @unique
-  name String @unique
-
-  /// @prismabox.hide
-  designs DesignTagOnDesign[]
-
-  @@map("design_tag")
-}
-
-/// @prismabox.hide
-model DesignTagOnDesign {
-  designId Int
-  tagId    Int
-
-  design PropertyDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
-  tag    DesignTag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([designId, tagId])
-  @@index([tagId])
-  @@map("design_tag_on_design")
+  @@index([unitId, sortOrder])
+  @@map("unit_media")
 }
 
 // ============================================================
@@ -514,9 +501,8 @@ model DesignTagOnDesign {
 // ============================================================
 
 enum LeadType {
-  BUY_DESIGN
+  BUY_UNIT
   LAND_OFFER
-  INVEST
   GENERAL
 }
 
@@ -575,11 +561,10 @@ enum OwnershipStatus {
   OTHER
 }
 
-enum ExpectedScheme {
-  BAGI_HASIL
-  SEWA
-  JUAL
-  BELUM_TAHU
+enum OfferIntent {
+  SALE
+  PARTNERSHIP
+  UNKNOWN
 }
 
 enum StartTimeline {
@@ -588,28 +573,6 @@ enum StartTimeline {
   M6_12
   OVER_12
   UNKNOWN
-}
-
-enum BudgetRange {
-  UNDER_500M
-  M500_1B
-  B1_5
-  B5_20
-  ABOVE_20B
-}
-
-enum RiskProfile {
-  CONSERVATIVE
-  MODERATE
-  AGGRESSIVE
-  UNKNOWN
-}
-
-enum InvestmentInstrument {
-  EQUITY
-  PROFIT_SHARE
-  FIXED_RETURN
-  OPEN
 }
 
 model Lead {
@@ -626,8 +589,8 @@ model Lead {
   city            String?
   message         String? @db.Text
 
-  designId Int?
-  design   PropertyDesign? @relation(fields: [designId], references: [id], onDelete: SetNull)
+  unitId Int?
+  unit   Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
 
   source       LeadSource @default(WEBSITE)
   landingPath  String?
@@ -660,9 +623,8 @@ model Lead {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  landSubmission     LandSubmission?
-  investmentInterest InvestmentInterest?
-  activities         LeadActivity[]
+  landSubmission LandSubmission?
+  activities     LeadActivity[]
   attachments        LeadAttachment[]
 
   @@index([status, createdAt])
@@ -670,7 +632,7 @@ model Lead {
   @@index([assignedToId, status])
   @@index([phoneNormalized])
   @@index([createdAt])
-  @@index([designId])
+  @@index([unitId])
   @@index([deletedAt])
   @@map("lead")
 }
@@ -692,7 +654,7 @@ model LandSubmission {
   currentUse        String?
   roadAccess        String?
   estimatedValue    BigInt?
-  expectedScheme    ExpectedScheme
+  offerIntent       OfferIntent
   startTimeline     StartTimeline?
   notes             String? @db.Text
 
@@ -703,24 +665,6 @@ model LandSubmission {
 
   @@index([province, city])
   @@map("land_submission")
-}
-
-model InvestmentInterest {
-  id Int @id @default(autoincrement())
-  leadId    String @unique @db.Uuid
-  budgetRange       BudgetRange
-  preferredLocations String[]
-  horizonMonths     Int?
-  riskProfile       RiskProfile @default(UNKNOWN)
-  instrument        InvestmentInstrument?
-  notes             String? @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
-  @@map("investment_interest")
 }
 
 model LeadActivity {
@@ -797,6 +741,8 @@ model Project {
 
   seoTitle       String?
   seoDescription String?
+
+  units Unit[]
 
   createdById String?
   createdBy   User?   @relation("ProjectAuthor", fields: [createdById], references: [id], onDelete: SetNull)
@@ -922,7 +868,7 @@ model FunnelEvent {
   id Int @id @default(autoincrement())
   name      String
   path      String
-  designId  Int?
+  unitId    Int?
   leadId    String? @db.Uuid
   sessionId String?
   /// [FunnelProps]
@@ -930,7 +876,7 @@ model FunnelEvent {
   createdAt DateTime @default(now())
 
   @@index([name, createdAt])
-  @@index([designId])
+  @@index([unitId])
   @@index([leadId])
   @@map("funnel_event")
 }
@@ -969,7 +915,7 @@ Ketiga generator dijalankan oleh `bun run db:generate` dari `packages/db`:
 | `json` | memperkaya tipe `Json` di client | API |
 | `prismabox` | `packages/db/src/generated/prismabox` | API lewat subpath `@azetta/db/prismabox`; frontend hanya boleh `import type` |
 
-Karena `allowAny = false`, setiap field `Json` wajib diberi anotasi `/// [Tipe]` dan tipe tersebut dideklarasikan pada namespace global `PrismaJson` (lihat `packages/db/src/json-types.ts`). Relasi many-to-many eksplisit `DesignTagOnDesign` disembunyikan dari Prismabox dengan `/// @prismabox.hide` karena Prismabox belum mendukung composite ID pada relasi; Prisma Client tetap memuat model tersebut.
+Karena `allowAny = false`, setiap field `Json` wajib diberi anotasi `/// [Tipe]` dan tipe tersebut dideklarasikan pada namespace global `PrismaJson` (lihat `packages/db/src/json-types.ts`).
 
 
 ### 4.1 Inisialisasi Prisma Client
@@ -998,15 +944,17 @@ Klien dibuat sekali per proses (singleton) dan hanya diimpor **runtime** oleh `a
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE INDEX IF NOT EXISTS property_design_title_trgm
-  ON property_design USING gin (title gin_trgm_ops);
-CREATE INDEX IF NOT EXISTS property_design_style_trgm
-  ON property_design USING gin (style gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS unit_title_trgm
+  ON unit USING gin (title gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS unit_type_name_trgm
+  ON unit USING gin (type_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS project_title_trgm
+  ON project USING gin (title gin_trgm_ops);
 ```
 
 Migration ini dibuat manual (`prisma migrate dev --create-only`) karena bukan bagian dari DSL Prisma.
 
-2. **Filter katalog** dilayani index komposit `(status, published_at)` + `(category, style)`.
+2. **Filter katalog** dilayani index komposit `(publish_status, published_at)`, `(project_id, publish_status)`, dan `(sales_status, publish_status)`; pencarian nama proyek memakai trigram pada `project.title`.
 3. **Daftar lead** memakai `(status, created_at DESC)`; filter assignee memakai `(assigned_to_id, status)`.
 4. **Dedup nomor** memakai `phone_normalized` (B-tree) dalam rentang 24 jam.
 
@@ -1019,11 +967,11 @@ Beberapa aturan tidak dapat dinyatakan di Prisma, jadi ditegakkan di service lay
 | Aturan | Penegakan |
 |--------|-----------|
 | `LAND_OFFER` wajib punya `LandSubmission` | Transaksi DB: buat `Lead` + detail dalam satu `$transaction` |
-| `INVEST` wajib punya `InvestmentInterest` dan `email` | Validasi skema + transaksi |
-| `BUY_DESIGN` wajib `designId` yang `PUBLISHED` | Cek sebelum insert |
+| `BUY_UNIT` wajib `unitId` yang `PUBLISHED` dan proyeknya juga `PUBLISHED` | Cek sebelum insert |
+| Unit `SOLD` tidak dapat menerima lead `BUY_UNIT` baru | Cek sebelum insert; API menolak dengan `422 UNIT_NOT_AVAILABLE` |
 | `status = LOST` wajib `lostReason` | Validasi service |
 | `publishedAt` terisi bila `PUBLISHED` | Hook service `publish()` |
-| Hanya satu cover per desain | Service menormalkan `isCover` |
+| Hanya satu cover per unit | Service menormalkan `isCover` |
 | `slug` unik & `kebab-case` | Validasi + unique index |
 | Nomor telepon valid Indonesia | Normalisasi + regex |
 | Registrasi publik selalu `role = customer` | Nilai peran tidak diterima dari input klien |
@@ -1062,11 +1010,11 @@ Job retensi berjalan harian pukul 03.00 WIB dan mencatat jumlah baris terdampak 
 |------|--------|---------|
 | Pengguna admin | 2 | `super_admin@azetta.id`, `sales@azetta.id` (kata sandi dari env, wajib diganti saat deploy) |
 | Pengguna customer | 2 | Akun uji dengan pengajuan tertaut (khusus non-produksi) |
-| Desain | 12 | 8 residential, 2 commercial, 2 renovation; media placeholder dari `packages/db/seed-assets` |
+| Unit rumah | 12 | Tersebar di 3 proyek publish; status campuran `AVAILABLE`/`INDENT`/`SOLD`; media placeholder dari `packages/db/seed-assets` |
 | Proyek | 4 | 1 `COMPLETED`, 2 `ONGOING`, 1 `PLANNED`; hanya 3 dipublikasikan |
-| Tag | 8 | Minimalis, Modern, Tropis, Skandinavia, Industrial, Klasik, Kecil, Mewah |
+| Tipe unit | 4 | `Tipe 36`, `Tipe 45`, `Tipe 60`, `Tipe 90` (lewat `typeName` pada unit seed) |
 | Artikel | 4 | Draf contoh |
-| FAQ | 10 | Tersebar di kategori umum/lahan/investasi |
+| FAQ | 10 | Tersebar di kategori umum/unit/lahan/investasi |
 | Testimoni | 3 | Fiktif, ditandai `isPublished=false` |
 | SiteSetting | 10 kunci | Nilai default |
 
@@ -1091,8 +1039,8 @@ Seed **idempoten** (`upsert` berdasarkan slug/email) agar aman dijalankan berula
 | `lead` | 1.000–3.000 | Kecil; index cukup |
 | `lead_activity` | 10.000–30.000 | Kecil |
 | `lead_attachment` | 3.000 | Metadata kecil; objek di R2 |
-| `property_design` | 50–200 | Kecil |
-| `property_design_media` | 1.000–4.000 | Kecil |
+| `unit` | 100–600 | Kecil; index status & proyek |
+| `unit_media` | 1.000–6.000 | Kecil |
 | `project` | 10–40 | Kecil; galeri sebagai array URL |
 | `user` (customer) | 300–1.500 | Kecil; index pada `email` |
 | `session` | 1.000–5.000 | Kecil; pembersihan berkala wajib |

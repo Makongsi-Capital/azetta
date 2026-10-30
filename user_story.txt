@@ -3,18 +3,28 @@ azetta adalah developer property
     - ingin disediakan halaman untuk memanggil investor
     - ingin disediakan halaman untuk memanggil pemilik lahan
 
-secara garis besar, azetta menjual gambar desain property. Orang-orang akan mengadakan kerja sama dengan azetta.
-Orang-orang memiliki lahan, azetta mengajukan kerja sama untuk mengolah lahan tersebut.
-Bersamaan itu juga, azetta juga mencari investor untuk memodali pengembangan lahan tersebut.
+secara garis besar, azetta menjual rumah. Azetta mengembangkan proyek properti
+sendiri, lalu menjual unit rumah kepada pembeli.
 
-Yang diharapkan datang ke website azetta adalah 
-    - yang ingin beli property
-    - yang ingin berinvestasi
-    - yang ingin mendaftarkan lahannya
+Azetta menerima lahan potensial untuk dibeli ataupun dikerjasamakan. Orang-orang
+memiliki lahan, azetta mengajukan kerja sama untuk mengolah lahan tersebut
+menjadi proyek perumahan; bangunan yang dihasilkan kemudian dijual kepada pembeli.
 
+Bersamaan itu, azetta juga mencari investor untuk memodali pengembangan lahan
+tersebut. Halaman investor bersifat pemberitahuan (informasi perusahaan dan
+proyek) — tidak ada formulir pendaftaran investor di website.
+
+Desain bukan produk yang dijual. Desain adalah visual akhir yang diinginkan
+pembeli: website menampilkan render unit, dan detail visual tersebut disepakati
+antara Azetta dan pembeli sebelum pembangunan.
+
+Yang diharapkan datang ke website azetta adalah
+    - yang ingin beli rumah
+    - yang ingin bekerjasama / menawarkan lahannya
+    - yang ingin mencari informasi investasi
 
 referensi website seperti https://ruma.id/
-akan menggunakan 
+akan menggunakan
     - elysiajs sebagai backend
     - mengimplementasikan better-auth
     - prisma dengan postgresql sebagai database

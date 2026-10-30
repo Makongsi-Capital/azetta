@@ -1,6 +1,6 @@
 # Dokumen Perencanaan Azetta
 
-**Versi:** 1.5 (revisi identitas visual — Brand Guidelines v1.0 + rona status)
+**Versi:** 1.6 (revisi model bisnis — produk utama adalah unit rumah)
 **Tanggal:** 30 Oktober 2026
 **Status:** Menunggu persetujuan pemilik produk
 
@@ -10,7 +10,7 @@ Dokumen ini adalah rencana lengkap pembangunan **website Azetta** — mulai dari
 
 ## 1. Ringkasan dalam satu paragraf
 
-Azetta adalah developer properti yang menjual **gambar desain properti** dan membuka **kerja sama pengolahan lahan** dengan pemilik lahan, serta **menghimpun investor** untuk memodali pengembangan lahan. Website Azetta berfungsi sebagai **mesin akuisisi lead** (bukan e-commerce): pengunjung melihat katalog desain, portofolio proyek, dan halaman penawaran, lalu mengisi formulir minat; negosiasi dan transaksi dilakukan **di luar aplikasi** oleh tim admin Azetta. Pengunjung dapat **membuat akun** untuk memantau status pengajuannya. Rilis pertama (MVP) mencakup katalog desain, portofolio proyek, tiga alur formulir lead (beli desain, daftar lahan, minat investasi), akun publik untuk pemantauan progres, serta panel admin/CRM untuk mengelola lead, konten, dan pengaturan situs.
+Azetta adalah **developer properti yang menjual unit rumah** dari proyek perumahan yang dikembangkannya sendiri. Selain menjual rumah, Azetta **menerima lahan potensial** dari pemilik lahan — untuk dibeli maupun dikerjasamakan — lalu membangun proyek di atasnya dan menjual unitnya kepada pembeli. Halaman **investasi bersifat pemberitahuan**: informasi perusahaan dan proyek, tanpa formulir pendaftaran investor. **Desain bukan produk**: desain adalah visual akhir yang diinginkan pembeli dan ditampilkan sebagai render unit, untuk disepakati antara Azetta dan pembeli. Website Azetta berfungsi sebagai **mesin akuisisi lead** (bukan e-commerce): pengunjung melihat katalog unit rumah, portofolio proyek, dan halaman kerja sama lahan, lalu mengisi formulir minat; negosiasi dan transaksi dilakukan **di luar aplikasi** oleh tim admin Azetta. Pengunjung dapat **membuat akun** untuk memantau status pengajuannya. Rilis pertama (MVP) mencakup katalog unit rumah, portofolio proyek, halaman informasi investasi, dua alur formulir lead (tanya unit rumah & pengajuan lahan), akun publik untuk pemantauan progres, serta panel admin/CRM untuk mengelola lead, konten, dan pengaturan situs.
 
 ---
 
@@ -20,7 +20,7 @@ Azetta adalah developer properti yang menjual **gambar desain properti** dan mem
 |---|---------|-----|---------------|
 | 00 | [Ringkasan Eksekutif](./00-ringkasan-eksekutif.md) | Masalah, solusi, ruang lingkup, KPI, ringkasan waktu & biaya | Manajemen, stakeholder |
 | 01 | [PRD — Produk & Kebutuhan](./01-prd.md) | Persona, user journey, kebutuhan fungsional & non-fungsional, ruang lingkup in/out | Produk, developer |
-| 02 | [Model Bisnis & Funnel Lead](./02-model-bisnis-funnel.md) | Tiga aliran pendapatan, definisi funnel, SLA follow-up, lead scoring | Sales, manajemen |
+| 02 | [Model Bisnis & Funnel Lead](./02-model-bisnis-funnel.md) | Aliran pendapatan, peran halaman investor, definisi funnel, SLA follow-up, lead scoring | Sales, manajemen |
 | 03 | [Arsitektur Teknis](./03-arsitektur-teknis.md) | Monorepo, stack, alur auth, rendering, caching, deployment topology | Developer, DevOps |
 | 04 | [Model Data & Skema Prisma](./04-data-model.md) | ERD, kamus data, skema Prisma lengkap, index, seed, retensi | Backend, DBA |
 | 05 | [Spesifikasi API](./05-spesifikasi-api.md) | Konvensi, endpoint publik & admin, contoh request/response, rate limit | Backend, frontend |
@@ -48,12 +48,13 @@ Semua pihak: Brand Guidelines (`AZETTA_Brand_Guidelines.pdf`) sebelum menyetujui
 
 | Topik | Keputusan |
 |-------|-----------|
-| Model bisnis yang dicakup | Jual gambar desain, kerja sama lahan, penghimpunan investor |
+| Model bisnis yang dicakup | Jual **unit rumah**; terima lahan untuk **dibeli atau dikerjasamakan** |
+| Peran halaman investor | **Pemberitahuan saja** — informasi perusahaan & proyek, CTA WhatsApp/email; tanpa formulir dan tanpa pencatatan lead |
 | Cakupan MVP | **Lead-gen saja** — belum ada transaksi/pembayaran online |
 | Titik konversi | Formulir lead → follow-up manual via WhatsApp/telepon/email |
 | Akun publik | **Ada** — untuk memantau progres pengajuan (verifikasi email wajib); hapus akun lewat **permohonan ke admin**, bukan self-service |
 | Portofolio proyek | **Ada** — halaman `/proyek` dari CMS |
-| Harga & biaya | Harga paket "mulai dari" ditampilkan; **estimasi biaya bangun tidak** ditampilkan publik |
+| Harga & biaya | Harga unit tampil sebagai **"mulai dari" per tipe**; harga final dinegosiasikan di luar aplikasi |
 | Notifikasi | Email saja (tanpa WhatsApp gateway) |
 | Peran internal | `admin` + `super_admin` — semua lead ditangani admin, tanpa routing per tipe |
 | Domain | `azetta.id` (+ `admin.`, `api.`, `media.`) |
@@ -75,7 +76,7 @@ Rincian alasan tiap keputusan ada di [12 — Log Keputusan](./12-risiko-asumsi-k
 ## 4. Konvensi penulisan
 
 - **Mata uang:** Rupiah penuh tanpa desimal, ditulis `Rp 1.500.000` (spasi setelah `Rp`, titik ribuan). Desimal memakai koma: `11,3%`.
-- **Istilah lead:** "lead" = orang yang mengisi formulir minat; "prospect" = lead yang sudah dikualifikasi; "deal" = kerja sama yang disepakati (dicatat di luar sistem pada MVP).
+- **Istilah lead:** "lead" = orang yang mengisi formulir minat; "prospect" = lead yang sudah dikualifikasi; "deal" = unit terjual atau kerja sama lahan yang disepakati (dicatat di luar sistem pada MVP).
 - **Penamaan teknis:** `camelCase` untuk JSON/TypeScript, `PascalCase` untuk model Prisma, `snake_case` untuk kolom database hasil `@map` bila diperlukan.
 - **Status dokumen:** draft → review → disetujui. Setiap perubahan besar dicatat di bagian *Change Log* pada [12](./12-risiko-asumsi-keputusan.md#5-change-log).
 
@@ -85,11 +86,13 @@ Rincian alasan tiap keputusan ada di [12 — Log Keputusan](./12-risiko-asumsi-k
 
 | Istilah | Arti |
 |---------|------|
-| **Desain** | Paket gambar desain properti yang dijual Azetta (render, denah, spesifikasi). |
-| **Lahan** | Bidang tanah milik pihak eksternal yang ditawarkan untuk dikerjasamakan. |
-| **Investor** | Pihak yang menanamkan modal pada pengembangan lahan. |
+| **Unit** | Satu rumah tapak yang dijual Azetta, dengan status ketersediaan sendiri (`TERSEDIA`/`INDENT`/`TERJUAL`). |
+| **Proyek** | Perumahan yang dikembangkan Azetta; menaungi satu atau lebih unit. |
+| **Desain** | Visual akhir yang diinginkan pembeli — ditampilkan sebagai **render** pada halaman unit, disepakati Azetta dan pembeli sebelum pembangunan. Bukan produk yang dijual. |
+| **Lahan** | Bidang tanah milik pihak eksternal yang ditawarkan untuk **dibeli** Azetta atau **dikerjasamakan**. |
+| **Investor** | Pihak yang menanamkan modal pada pengembangan lahan; dilayani lewat halaman informasi, bukan alur lead website. |
 | **Lead** | Data kontak + minat yang dikirim melalui formulir website. |
-| **Lead type** | Klasifikasi lead: `BUY_DESIGN`, `LAND_OFFER`, `INVEST`, `GENERAL`. |
+| **Lead type** | Klasifikasi lead: `BUY_UNIT`, `LAND_OFFER`, `GENERAL`. |
 | **Funnel** | Rangkaian tahap dari kunjungan → lead → kualifikasi → deal. |
 | **CRM** | Panel admin untuk mengelola lead dan aktivitas follow-up. |
 | **Turnstile** | CAPTCHA dari Cloudflare untuk menahan spam bot. |

@@ -8,13 +8,13 @@
 
 | Pos | Nilai |
 |-----|-------|
-| Effort total | **187 person-day** (147 developer, 17 desain, 15 QA, 8 konten) |
+| Effort total | **186 person-day** (146 developer, 17 desain, 15 QA, 8 konten) |
 | Durasi kalender | **±15 minggu** dengan 2 developer full-time |
-| Biaya tim (outsourced) | **Rp 142–214 juta** (dihitung per peran, §3.3) |
-| Biaya tim + kontingensi 15% | **Rp 163–246 juta** |
+| Biaya tim (outsourced) | **Rp 141–213 juta** (dihitung per peran, §3.3) |
+| Biaya tim + kontingensi 15% | **Rp 162–245 juta** |
 | Infrastruktur bulanan | **Rp 450 ribu–2,3 juta** (baseline ±Rp 1,5 juta) |
 | Biaya sekali bayar | **Rp 4,75–15,5 juta** (domain, aset visual, review legal, dsb.) |
-| TCO 12 bulan (build + infra + sekali bayar) | **±Rp 152–258 juta** (tanpa kontingensi) |
+| TCO 12 bulan (build + infra + sekali bayar) | **±Rp 151–256 juta** (tanpa kontingensi) |
 
 > Semua angka adalah **rentang indikatif**, bukan penawaran. Angka berubah bila asumsi di §2 berubah.
 
@@ -24,7 +24,7 @@
 |---|--------|----------------------|
 | 1 | 2 developer full-time, familiar dengan SvelteKit & TypeScript | +25–40% effort |
 | 2 | Desain UI (high-fidelity) tersedia untuk 9 halaman utama (termasuk 3 halaman akun & proyek) | +8–12 pd desain + iterasi frontend |
-| 3 | Konten (12 desain, 4 proyek, 8 artikel, foto/render) disiapkan tim internal Azetta tanpa PIC khusus (Q9) | +3–5 minggu keterlambatan rilis |
+| 3 | Konten (12 unit, 4 proyek, 8 artikel, foto/render) disiapkan tim internal Azetta tanpa PIC khusus (Q9) | +3–5 minggu keterlambatan rilis |
 | 4 | Tidak ada integrasi pihak ketiga selain email & Turnstile | +2–4 pd per integrasi |
 | 5 | Tidak ada pembayaran, multi-bahasa, atau dashboard investor | +15–30 pd per fitur besar |
 | 6 | Satu lingkungan produksi, tanpa HA/multi-region | +10–20 pd |
@@ -51,13 +51,13 @@ Rate acuan pasar (2026, Indonesia, proyek lepas):
 
 | Peran | Lingkup | pd |
 |-------|---------|:--:|
-| Developer (2 orang) | Sprint 0–7 sesuai [07 §3](./07-backlog-sprint.md#3-rincian-task) | **147** |
+| Developer (2 orang) | Sprint 0–7 sesuai [07 §3](./07-backlog-sprint.md#3-rincian-task) | **146** |
 | UI/UX designer | Wireframe → high-fidelity 9 halaman (beranda, katalog, detail, lahan, investasi, proyek, akun, auth, admin lead) | 13 |
 | UI/UX designer | Aset visual, ikonografi, QA visual antar breakpoint | 4 |
 | QA engineer | Test case & matriks uji | 3 |
 | QA engineer | Regresi manual 2 putaran + UAT support | 12 |
 | Content writer | Copywriting halaman + 8 artikel (riset & tulis) | 8 |
-| **Total** | | **187** |
+| **Total** | | **186** |
 
 > Automated E2E (Playwright) dihitung sebagai task developer (`E5-06`, `E7-01`), bukan QA, agar tidak terhitung dua kali.
 
@@ -67,13 +67,13 @@ Rate acuan pasar (2026, Indonesia, proyek lepas):
 |------|--------|:------:|:----------:|:-----:|
 | Fondasi | 0 | 10 | 0 | 10 |
 | Katalog | 1 | 20 | 4 (desain 3 halaman) | 24 |
-| Lead | 2 | 20 | 4 (desain form 1, QA 1) | 24 |
+| Lead | 2 | 19 | 4 (desain form 1, QA 1) | 23 |
 | CRM | 3 | 20 | 4 (desain admin 3, QA 1) | 24 |
 | CMS & proyek | 4 | 20 | 2 (desain proyek/CMS) | 22 |
 | Akun publik | 5 | 20 | 4 (desain akun 3, QA 1) | 24 |
 | Konten & kualitas | 6 | 17 | 19 (desain 2, QA 9, konten 8) | 36 |
 | Rilis | 7 | 20 | 3 (QA/UAT) | 23 |
-| **Total** | | **147** | **40** | **187** |
+| **Total** | | **146** | **40** | **186** |
 
 > Total non-developer 40 pd = desain 17 + QA 15 + konten 8. Seluruh angka mengacu pada [§3.1](#31-per-peran).
 
@@ -81,24 +81,26 @@ Rate acuan pasar (2026, Indonesia, proyek lepas):
 
 | Peran | pd | Rate (Rp/pd) | Subtotal |
 |-------|:--:|--------------|----------|
-| Developer | 147 | 800 rb – 1,2 jt | 117,6 – 176,4 jt |
+| Developer | 146 | 800 rb – 1,2 jt | 116,8 – 175,2 jt |
 | Designer | 17 | 700 rb – 1,1 jt | 11,9 – 18,7 jt |
 | QA | 15 | 600 – 900 rb | 9,0 – 13,5 jt |
 | Content | 8 | 400 – 700 rb | 3,2 – 5,6 jt |
-| **Total** | **187** | — | **141,7 – 214,2 jt** |
+| **Total** | **186** | — | **140,9 – 213,0 jt** |
 
-Dengan kontingensi 15%: **Rp 163,0 – 246,3 juta** (dibulatkan Rp 163–246 juta).
+Dengan kontingensi 15%: **Rp 162,0 – 244,9 juta** (dibulatkan Rp 162–245 juta).
 
 Kenaikan dari v1.0 (155 → 185 pd) berasal dari: akun publik +14 pd pengembangan, portofolio proyek +5 pd, unggah aset legal/brand +2 pd, serta penyesuaian desain & QA +9 pd.
 
 Kenaikan v1.2 (185 → 187 pd): permohonan hapus akun (Q12) +2 pd developer di Sprint 5.
+
+Penyesuaian v1.6 (187 → 186 pd): model bisnis berubah menjadi penjualan unit rumah; formulir investor dihapus (−1 pd developer), katalog unit ditambah status ketersediaan & relasi proyek (tanpa tambahan effort karena menggantikan katalog desain).
 
 ## 4. Skenario tim
 
 | Skenario | Komposisi | Biaya eksternal | Durasi | Catatan |
 |----------|-----------|-----------------|--------|---------|
 | **A. In-house penuh** | 2 dev + desainer + QA internal | Rp 0 (biaya gaji tetap) | 15 minggu | Termurah secara kas, butuh kapasitas tim |
-| **B. Outsourced penuh** | Vendor/agency | Rp 142–214 jt | 15 minggu | Cepat, perlu manajemen vendor & serah terima |
+| **B. Outsourced penuh** | Vendor/agency | Rp 141–213 jt | 15 minggu | Cepat, perlu manajemen vendor & serah terima |
 | **C. Hybrid (disarankan)** | 1 dev internal + 1 dev senior lepas + desainer lepas | Rp 70–110 jt | 15–17 minggu | Pengetahuan produk tetap di internal |
 | **D. Satu developer** | 1 dev full-stack | Rp 58–87 jt (own cost) | 26–30 minggu | Risiko bottleneck & bus factor tinggi |
 
@@ -125,7 +127,7 @@ Catatan v1.1: komponen **WhatsApp gateway dihapus** (Q7). Asumsi kurs: USD 1 = R
 | Pos | Rentang | Catatan |
 |-----|--------:|---------|
 | Domain & SSL | Rp 250–500 rb | SSL gratis (Let's Encrypt/Cloudflare) |
-| Aset visual (render 3D / fotografi) | Rp 3–8 jt | 12 desain + 4 proyek; bisa dikerjakan internal |
+| Aset visual (render 3D / fotografi) | Rp 3–8 jt | 12 unit + 4 proyek; bisa dikerjakan internal |
 | Review legal (privasi & syarat) | Rp 1,5–4 jt | Wajib sebelum rilis |
 | Setup akun bisnis & email domain | Rp 0–500 rb | Termasuk SPF/DKIM/DMARC untuk deliverability |
 | Pelatihan tim (1 sesi) | Rp 0–1 jt | Bisa internal |
@@ -136,12 +138,12 @@ Catatan v1.1: komponen **WhatsApp gateway dihapus** (Q7). Asumsi kurs: USD 1 = R
 
 | Komponen | Minimum | Maksimum |
 |----------|--------:|---------:|
-| Build (tim) | Rp 141,7 jt | Rp 246,3 jt (termasuk kontingensi) |
+| Build (tim) | Rp 140,9 jt | Rp 244,9 jt (termasuk kontingensi) |
 | Infrastruktur 12 bulan | Rp 5,3 jt | Rp 27,8 jt |
 | Sekali bayar | Rp 4,75 jt | Rp 15,5 jt |
-| **TCO 12 bulan** | **±Rp 152 jt** | **±Rp 290 jt** |
+| **TCO 12 bulan** | **±Rp 151 jt** | **±Rp 288 jt** |
 
-Tanpa kontingensi, TCO berada di **Rp 152–258 juta**. Biaya operasional setelah tahun pertama: **Rp 5,3–27,8 juta/tahun** + pemeliharaan bila diperlukan.
+Tanpa kontingensi, TCO berada di **Rp 151–256 juta**. Biaya operasional setelah tahun pertama: **Rp 5,3–27,8 juta/tahun** + pemeliharaan bila diperlukan.
 
 ## 8. Sensitivitas
 
