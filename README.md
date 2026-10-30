@@ -25,7 +25,7 @@ packages/
 
 ```bash
 cp .env.example .env
-docker compose up -d      # PostgreSQL 16 (:5432) + Mailpit (:1025, UI :8025)
+docker compose -f db.compose.yaml up -d   # PostgreSQL 16 (:5432) + Mailpit (:1025, UI :8025)
 bun install
 bun run db:generate      # generate Prisma Client ke packages/db/src/generated
 bun run dev               # api :3000, web :5173, admin :5174
