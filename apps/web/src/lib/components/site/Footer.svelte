@@ -1,6 +1,7 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- mockup: sebagian rute tujuan belum dibangun */
+	/* eslint-disable svelte/no-navigation-without-resolve -- href dibangun dari slug data API */
 	import Logo from '#lib/components/Logo.svelte';
+	import { page } from '$app/state';
 
 	const columns = [
 		{
@@ -62,8 +63,13 @@
 		class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 border-t border-brand-ink-3 px-4 py-5 text-xs text-brand-gray-500"
 	>
 		<p>© 2026 Azetta. Seluruh hak cipta dilindungi.</p>
-		<p>
-			<a class="link link-hover" href="/kontak">azettaidofficial@gmail.com</a>
+		<p class="flex flex-wrap items-center gap-3">
+			<a class="link link-hover" href="mailto:{page.data.site?.email ?? ''}">
+				{page.data.site?.email ?? 'azettaidofficial@gmail.com'}
+			</a>
+			{#if page.data.site?.whatsapp}
+				<a class="link link-hover" href="https://wa.me/{page.data.site.whatsapp}">WhatsApp</a>
+			{/if}
 		</p>
 	</div>
 </footer>

@@ -5,7 +5,6 @@ import {
 	createProject,
 	getProject,
 	listProjects,
-	presignProjectMedia,
 	publishProject,
 	unpublishProject,
 	updateProject
@@ -48,8 +47,4 @@ export const projectRoutes = new Elysia({ prefix: '/admin/projects' })
 	.post('/:id/unpublish', async ({ request, params }) => {
 		const actor = await requireStaff(request.headers);
 		return unpublishProject(actor, params.id, hashIp(request.headers.get('x-forwarded-for')));
-	})
-	.post('/:id/media/presign', async ({ request }) => {
-		await requireStaff(request.headers);
-		return presignProjectMedia();
 	});

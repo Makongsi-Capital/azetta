@@ -92,10 +92,12 @@ Aturan:
 | `ADMIN_ORIGIN` | ✅ | `https://admin.azetta.id` | CORS |
 | `COOKIE_DOMAIN` | ✅ | `.azetta.id` | Produksi; kosong saat lokal |
 | `IP_HASH_SALT` | ✅ | acak | Untuk `ipHash` |
-| `R2_ACCOUNT_ID` | ✅ | — | Cloudflare |
-| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | ✅ | — | Kredensial terbatas pada bucket |
-| `R2_BUCKET` | ✅ | `azetta-prod-media` | — |
-| `R2_PUBLIC_BASE_URL` | ✅ | `https://media.azetta.id` | Media publik unit |
+| `OBJECT_STORAGE_ENDPOINT` | ⚠️ | `https://is3.cloudhost.id` | Endpoint S3-compatible (kosong = AWS) |
+| `OBJECT_STORAGE_REGION` | ⚠️ | `auto` | Region klien S3 |
+| `OBJECT_STORAGE_ACCESS_KEY_ID` / `_SECRET_ACCESS_KEY` | ✅ | — | Kredensial terbatas pada bucket |
+| `OBJECT_STORAGE_BUCKET` | ✅ | `azetta-prod-media` | — |
+| `OBJECT_STORAGE_PUBLIC_URL` | ✅ | `https://media.azetta.id` | URL publik objek |
+| `OBJECT_STORAGE_MAX_UPLOAD_BYTES` | ⚠️ | `10485760` | Batas unggah admin (byte) |
 | `TURNSTILE_SECRET_KEY` | ✅ | — | Verifikasi server |
 | `PUBLIC_TURNSTILE_SITE_KEY` | ✅ | — | Klien |
 | `RESEND_API_KEY` / `MAIL_FROM` | ✅ | `no-reply@azetta.id` | Notifikasi |

@@ -1,11 +1,13 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- mockup: sebagian rute tujuan belum dibangun */
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
 	import ProjectCard from '#lib/components/site/ProjectCard.svelte';
 	import SectionHeading from '#lib/components/site/SectionHeading.svelte';
-	import { projects } from '#lib/mock/site.js';
+	import type { PageProps } from './$types';
 
-	const ongoing = projects.filter((project) => project.status === 'SEDANG BERJALAN');
-	const completed = projects.filter((project) => project.status === 'SELESAI');
+	let { data }: PageProps = $props();
+
+	const ongoing = $derived(data.projects.filter((project) => project.status !== 'SELESAI'));
+	const completed = $derived(data.projects.filter((project) => project.status === 'SELESAI'));
 </script>
 
 <svelte:head>

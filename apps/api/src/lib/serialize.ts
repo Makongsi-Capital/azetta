@@ -1,3 +1,5 @@
+import { buildPublicUrl } from './object-storage';
+
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 /** Ubah BigInt ke string desimal dan Date ke ISO 8601 (docs §2.3–2.4). */
@@ -123,7 +125,7 @@ export function serializeLead(lead: LeadRow) {
 			fileName: attachment.fileName,
 			mimeType: attachment.mimeType,
 			sizeBytes: attachment.sizeBytes,
-			url: attachment.url ?? `/api/v1/admin/attachments/${attachment.id}/url`
+			url: buildPublicUrl(attachment.storageKey)
 		})),
 		activities: (lead.activities ?? []).map((activity) => ({
 			id: activity.id,

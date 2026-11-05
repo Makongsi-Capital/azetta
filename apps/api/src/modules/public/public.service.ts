@@ -9,18 +9,44 @@ import {
 	toStringArray
 } from '../../lib/http';
 import { serializeDesign } from '../../lib/serialize';
+import { storage } from '../../lib/storage.service';
 import { getEnv } from '../../env';
 
 const env = getEnv();
 
 const designInclude = {
 	media: { orderBy: { sortOrder: 'asc' as const } },
-	tags: { include: { tag: true } }
+	tags: { include: { tag: true } },
+	project: {
+		select: { slug: true, title: true, city: true, province: true, location: true }
+	}
 };
 
 type Query = Record<string, string | undefined>;
 
-function publicDesign(design: Parameters<typeof serializeDesign>[0], includeDescription: boolean) {
+type DesignWithRelations = Parameters<typeof serializeDesign>[0] & {
+	project?: {
+		slug: string;
+		title: string;
+		city: string;
+		province: string;
+		location: string;
+	} | null;
+};
+
+function publicProject(project: DesignWithRelations['project']) {
+	return project
+		? {
+				slug: project.slug,
+				title: project.title,
+				city: project.city,
+				province: project.province,
+				location: project.location
+			}
+		: null;
+}
+
+function publicDesign(design: DesignWithRelations, includeDescription: boolean) {
 	const serialized = serializeDesign(design);
 	return {
 		id: serialized.id,
@@ -28,6 +54,7 @@ function publicDesign(design: Parameters<typeof serializeDesign>[0], includeDesc
 		typeName: serialized.title,
 		title: serialized.title,
 		subtitle: serialized.subtitle,
+		project: publicProject(design.project),
 		...(includeDescription ? { description: serialized.description } : {}),
 		style: serialized.style,
 		category: serialized.category,
@@ -92,29 +119,77 @@ export async function listUnits(query: Query) {
 		defaultPerPage: 12,
 		maxPerPage: 50
 	});
+	const type = query.type?.trim() || undefined;
+	const bedrooms = query.bedrooms ? Number(query.bedrooms) : undefined;
+	const minLandArea = query.minLandArea ? Number(query.minLandArea) : undefined;
+	const minBuildingArea = query.minBuildingArea ? Number(query.minBuildingArea) : undefined;
+	const minPrice = toBigInt(query.minPrice);
+	const maxPrice = toBigInt(query.maxPrice);
+
 	const where = {
 		deletedAt: null,
 		status: 'PUBLISHED' as const,
-		...(query.city ? { style: { contains: query.city, mode: 'insensitive' as const } } : {}),
 		...(query.q
 			? {
 					OR: [
 						{ title: { contains: query.q, mode: 'insensitive' as const } },
+						{ subtitle: { contains: query.q, mode: 'insensitive' as const } },
 						{ style: { contains: query.q, mode: 'insensitive' as const } }
 					]
 				}
 			: {})
 	};
+	const scoped =
+		query.project || query.city
+			? {
+					...where,
+					project: {
+						...(query.project ? { slug: query.project } : {}),
+						...(query.city ? { city: { equals: query.city, mode: 'insensitive' as const } } : {})
+					}
+				}
+			: where;
+	const filtered = {
+		...scoped,
+		...(type ? { style: { contains: type, mode: 'insensitive' as const } } : {}),
+		...(query.featured === 'true' ? { featured: true } : {}),
+		...(Number.isInteger(bedrooms) && Number(bedrooms) > 0
+			? { bedrooms: { gte: Number(bedrooms) } }
+			: {}),
+		...(Number.isInteger(minLandArea) && Number(minLandArea) > 0
+			? { landAreaMinM2: { gte: Number(minLandArea) } }
+			: {}),
+		...(Number.isInteger(minBuildingArea) && Number(minBuildingArea) > 0
+			? { buildingAreaM2: { gte: Number(minBuildingArea) } }
+			: {}),
+		...(minPrice !== undefined || maxPrice !== undefined
+			? {
+					priceFrom: {
+						...(minPrice !== undefined ? { gte: minPrice } : {}),
+						...(maxPrice !== undefined ? { lte: maxPrice } : {})
+					}
+				}
+			: {})
+	};
+
 	const orderBy =
 		query.sort === 'priceFrom'
 			? ({ priceFrom: 'asc' } as const)
 			: query.sort === '-priceFrom'
 				? ({ priceFrom: 'desc' } as const)
-				: ({ publishedAt: 'desc' } as const);
+				: query.sort === '-landAreaM2'
+					? ({ landAreaMinM2: 'desc' } as const)
+					: ({ publishedAt: 'desc' } as const);
 
 	const [rows, total] = await Promise.all([
-		prisma.propertyDesign.findMany({ where, include: designInclude, orderBy, skip, take }),
-		prisma.propertyDesign.count({ where })
+		prisma.propertyDesign.findMany({
+			where: filtered,
+			include: designInclude,
+			orderBy,
+			skip,
+			take
+		}),
+		prisma.propertyDesign.count({ where: filtered })
 	]);
 
 	return list(
@@ -129,11 +204,11 @@ export async function listUnits(query: Query) {
 }
 
 export async function getUnitFilters() {
-	const [cities, types, priceRange] = await Promise.all([
+	const [projects, types, priceRange] = await Promise.all([
 		prisma.project.findMany({
-			where: { deletedAt: null },
-			select: { city: true },
-			distinct: ['city']
+			where: { deletedAt: null, isPublished: true },
+			select: { slug: true, title: true, city: true },
+			orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }]
 		}),
 		prisma.propertyDesign.findMany({
 			where: { deletedAt: null, status: 'PUBLISHED' },
@@ -147,11 +222,17 @@ export async function getUnitFilters() {
 		})
 	]);
 	return ok({
-		cities: cities.map((row) => row.city).filter(Boolean),
+		cities: [...new Set(projects.map((row) => row.city).filter(Boolean))],
+		projects: projects.map((row) => ({ slug: row.slug, title: row.title, city: row.city })),
 		types: types.map((row) => row.style).filter(Boolean),
 		minPrice: priceRange._min.priceFrom?.toString() ?? null,
 		maxPrice: priceRange._max.priceFrom?.toString() ?? null
 	});
+}
+
+function toBigInt(value: string | undefined): bigint | undefined {
+	if (!value || !/^\d+$/.test(value.trim())) return undefined;
+	return BigInt(value.trim());
 }
 
 export async function getUnitBySlug(slug: string) {
@@ -430,17 +511,21 @@ export async function createPublicLead(payload: Record<string, unknown>, context
 			}
 		});
 		const keys = toStringArray(land.attachmentKeys as string[]);
-		for (const key of keys) {
-			await prisma.leadAttachment.create({
-				data: {
-					leadId: lead.id,
-					kind: 'LAND_PHOTO',
-					fileName: key.split('/').pop() ?? key,
-					storageKey: key,
-					mimeType: 'image/jpeg',
-					sizeBytes: 0
-				}
-			});
+		if (keys.length > 0) {
+			const uploaded = await prisma.media.findMany({ where: { key: { in: keys } } });
+			for (const media of uploaded) {
+				await prisma.leadAttachment.create({
+					data: {
+						leadId: lead.id,
+						kind: 'LAND_PHOTO',
+						fileName: media.original_name ?? media.key.split('/').pop() ?? media.key,
+						storageKey: media.key,
+						mimeType: media.mime,
+						sizeBytes: media.size,
+						uploadedById: context.userId
+					}
+				});
+			}
 		}
 	}
 
@@ -455,8 +540,17 @@ export async function createPublicLead(payload: Record<string, unknown>, context
 	});
 }
 
-export async function presignUploads() {
-	return ok({ uploads: [] });
+/** Plafon kontrak unggah publik; batas efektif tetap mengikuti env bila lebih kecil. */
+const PUBLIC_MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+/** Unggah foto lahan dari pengunjung; hanya gambar, folder `leads`. */
+export async function uploadPublicFile(file: File, userId: string | null) {
+	const maxBytes = Math.min(
+		env.OBJECT_STORAGE_MAX_UPLOAD_BYTES ?? PUBLIC_MAX_UPLOAD_BYTES,
+		PUBLIC_MAX_UPLOAD_BYTES
+	);
+
+	return ok(await storage.uploadFile({ file, folder: 'leads', uploadedBy: userId, maxBytes }));
 }
 
 export async function recordEvents(payload: Record<string, unknown>) {

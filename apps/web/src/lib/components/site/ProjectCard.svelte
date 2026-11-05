@@ -1,14 +1,18 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- mockup: sebagian rute tujuan belum dibangun */
-	import type { MockProject } from '#lib/mock/site.js';
+	/* eslint-disable svelte/no-navigation-without-resolve -- href dibangun dari slug data API */
+	import type { ProjectView } from '#lib/api/view.js';
 
 	interface Props {
-		project: MockProject;
+		project: ProjectView;
 	}
 
 	let { project }: Props = $props();
 
-	const isCompleted = $derived(project.status === 'SELESAI');
+	const statusLabel: Record<ProjectView['status'], string> = {
+		'SEDANG BERJALAN': 'Sedang berjalan',
+		SELESAI: 'Selesai',
+		DIRENCANAKAN: 'Direncanakan'
+	};
 </script>
 
 <a
@@ -17,20 +21,28 @@
 	aria-label="{project.title} di {project.location}, {project.city}"
 >
 	<figure class="relative aspect-[16/10] overflow-hidden rounded-t-[1rem] bg-brand-mist">
-		<img
-			src={project.cover}
-			alt="Proyek {project.title}"
-			width="900"
-			height="563"
-			loading="lazy"
-			class="h-full w-full object-cover"
-		/>
+		{#if project.cover}
+			<img
+				src={project.cover}
+				alt="Proyek {project.title}"
+				width="900"
+				height="563"
+				loading="lazy"
+				class="h-full w-full object-cover"
+			/>
+		{:else}
+			<span class="grid h-full w-full place-items-center text-sm text-brand-gray-600">
+				Foto belum tersedia
+			</span>
+		{/if}
 		<span
-			class="badge badge-sm {isCompleted
+			class="badge badge-sm {project.status === 'SELESAI'
 				? 'badge-outline bg-white/90'
-				: 'badge-info'} absolute top-3 left-3 border-0"
+				: project.status === 'DIRENCANAKAN'
+					? 'badge-neutral'
+					: 'badge-info'} absolute top-3 left-3 border-0"
 		>
-			{isCompleted ? 'Selesai' : 'Sedang berjalan'}
+			{statusLabel[project.status]}
 		</span>
 	</figure>
 
@@ -42,8 +54,8 @@
 		</p>
 		<p class="text-sm text-brand-gray-600">{project.summary}</p>
 		<p class="mt-2 text-xs text-brand-gray-600 tabular-nums">
-			{project.yearStarted}{project.yearCompleted ? `–${project.yearCompleted}` : ''} ·
-			{project.unitCount} unit
+			{project.yearStarted ?? '—'}{project.yearCompleted ? `–${project.yearCompleted}` : ''} · {project.unitCount ??
+				'—'} unit
 		</p>
 	</div>
 </a>

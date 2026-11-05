@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve -- tautan dokumen eksternal hasil unggah */
+	import MediaUpload from '#lib/components/admin/MediaUpload.svelte';
 	import PageHeader from '#lib/components/admin/PageHeader.svelte';
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDateTime } from '#lib/format.js';
@@ -26,6 +28,7 @@
 	let privacyUrl = $state(saved.privacyUrl ?? '/kebijakan-privasi');
 	let termsUrl = $state(saved.termsUrl ?? '/syarat-ketentuan');
 	let legalDocumentName = $state(saved.legalDocumentName ?? 'legal-azetta-2026.pdf');
+	let legalDocumentUrl = $state(saved.legalDocumentUrl ?? '');
 
 	let ga4MeasurementId = $state(saved.ga4MeasurementId ?? 'G-XXXXXXX');
 	let metaPixelId = $state(saved.metaPixelId ?? '');
@@ -49,6 +52,7 @@
 			privacyUrl,
 			termsUrl,
 			legalDocumentName,
+			legalDocumentUrl,
 			ga4MeasurementId,
 			metaPixelId,
 			logoUrl,
@@ -57,13 +61,6 @@
 		notice =
 			result.message ??
 			`Pengaturan disimpan oleh ${currentUser.name}. Perubahan tercatat di audit log.`;
-	}
-
-	function mockUpload(event: Event) {
-		const input = event.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
-		if (!file) return;
-		notice = `Berkas ${file.name} siap diunggah (demo). Presign R2 belum tersambung.`;
 	}
 </script>
 
@@ -171,16 +168,26 @@
 
 				<div class="border border-brand-line p-3">
 					<p class="text-xs font-bold text-brand-gray-600">Dokumen legal (PDF)</p>
-					<p class="mt-1 text-sm">{legalDocumentName}</p>
-					<input
-						class="file-input file-input-sm mt-2 w-full"
-						type="file"
-						accept="application/pdf"
-						onchange={mockUpload}
-					/>
-					<p class="mt-1 text-xs text-brand-gray-600">
-						Maksimal 10 MB. Presign unggahan belum tersambung pada demo.
+					<p class="mt-1 text-sm">
+						{#if legalDocumentUrl}
+							<a class="link link-hover" href={legalDocumentUrl} target="_blank" rel="noreferrer">
+								{legalDocumentName}
+							</a>
+						{:else}
+							{legalDocumentName}
+						{/if}
 					</p>
+					<div class="mt-2">
+						<MediaUpload
+							folder="settings"
+							accept="application/pdf"
+							hint="PDF maks 10 MB."
+							onUploaded={(media) => {
+								legalDocumentName = media.original_name ?? media.key;
+								legalDocumentUrl = media.url;
+							}}
+						/>
+					</div>
 				</div>
 			</div>
 		</Panel>
@@ -223,12 +230,14 @@
 						<img src={logoUrl} alt="Pratinjau logo" class="max-h-10" />
 					</div>
 					<input class="input input-sm mt-2 w-full font-mono text-xs" bind:value={logoUrl} />
-					<input
-						class="file-input file-input-sm mt-2 w-full"
-						type="file"
-						accept="image/*"
-						onchange={mockUpload}
-					/>
+					<div class="mt-2">
+						<MediaUpload
+							folder="settings"
+							accept="image/svg+xml,image/png,image/webp"
+							hint="SVG/PNG/WebP maks 10 MB."
+							onUploaded={(media) => (logoUrl = media.url)}
+						/>
+					</div>
 				</div>
 
 				<div class="border border-brand-line p-3">
@@ -237,12 +246,14 @@
 						<img src={faviconUrl} alt="Pratinjau favicon" class="size-8" />
 					</div>
 					<input class="input input-sm mt-2 w-full font-mono text-xs" bind:value={faviconUrl} />
-					<input
-						class="file-input file-input-sm mt-2 w-full"
-						type="file"
-						accept="image/*"
-						onchange={mockUpload}
-					/>
+					<div class="mt-2">
+						<MediaUpload
+							folder="settings"
+							accept="image/svg+xml,image/png,image/x-icon"
+							hint="SVG/PNG/ICO maks 10 MB."
+							onUploaded={(media) => (faviconUrl = media.url)}
+						/>
+					</div>
 				</div>
 			</div>
 		</Panel>

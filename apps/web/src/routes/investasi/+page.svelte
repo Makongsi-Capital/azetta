@@ -1,10 +1,16 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- mockup: sebagian rute belum dibangun */
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
 	import ProjectCard from '#lib/components/site/ProjectCard.svelte';
 	import PageHero from '#lib/components/site/PageHero.svelte';
-	import { projects } from '#lib/mock/site.js';
+	import type { PageProps } from './$types';
 
-	const ongoing = projects.filter((project) => project.status === 'SEDANG BERJALAN');
+	let { data }: PageProps = $props();
+
+	const projects = $derived(data.projects);
+	const ongoing = $derived(projects.filter((project) => project.status === 'SEDANG BERJALAN'));
+	const managedUnits = $derived(
+		projects.reduce((total, project) => total + (project.unitCount ?? 0), 0)
+	);
 
 	const governance = [
 		'Setiap proyek dipublikasikan hanya setelah ada persetujuan tertulis dari pemilik lahan.',
@@ -54,7 +60,7 @@
 		</div>
 		<div class="bg-white p-4">
 			<dt class="text-xs text-brand-gray-600">Unit dikelola</dt>
-			<dd class="mt-1 text-lg font-bold tabular-nums">54</dd>
+			<dd class="mt-1 text-lg font-bold tabular-nums">{managedUnits}</dd>
 		</div>
 		<div class="bg-white p-4">
 			<dt class="text-xs text-brand-gray-600">Wilayah</dt>

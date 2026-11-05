@@ -269,7 +269,3 @@ export async function unpublishProject(actor: StaffActor, id: string, ipHash: st
 	});
 	return ok(serializeProject(updated));
 }
-
-export async function presignProjectMedia() {
-	return ok({ uploads: [] });
-}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve -- tombol kembali menuju rute unit */
 	import { untrack } from 'svelte';
+	import MediaUpload from '#lib/components/admin/MediaUpload.svelte';
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDate, formatRupiah, slugify } from '#lib/format.js';
 	import { designCategoryLabel, designStatusLabel } from '#lib/labels.js';
@@ -240,6 +241,13 @@
 							placeholder="https://…"
 							bind:value={cover}
 						/>
+						<div class="mt-2">
+							<MediaUpload
+								folder="units"
+								hint="Unggah gambar utama (maks 10 MB) atau tempel URL di atas."
+								onUploaded={(media) => (cover = media.url)}
+							/>
+						</div>
 					</fieldset>
 
 					{#if cover}
@@ -276,9 +284,13 @@
 							/>
 							<button class="btn join-item" type="button" onclick={addImage}>Tambah</button>
 						</div>
-						<p class="mt-1 text-xs text-brand-gray-600">
-							Demo: unggahan presign R2 belum tersambung.
-						</p>
+						<div class="mt-2">
+							<MediaUpload
+								folder="units"
+								hint="Unggah foto galeri atau tempel URL di atas."
+								onUploaded={(media) => (gallery = [...gallery, media.url])}
+							/>
+						</div>
 					</div>
 
 					<fieldset class="fieldset">

@@ -1,6 +1,7 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve -- tombol kembali menuju rute proyek */
 	import { untrack } from 'svelte';
+	import MediaUpload from '#lib/components/admin/MediaUpload.svelte';
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDate, slugify } from '#lib/format.js';
 	import { projectStatusLabel } from '#lib/labels.js';
@@ -198,6 +199,13 @@
 							placeholder="https://…"
 							bind:value={coverImageUrl}
 						/>
+						<div class="mt-2">
+							<MediaUpload
+								folder="projects"
+								hint="Unggah gambar utama (maks 10 MB) atau tempel URL di atas."
+								onUploaded={(media) => (coverImageUrl = media.url)}
+							/>
+						</div>
 					</fieldset>
 
 					{#if coverImageUrl}
@@ -243,6 +251,15 @@
 								Tambah
 							</button>
 						</div>
+						{#if galleryUrls.length < 10}
+							<div class="mt-2">
+								<MediaUpload
+									folder="projects"
+									hint="Unggah foto galeri atau tempel URL di atas."
+									onUploaded={(media) => (galleryUrls = [...galleryUrls, media.url])}
+								/>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</Panel>

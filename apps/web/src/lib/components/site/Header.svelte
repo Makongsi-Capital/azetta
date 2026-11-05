@@ -13,6 +13,9 @@
 
 	const isActive = (href: string) =>
 		page.url.pathname === href || page.url.pathname.startsWith(`${href}/`);
+
+	const accountHref = $derived(page.data.user ? '/akun' : '/masuk');
+	const accountLabel = $derived(page.data.user ? 'Akun' : 'Masuk');
 </script>
 
 <header class="sticky top-0 z-40 border-b border-brand-line bg-base-100/95 backdrop-blur">
@@ -36,7 +39,7 @@
 		</nav>
 
 		<div class="ml-auto flex items-center gap-2">
-			<a class="btn btn-ghost btn-sm hidden sm:inline-flex" href="/masuk">Masuk</a>
+			<a class="btn btn-ghost btn-sm hidden sm:inline-flex" href={accountHref}>{accountLabel}</a>
 			<a class="btn btn-primary btn-sm" href="/kontak">Hubungi Kami</a>
 
 			<details class="dropdown dropdown-end md:hidden">
@@ -53,7 +56,7 @@
 							</a>
 						</li>
 					{/each}
-					<li><a href="/masuk">Masuk</a></li>
+					<li><a href={accountHref}>{accountLabel}</a></li>
 				</ul>
 			</details>
 		</div>

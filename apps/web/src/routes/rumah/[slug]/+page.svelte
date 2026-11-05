@@ -1,16 +1,17 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve, svelte/no-at-html-tags -- mockup: sebagian rute belum dibangun; JSON-LD berasal dari konstanta yang di-escape. */
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
+	/* eslint-disable svelte/no-at-html-tags -- deskripsi unit berasal dari API dan disanitasi saat penyimpanan */
 	import PropertyCard from '#lib/components/site/PropertyCard.svelte';
+	import LeadForm from '#lib/components/site/LeadForm.svelte';
 	import SectionHeading from '#lib/components/site/SectionHeading.svelte';
 	import { formatPrice } from '#lib/format.js';
-	import { interiorPhotos } from '#lib/mock/site.js';
 	import { jsonLdScript } from '#lib/seo.js';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
 
 	const unit = $derived(data.unit);
-	const gallery = $derived([...new Set([unit.cover, ...interiorPhotos])].slice(0, 4));
+	const gallery = $derived(unit.gallery.slice(0, 4));
 	const floors = $derived(Array.from({ length: unit.floors }, (_, index) => index + 1));
 
 	const statusLabel = $derived(
@@ -55,22 +56,28 @@
 		<div class="mt-6 lg:grid lg:grid-cols-[1fr_340px] lg:items-start lg:gap-10">
 			<div>
 				<figure class="overflow-hidden rounded-[1rem] border border-brand-line bg-brand-mist">
-					<img
-						src={gallery[0]}
-						alt="Tampak depan {unit.title}"
-						width="1200"
-						height="800"
-						fetchpriority="high"
-						class="aspect-[3/2] w-full object-cover"
-					/>
+					{#if gallery[0]}
+						<img
+							src={gallery[0].url}
+							alt={gallery[0].alt}
+							width="1200"
+							height="800"
+							fetchpriority="high"
+							class="aspect-[3/2] w-full object-cover"
+						/>
+					{:else}
+						<span class="grid aspect-[3/2] w-full place-items-center text-sm text-brand-gray-600">
+							Foto belum tersedia
+						</span>
+					{/if}
 				</figure>
 
 				<ul class="mt-3 grid grid-cols-4 gap-3">
-					{#each gallery as image, index (image)}
+					{#each gallery as image, index (image.url)}
 						<li>
 							<img
-								src={image}
-								alt="Foto {index + 1} {unit.title}"
+								src={image.url}
+								alt={image.alt || `Foto ${index + 1} ${unit.title}`}
 								width="300"
 								height="225"
 								loading="lazy"
@@ -83,7 +90,11 @@
 				</ul>
 
 				<div class="mt-8 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-brand-gray-600">
-					<a class="link link-hover" href="/proyek/{unit.projectSlug}">{unit.project}</a>
+					{#if unit.projectSlug}
+						<a class="link link-hover" href="/proyek/{unit.projectSlug}">{unit.project}</a>
+					{:else}
+						<span>{unit.project}</span>
+					{/if}
 					<span aria-hidden="true">·</span>
 					<span>{unit.type}</span>
 					<span aria-hidden="true">·</span>
@@ -105,7 +116,7 @@
 
 				<p class="mt-2 inline-flex items-center gap-1 text-brand-gray-600">
 					<span class="icon-[mdi--map-marker-outline] size-4 shrink-0"></span>
-					{unit.district}, {unit.city}
+					{[unit.district, unit.city].filter(Boolean).join(', ')}
 				</p>
 
 				<dl
@@ -131,7 +142,11 @@
 
 				<section class="mt-10">
 					<h2 class="text-xl">Tentang unit ini</h2>
-					<p class="mt-3 text-brand-gray-600">{unit.summary}</p>
+					{#if unit.descriptionHtml}
+						<div class="prose mt-3 text-brand-gray-600">{@html unit.descriptionHtml}</div>
+					{:else if unit.summary}
+						<p class="mt-3 text-brand-gray-600">{unit.summary}</p>
+					{/if}
 					<p class="mt-3 text-brand-gray-600">
 						Spesifikasi di halaman ini adalah standar {unit.type}. Perubahan material dapat diminta
 						sebelum pekerjaan struktur dimulai dan akan memengaruhi harga akhir. Denah, legalitas,
@@ -158,46 +173,24 @@
 						Diisi kurang dari satu menit. Balasan pada jam kerja, maksimal 2 jam.
 					</p>
 
-					<form class="mt-6 grid gap-4 sm:grid-cols-2" onsubmit={(event) => event.preventDefault()}>
-						<fieldset class="fieldset">
-							<legend class="fieldset-legend">Nama</legend>
-							<input class="input w-full" placeholder="Nama sesuai KTP" />
-						</fieldset>
-						<fieldset class="fieldset">
-							<legend class="fieldset-legend">WhatsApp</legend>
-							<input class="input w-full" type="tel" placeholder="08xx xxxx xxxx" />
-						</fieldset>
-						<fieldset class="fieldset sm:col-span-2">
-							<legend class="fieldset-legend">Email (opsional)</legend>
-							<input class="input w-full" type="email" placeholder="nama@email.com" />
-						</fieldset>
-						<fieldset class="fieldset sm:col-span-2">
-							<legend class="fieldset-legend">Pesan</legend>
-							<textarea
-								class="textarea w-full"
-								rows="3"
-								placeholder="Saya ingin melihat unit {unit.title} dan menanyakan skema pembayaran."
-							></textarea>
-						</fieldset>
-						<label class="flex items-start gap-2 text-sm sm:col-span-2">
-							<input type="checkbox" class="checkbox checkbox-sm" />
-							<span class="text-brand-gray-600">
-								Saya setuju data ini diproses untuk keperluan tindak lanjut pengajuan.
-							</span>
-						</label>
-						<div class="sm:col-span-2">
-							<button class="btn btn-primary w-full sm:w-auto" type="submit"
-								>Kirim pertanyaan</button
-							>
-						</div>
-					</form>
+					<div class="mt-6">
+						<LeadForm
+							type="BUY_DESIGN"
+							designId={unit.id}
+							submitLabel="Kirim pertanyaan"
+							messagePlaceholder="Saya ingin melihat unit {unit.title} dan menanyakan skema pembayaran."
+							{form}
+						/>
+					</div>
 				</section>
 			</div>
 
 			<aside class="mt-10 lg:mt-0">
 				<div class="rounded-[1rem] border border-brand-line bg-white p-6 lg:sticky lg:top-24">
 					<p class="text-xs text-brand-gray-600">Harga mulai dari</p>
-					<p class="mt-1 text-2xl font-bold tabular-nums">{formatPrice(unit.priceFrom)}</p>
+					<p class="mt-1 text-2xl font-bold tabular-nums">
+						{unit.priceFrom === null ? 'Hubungi kami' : formatPrice(unit.priceFrom)}
+					</p>
 					<p class="mt-2 text-xs text-brand-gray-600">
 						Indikatif, belum termasuk biaya KPR, pajak, dan biaya akad.
 					</p>
@@ -247,7 +240,9 @@
 	<div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
 		<div>
 			<p class="text-xs text-brand-gray-600">Mulai dari</p>
-			<p class="text-base font-bold tabular-nums">{formatPrice(unit.priceFrom)}</p>
+			<p class="text-base font-bold tabular-nums">
+				{unit.priceFrom === null ? 'Hubungi kami' : formatPrice(unit.priceFrom)}
+			</p>
 		</div>
 		<a class="btn btn-primary btn-sm" href="#tanya">Tanya unit</a>
 	</div>

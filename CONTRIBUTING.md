@@ -71,7 +71,9 @@ Aturan ini dijaga ESLint (`no-restricted-imports`). Impor runtime Prisma dari fr
 - **Gaya visual** memakai Tailwind 4 + daisyUI dengan tema `azetta` di [apps/web/src/routes/layout.css](./apps/web/src/routes/layout.css): palet monokrom, token `brand-*`, tanpa shadow/gradasi. Warna status hanya untuk umpan balik sistem dan wajib disertai label teks.
 - **Ikon** memakai kelas literal `icon-[mdi--nama-ikon]`. Nama ikon harus ditulis langsung di markup/string literal agar terdeteksi Tailwind — kelas yang dirakit saat runtime tidak akan ter-generate.
 - **Navigasi internal**: aturan `svelte/no-navigation-without-resolve` aktif. Selama rute tujuan belum dibangun, tambahkan `/* eslint-disable svelte/no-navigation-without-resolve */` di blok `<script>` beserta alasan singkat.
-- **Data contoh** untuk tampilan publik berada di `apps/web/src/lib/mock/`. Jangan menambah dependensi hanya untuk data mockup; ganti dengan panggilan API saat integrasi.
+- **Data web publik berasal dari API**, bukan data lokal. Panggilan HTTP terpusat di [apps/web/src/lib/api](./apps/web/src/lib/api): `client.ts` (fetch + amplop `{ data, meta }`), `types.ts` (DTO API), dan `view.ts` (mapper ke model tampilan). Halaman memuat data lewat `+page.server.ts`; form memakai server action di `apps/web/src/lib/server/`.
+- **Unggah berkas** melewati API: klien mengirim `multipart/form-data` ke `POST /api/v1/admin/media` (admin) atau `POST /api/v1/public/uploads` (web), API menyimpan objek ke S3-compatible dan mencatat baris `media`. Jangan menaruh kredensial storage di web/admin; modul server ada di [apps/api/src/lib/object-storage.ts](./apps/api/src/lib/object-storage.ts) dan [storage.service.ts](./apps/api/src/lib/storage.service.ts).
+- **Autentikasi web** memakai Better Auth di `apps/api`: sesi dibaca di [apps/web/src/hooks.server.ts](./apps/web/src/hooks.server.ts) dan cookie diteruskan ke API. Jangan memanggil API langsung dari komponen klien untuk operasi yang butuh sesi.
 
 ## Basis data
 

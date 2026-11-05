@@ -1,5 +1,6 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve, svelte/no-at-html-tags -- mockup: sebagian rute belum dibangun; JSON-LD berasal dari konstanta yang di-escape. */
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
+	/* eslint-disable svelte/no-at-html-tags -- isi artikel berasal dari API dan disanitasi saat penyimpanan */
 	import ArticleCard from '#lib/components/site/ArticleCard.svelte';
 	import SectionHeading from '#lib/components/site/SectionHeading.svelte';
 	import { jsonLdScript } from '#lib/seo.js';
@@ -14,8 +15,8 @@
 		'@type': 'Article',
 		headline: article.title,
 		description: article.excerpt,
-		image: article.cover,
-		datePublished: article.updated,
+		image: article.cover ?? undefined,
+		datePublished: article.publishedAt ?? undefined,
 		author: { '@type': 'Organization', name: 'Azetta' },
 		publisher: { '@type': 'Organization', name: 'Azetta' }
 	});
@@ -42,30 +43,29 @@
 	<h1 class="mt-3 text-3xl md:text-4xl">{article.title}</h1>
 	<p class="mt-4 text-brand-gray-600">{article.excerpt}</p>
 	<p class="mt-4 text-xs text-brand-gray-600">
-		{article.updated} · {article.readingMinutes} menit baca
+		{article.updated}{article.readingMinutes ? ` · ${article.readingMinutes} menit baca` : ''}
 	</p>
 </div>
 
 <figure class="mx-auto max-w-5xl px-4">
-	<img
-		src={article.cover}
-		alt={article.title}
-		width="1200"
-		height="675"
-		fetchpriority="high"
-		class="aspect-[16/9] w-full rounded-[1rem] border border-brand-line object-cover"
-	/>
+	{#if article.cover}
+		<img
+			src={article.cover}
+			alt={article.title}
+			width="1200"
+			height="675"
+			fetchpriority="high"
+			class="aspect-[16/9] w-full rounded-[1rem] border border-brand-line object-cover"
+		/>
+	{/if}
 </figure>
 
 <article class="mx-auto max-w-3xl px-4 py-10">
-	{#each article.sections as section (section.heading)}
-		<section class="mt-10 first:mt-0">
-			<h2 class="text-xl">{section.heading}</h2>
-			{#each section.paragraphs as paragraph (paragraph)}
-				<p class="mt-3 text-brand-gray-600">{paragraph}</p>
-			{/each}
-		</section>
-	{/each}
+	{#if article.contentHtml}
+		<div class="prose text-brand-gray-600">{@html article.contentHtml}</div>
+	{:else}
+		<p class="text-brand-gray-600">{article.excerpt}</p>
+	{/if}
 
 	<div class="mt-12 rounded-[1rem] border border-brand-line bg-white p-6">
 		<p class="font-bold">Butuh angka atau dokumen yang lebih spesifik?</p>

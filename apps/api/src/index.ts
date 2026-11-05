@@ -13,6 +13,7 @@ import { userRoutes } from './modules/admin/users/users.routes';
 import { statsRoutes } from './modules/admin/stats/stats.routes';
 import { auditRoutes } from './modules/admin/audit/audit.routes';
 import { publicRoutes } from './modules/public/public.routes';
+import { mediaRoutes } from './modules/admin/media/media.routes';
 import { pruneRateLimits } from './lib/rate-limit';
 import { meRoutes } from './modules/account/account.routes';
 
@@ -86,6 +87,7 @@ const app = new Elysia()
 			.use(settingRoutes)
 			.use(userRoutes)
 			.use(statsRoutes)
+			.use(mediaRoutes)
 			.use(auditRoutes)
 	)
 	.listen(env.PORT);

@@ -4,17 +4,25 @@
 	import PropertyCard from '#lib/components/site/PropertyCard.svelte';
 	import ProjectCard from '#lib/components/site/ProjectCard.svelte';
 	import SectionHeading from '#lib/components/site/SectionHeading.svelte';
-	import { articles, featuredUnits, projects, testimonials } from '#lib/mock/site.js';
 	import { jsonLdScript } from '#lib/seo.js';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const featuredUnits = $derived(data.featuredUnits);
+	const projects = $derived(data.projects);
+	const articles = $derived(data.articles);
+	const testimonials = $derived(data.testimonials);
+	const filters = $derived(data.filters);
 
 	const heroPhoto =
 		'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=70';
 
-	const stats = [
-		{ value: '12', label: 'Unit tersedia dan indent' },
-		{ value: '4', label: 'Proyek berjalan dan selesai' },
+	const stats = $derived([
+		{ value: String(data.totalUnits), label: 'Unit tersedia dan indent' },
+		{ value: String(data.projects.length), label: 'Proyek berjalan dan selesai' },
 		{ value: '≤ 2 jam', label: 'Respons pada jam kerja' }
-	];
+	]);
 
 	const steps = [
 		{
@@ -93,7 +101,9 @@
 				progres dilaporkan terbuka sejak kajian awal.
 			</p>
 
-			<div
+			<form
+				action="/rumah"
+				method="GET"
 				class="mt-8 flex flex-col gap-2 rounded-[1rem] border border-brand-line bg-white p-2 text-base-content sm:flex-row sm:items-center"
 			>
 				<div class="grid flex-1 gap-1 sm:grid-cols-3 sm:divide-x sm:divide-brand-line">
@@ -102,12 +112,13 @@
 							Lokasi
 						</span>
 						<select
+							name="city"
 							class="w-full appearance-none bg-transparent pr-6 text-sm font-bold focus:outline-none"
 						>
-							<option>Semua kota</option>
-							<option>Makassar</option>
-							<option>Gowa</option>
-							<option>Maros</option>
+							<option value="">Semua kota</option>
+							{#each filters?.cities ?? [] as city (city)}
+								<option value={city}>{city}</option>
+							{/each}
 						</select>
 						<span
 							class="icon-[mdi--chevron-down] pointer-events-none absolute right-3 bottom-2.5 size-4"
@@ -118,13 +129,13 @@
 							Tipe
 						</span>
 						<select
+							name="type"
 							class="w-full appearance-none bg-transparent pr-6 text-sm font-bold focus:outline-none"
 						>
-							<option>Semua tipe</option>
-							<option>Tipe 36</option>
-							<option>Tipe 45</option>
-							<option>Tipe 60</option>
-							<option>Tipe 70</option>
+							<option value="">Semua tipe</option>
+							{#each filters?.types ?? [] as type (type)}
+								<option value={type}>{type}</option>
+							{/each}
 						</select>
 						<span
 							class="icon-[mdi--chevron-down] pointer-events-none absolute right-3 bottom-2.5 size-4"
@@ -135,27 +146,27 @@
 							Rentang harga
 						</span>
 						<select
+							name="maxPrice"
 							class="w-full appearance-none bg-transparent pr-6 text-sm font-bold focus:outline-none"
 						>
-							<option>Semua harga</option>
-							<option>&lt; Rp 700 jt</option>
-							<option>Rp 700 jt – Rp 1,5 M</option>
-							<option>&gt; Rp 1,5 M</option>
+							<option value="">Semua harga</option>
+							<option value="700000000">&lt; Rp 700 jt</option>
+							<option value="1500000000">Rp 700 jt – Rp 1,5 M</option>
 						</select>
 						<span
 							class="icon-[mdi--chevron-down] pointer-events-none absolute right-3 bottom-2.5 size-4"
 						></span>
 					</label>
 				</div>
-				<a
+				<button
 					class="inline-flex w-full items-center justify-center gap-2 rounded-[0.5rem] bg-brand-ink px-4 py-2.5 text-sm font-bold text-brand-paper transition-colors hover:bg-brand-ink-2 sm:w-12 sm:px-0"
-					href="/rumah"
+					type="submit"
 					aria-label="Cari unit"
 				>
 					<span class="icon-[mdi--magnify] size-5"></span>
 					<span class="sm:hidden">Cari unit</span>
-				</a>
-			</div>
+				</button>
+			</form>
 
 			<p class="mt-4 text-sm text-brand-gray-500">
 				Kajian awal gratis · Tanpa ikatan sampai akad · ±10 menit
@@ -175,7 +186,7 @@
 				class="absolute bottom-4 left-4 rounded-[1rem] border border-brand-line bg-white px-4 py-3 text-base-content"
 			>
 				<p class="text-xs text-brand-gray-600">Unit tersedia</p>
-				<p class="text-lg font-bold tabular-nums">12 unit</p>
+				<p class="text-lg font-bold tabular-nums">{data.totalUnits} unit</p>
 			</div>
 		</div>
 	</div>

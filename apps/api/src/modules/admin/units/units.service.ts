@@ -1,4 +1,5 @@
 import { DesignCategory, DesignStatus, type Prisma } from '@azetta/db';
+import { objectKeyFromUrl } from '../../../lib/object-storage';
 import { prisma } from '../../../lib/prisma';
 import {
 	badRequest,
@@ -69,7 +70,7 @@ async function replaceMedia(designId: number, cover: string | null, gallery: str
 			data: {
 				designId,
 				url,
-				storageKey: url,
+				storageKey: objectKeyFromUrl(url),
 				isCover: url === cover,
 				sortOrder: order++,
 				kind: 'IMAGE'
@@ -447,7 +448,7 @@ export async function addUnitMedia(id: string, payload: Record<string, unknown>)
 		data: {
 			designId: design.id,
 			url,
-			storageKey: String(payload.storageKey ?? url),
+			storageKey: objectKeyFromUrl(String(payload.storageKey ?? url)),
 			alt: typeof payload.alt === 'string' ? payload.alt : null,
 			kind: 'IMAGE',
 			isCover: payload.isCover === true,
@@ -464,8 +465,4 @@ export async function deleteUnitMedia(id: string, mediaId: string) {
 	if (!media) throw notFound('Media tidak ditemukan.');
 	await prisma.propertyDesignMedia.delete({ where: { id: media.id } });
 	return ok({ id: media.id, deleted: true });
-}
-
-export async function presignUnitMedia() {
-	return ok({ uploads: [] });
 }

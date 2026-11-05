@@ -183,7 +183,7 @@ Kunci `SiteSetting` yang dipakai MVP:
 | `analytics` | `{ ga4Id, umamiId, metaPixelId }` |
 | `seo.default` | `{ titleTemplate, defaultDescription, ogImageUrl }` |
 
-Key `brand` dan `legal` menyimpan URL hasil unggah melalui presign (gambar/PDF) — halaman Pengaturan menyediakan unggah, ganti, dan hapus. Ini memungkinkan dokumen legal ditambahkan kapan pun tanpa deploy (Q10).
+Key `brand` dan `legal` menyimpan URL hasil unggah media (gambar/PDF) — halaman Pengaturan menyediakan unggah, ganti, dan hapus. Ini memungkinkan dokumen legal ditambahkan kapan pun tanpa deploy (Q10).
 
 ### 3.5 Pipeline status
 

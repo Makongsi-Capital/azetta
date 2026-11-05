@@ -1,4 +1,4 @@
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 import { ApiError } from '../../lib/http';
 import { getSession, hashIp } from '../../lib/guard';
 import { checkRateLimit, clientIp } from '../../lib/rate-limit';
@@ -16,8 +16,8 @@ import {
 	listProjects,
 	listTestimonials,
 	listUnits,
-	presignUploads,
-	recordEvents
+	recordEvents,
+	uploadPublicFile
 } from './public.service';
 
 export const publicRoutes = new Elysia({ prefix: '/public' })
@@ -56,15 +56,20 @@ export const publicRoutes = new Elysia({ prefix: '/public' })
 			userAgent: request.headers.get('user-agent')
 		});
 	})
-	.post('/uploads/presign', async ({ request, set }) => {
-		const limit = checkRateLimit(`presign:${clientIp(request.headers)}`, 20, 60 * 60 * 1000);
-		if (!limit.allowed) {
-			set.headers['retry-after'] = String(limit.retryAfterSeconds);
-			throw new ApiError(429, 'RATE_LIMITED', 'Batas unggah lampiran tercapai.');
-		}
-		await getSession(request.headers);
-		return presignUploads();
-	})
+	.post(
+		'/uploads',
+		async ({ request, body, set }) => {
+			const limit = checkRateLimit(`uploads:${clientIp(request.headers)}`, 20, 60 * 60 * 1000);
+			if (!limit.allowed) {
+				set.headers['retry-after'] = String(limit.retryAfterSeconds);
+				throw new ApiError(429, 'RATE_LIMITED', 'Batas unggah lampiran tercapai.');
+			}
+
+			const session = await getSession(request.headers);
+			return uploadPublicFile(body.file, session?.user.id ?? null);
+		},
+		{ body: t.Object({ file: t.File() }) }
+	)
 	.post('/events', ({ request, body, set }) => {
 		const limit = checkRateLimit(`events:${clientIp(request.headers)}`, 120, 60 * 1000);
 		if (!limit.allowed) {

@@ -38,7 +38,3 @@ export async function updateSettings(
 	});
 	return ok(payload);
 }
-
-export async function presignSettingAsset() {
-	return ok({ uploads: [] });
-}

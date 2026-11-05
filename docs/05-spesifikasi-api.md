@@ -12,7 +12,7 @@
 | Base URL lokal | `http://localhost:3000` |
 | Prefix versi | `/api/v1` |
 | Auth | `/api/auth/*` (Better Auth) |
-| Format | JSON UTF-8, kecuali unggah media (presigned `PUT` langsung ke R2) |
+| Format | JSON UTF-8, kecuali unggah media (`multipart/form-data` ke API) |
 | Dokumentasi | OpenAPI 3.1 di `/docs` (hanya aktif di non-produksi atau dilindungi basic auth) |
 | Klien | Eden Treaty (`packages/api-client`) untuk web & admin |
 
@@ -159,7 +159,7 @@ Catatan: kolom `customer` **tidak** memiliki akses ke `/api/v1/admin/*`. Satu co
 | GET | `/public/testimonials` | Testimoni publish | 600 s |
 | GET | `/public/site-config` | Kontak, brand, hero, template WA, analytics, dokumen legal | 300 s |
 | GET | `/public/regions` | Provinsi & kabupaten/kota | 1 hari (etag) |
-| POST | `/public/uploads/presign` | URL unggah lampiran lead | — |
+| POST | `/public/uploads` | Unggah foto lahan (`multipart/form-data`, ≤5 MB) | — |
 | POST | `/public/leads` | Kirim lead | — |
 | POST | `/public/events` | Kirim event funnel (batch) | — |
 | GET | `/me` | Profil pengguna yang login | no-store |
@@ -173,7 +173,7 @@ Catatan: kolom `customer` **tidak** memiliki akses ke `/api/v1/admin/*`. Satu co
 
 ### 4.2 `GET /public/units`
 
-**Query:** `q`, `project`, `city`, `type`, `bedrooms`, `minLandArea`, `minBuildingArea`, `minPrice`, `maxPrice`, `salesStatus` (`AVAILABLE` \| `INDENT` \| `SOLD`), `sort` (`-publishedAt` \| `priceFrom` \| `-priceFrom` \| `-landAreaM2`), `page`, `perPage`.
+**Query:** `q`, `project` (slug), `city`, `type` (gaya), `bedrooms`, `minLandArea`, `minBuildingArea`, `minPrice`, `maxPrice`, `featured`, `salesStatus` (`AVAILABLE` \| `INDENT` \| `SOLD`), `sort` (`-publishedAt` \| `priceFrom` \| `-priceFrom` \| `-landAreaM2`), `page`, `perPage`.
 
 **Contoh:**
 
@@ -191,7 +191,13 @@ GET /api/v1/public/units?city=Bandung&type=Tipe%2045&salesStatus=AVAILABLE&sort=
       "typeName": "Tipe 45",
       "title": "Azetta Residence Tipe 45",
       "subtitle": "3 kamar tidur, 2 lantai, siap huni",
-      "project": { "slug": "azetta-residence", "title": "Azetta Residence", "city": "Bandung" },
+      "project": {
+        "slug": "azetta-residence",
+        "title": "Azetta Residence",
+        "city": "Bandung",
+        "province": "Jawa Barat",
+        "location": "Jl. Kaliurang KM 9"
+      },
       "floors": 2,
       "bedrooms": 3,
       "bathrooms": 2,
@@ -217,6 +223,7 @@ GET /api/v1/public/units?city=Bandung&type=Tipe%2045&salesStatus=AVAILABLE&sort=
 
 - Hanya unit `publishStatus = PUBLISHED` yang proyeknya juga `PUBLISHED` yang dikembalikan.
 - `description` **tidak** disertakan pada list (payload lebih kecil).
+- `project` berisi ringkasan proyek pemilik unit (`null` bila unit belum ditautkan ke proyek). `city`/`location` di dalamnya dipakai web untuk filter kota dan label lokasi.
 - `priceFrom` adalah harga indikatif "mulai dari" untuk tipe tersebut (diambil dari nilai terendah unit `AVAILABLE` pada proyek yang sama); harga final tidak pernah dikirim ke publik.
 
 ### 4.3 `GET /public/units/:slug`
@@ -354,42 +361,35 @@ Satu endpoint untuk dua tipe lead. Skema bersifat diskriminatif berdasarkan `typ
 
 Catatan: lead dari pengunjung yang login **tetap** dapat dikirim meski email belum terverifikasi — verifikasi hanya syarat untuk *melihat* pengajuan, bukan untuk mengirim.
 
-### 4.5 `POST /public/uploads/presign`
+### 4.5 `POST /public/uploads`
 
-Dipakai untuk foto lahan sebelum submit lead.
+Dipakai untuk foto lahan sebelum submit lead. Berkas dikirim langsung ke API
+(`multipart/form-data`), lalu API menyimpannya ke object storage dan mencatatnya di tabel
+`media`.
 
-**Body:**
-
-```json
-{
-  "purpose": "LAND_PHOTO",
-  "files": [
-    { "fileName": "lahan-1.jpg", "mimeType": "image/jpeg", "sizeBytes": 1843200 },
-    { "fileName": "lahan-2.jpg", "mimeType": "image/jpeg", "sizeBytes": 2048000 }
-  ],
-  "turnstileToken": "0.abc…"
-}
-```
+**Form field:** `file` (satu berkas per permintaan).
 
 **Respons:**
 
 ```json
 {
   "data": {
-    "uploads": [
-      {
-        "key": "leads/tmp/7c9f1a2b.jpg",
-        "url": "https://r2.azetta.id/leads/tmp/7c9f1a2b.jpg?X-Amz-Signature=…",
-        "method": "PUT",
-        "headers": { "Content-Type": "image/jpeg" },
-        "expiresIn": 600
-      }
-    ]
+    "id": "V1StGXR8Z5jdHi6B",
+    "key": "leads/2026/11/2f1b9c0d8e7a6b5c4d3e2f1a.jpg",
+    "url": "https://media.azetta.id/leads/2026/11/2f1b9c0d8e7a6b5c4d3e2f1a.jpg",
+    "mime": "image/jpeg",
+    "size": 1843200,
+    "folder": "leads",
+    "original_name": "lahan-1.jpg",
+    "created_at": "2026-11-05T04:00:00.000Z"
   }
 }
 ```
 
-Batasan: maks 5 file/permintaan, ≤5 MB/file, MIME `image/jpeg|png|webp`, prefix `leads/tmp/`. Objek `tmp` yang tidak dirujuk lead dihapus setelah 24 jam. Saat lead dibuat, API memindahkan objek ke `leads/{leadId}/…` (copy + delete) dan mencatat metadata.
+Batasan: maks 5 berkas per lead, ≤5 MB/berkas, MIME `image/jpeg|png|webp`. Key hasil unggah
+dikirim pada `land.attachmentKeys` saat membuat lead; API mencocokkannya dengan tabel `media`
+lalu menulis `lead_attachment` (nama berkas, MIME, dan ukuran asli). Key yang tidak dikenal
+diabaikan.
 
 ### 4.6 `GET /public/projects` & `GET /public/projects/:slug`
 
@@ -567,7 +567,7 @@ Aturan: `body` wajib untuk `NOTE`/`CALL`/`WHATSAPP`/`EMAIL`/`MEETING`; maks 2.00
 | POST | `/admin/units/:id/archive` | Set `ARCHIVED` |
 | PATCH | `/admin/units/:id/sales-status` | Ubah `AVAILABLE`/`INDENT`/`SOLD`; tercatat di audit log |
 | POST | `/admin/units/:id/duplicate` | Duplikasi sebagai draft baru (unitCode wajib diubah) |
-| POST | `/admin/units/:id/media/presign` | URL unggah media |
+| POST | `/admin/media` | Unggah satu berkas (`multipart/form-data`, `folder=units`) |
 | POST | `/admin/units/:id/media` | Daftarkan media setelah unggah |
 | PATCH | `/admin/units/:id/media/:mediaId` | Ubah `alt`, `sortOrder`, `isCover` |
 | DELETE | `/admin/units/:id/media/:mediaId` | Hapus media (objek R2 ikut dihapus) |
@@ -590,11 +590,11 @@ Aturan: `body` wajib untuk `NOTE`/`CALL`/`WHATSAPP`/`EMAIL`/`MEETING`; maks 2.00
 | PATCH/DELETE | `/admin/testimonials/:id` | Ubah / hapus |
 | GET | `/admin/settings` | Semua setting |
 | PATCH | `/admin/settings` | Ubah sebagian (`{ key: value }`) |
-| POST | `/admin/settings/assets/presign` | URL unggah logo/favicon/dokumen legal |
+| POST | `/admin/media` | Unggah logo/favicon/dokumen legal (`folder=settings`) |
 
-**Konten kaya (D8).** Field `content` (artikel) dan `description` (unit/proyek) berisi **HTML dari editor Tiptap**; jawaban FAQ tetap teks biasa. API **wajib** menyaring dengan allowlist server-side sebelum menyimpan (tag: `h2`–`h4`, `p`, `ul`, `ol`, `li`, `strong`, `em`, `a`, `blockquote`, `code`, `pre`, `img`, `table`, `hr`, `br`; atribut: `href`, `src`, `alt`, `title`, `rel`, `target`). `script`, `style`, `iframe`, event handler, dan URL `javascript:` ditolak/dibuang. Gambar harus memakai URL hasil presign R2.
+**Konten kaya (D8).** Field `content` (artikel) dan `description` (unit/proyek) berisi **HTML dari editor Tiptap**; jawaban FAQ tetap teks biasa. API **wajib** menyaring dengan allowlist server-side sebelum menyimpan (tag: `h2`–`h4`, `p`, `ul`, `ol`, `li`, `strong`, `em`, `a`, `blockquote`, `code`, `pre`, `img`, `table`, `hr`, `br`; atribut: `href`, `src`, `alt`, `title`, `rel`, `target`). `script`, `style`, `iframe`, event handler, dan URL `javascript:` ditolak/dibuang. Gambar harus memakai URL hasil unggah media (`POST /admin/media`).
 
-**`POST /admin/settings/assets/presign`** menerima `{ purpose, fileName, mimeType, sizeBytes }` dengan `purpose` ∈ `BRAND_LOGO` | `BRAND_FAVICON` | `LEGAL_DOCUMENT`. MIME: gambar untuk brand, `application/pdf` untuk dokumen legal. Setelah unggah, URL disimpan melalui `PATCH /admin/settings` pada kunci `brand` atau `legal`.
+**Unggah media.** `POST /admin/media` menerima `multipart/form-data` dengan field `file` dan `folder` (`units` | `projects` | `articles` | `settings` | `media`). API membatasi MIME (`image/jpeg|png|webp|avif|gif|svg+xml`, `application/pdf`) dan ukuran `OBJECT_STORAGE_MAX_UPLOAD_BYTES` (default 10 MB), menyimpan objek ke object storage, lalu mengembalikan `{ id, key, url, mime, size, folder, original_name, created_at }`. URL itulah yang disimpan ke field media entitas (mis. `coverImageUrl`, `galleryUrls`) atau ke `PATCH /admin/settings` pada kunci `brand`/`legal`. Daftar `GET /admin/media?folder=…` dan `DELETE /admin/media/:id` (objek storage ikut dihapus) tersedia untuk pustaka media.
 
 ### 5.4 Proyek
 
@@ -605,7 +605,7 @@ Aturan: `body` wajib untuk `NOTE`/`CALL`/`WHATSAPP`/`EMAIL`/`MEETING`; maks 2.00
 | GET/PATCH/DELETE | `/admin/projects/:id` | Detail / ubah / arsipkan |
 | POST | `/admin/projects/:id/publish` | Publish (wajib `coverImageUrl`) |
 | POST | `/admin/projects/:id/unpublish` | Tarik dari publik |
-| POST | `/admin/projects/:id/media/presign` | Unggah cover/galeri |
+| POST | `/admin/media` | Unggah cover/galeri (`folder=projects`) |
 
 Aturan: `galleryUrls` maks 10; `sortOrder` menentukan urutan tampil; proyek `deletedAt` tidak pernah tampil.
 
@@ -656,7 +656,7 @@ Aturan: `galleryUrls` maks 10; `sortOrder` menentukan urutan tampil; proyek `del
 |----------|-------|-------|
 | `POST /public/leads` | 5/jam | IP |
 | `POST /public/leads` | 3/jam | `phoneNormalized` |
-| `POST /public/uploads/presign` | 20/jam | IP |
+| `POST /public/uploads` | 20/jam | IP |
 | `POST /public/events` | 120/menit | IP |
 | `GET /public/*` | 300/menit | IP |
 | `POST /auth/sign-up/*` | 3/jam | IP |

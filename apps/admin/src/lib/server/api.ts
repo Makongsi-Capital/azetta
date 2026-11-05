@@ -45,16 +45,24 @@ interface ApiOptions {
 	fetcher?: typeof fetch;
 }
 
+function requestBody(body: unknown): BodyInit | undefined {
+	if (body === undefined) return undefined;
+	// FormData mengatur boundary multipart sendiri; jangan set content-type manual.
+	return body instanceof FormData ? body : JSON.stringify(body);
+}
+
 export async function apiRequest<T>(path: string, options: ApiOptions = {}): Promise<ApiResult<T>> {
 	const fetcher = options.fetcher ?? fetch;
 	const headers = new Headers({ accept: 'application/json' });
-	if (options.body !== undefined) headers.set('content-type', 'application/json');
+	if (options.body !== undefined && !(options.body instanceof FormData)) {
+		headers.set('content-type', 'application/json');
+	}
 	if (options.cookie) headers.set('cookie', options.cookie);
 
 	const response = await fetcher(`${API_BASE}${path}`, {
 		method: options.method ?? 'GET',
 		headers,
-		body: options.body === undefined ? undefined : JSON.stringify(options.body)
+		body: requestBody(options.body)
 	});
 
 	const setCookies =
@@ -81,13 +89,15 @@ export async function apiRequestRaw<T>(
 ): Promise<{ data: T | null; setCookies: string[] }> {
 	const fetcher = options.fetcher ?? fetch;
 	const headers = new Headers({ accept: 'application/json' });
-	if (options.body !== undefined) headers.set('content-type', 'application/json');
+	if (options.body !== undefined && !(options.body instanceof FormData)) {
+		headers.set('content-type', 'application/json');
+	}
 	if (options.cookie) headers.set('cookie', options.cookie);
 
 	const response = await fetcher(`${API_BASE}${path}`, {
 		method: options.method ?? 'GET',
 		headers,
-		body: options.body === undefined ? undefined : JSON.stringify(options.body)
+		body: requestBody(options.body)
 	});
 
 	const setCookies =

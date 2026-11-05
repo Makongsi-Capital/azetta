@@ -55,45 +55,62 @@ async function main() {
 		}
 	});
 
-	const projectCount = await prisma.project.count();
-	if (projectCount === 0) {
-		await prisma.project.createMany({
-			data: [
-				{
-					slug: 'azetta-residence',
-					title: 'Azetta Residence',
-					summary: 'Cluster 24 unit di Sleman Utara dengan konsep hunian tropis.',
-					location: 'Jl. Kaliurang KM 9',
-					city: 'Sleman',
-					province: 'DI Yogyakarta',
-					status: 'ONGOING',
-					yearStarted: 2024,
-					landAreaM2: 4800,
-					unitCount: 24,
-					coverImageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9',
-					galleryUrls: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c'],
-					isPublished: true,
-					sortOrder: 1,
-					createdById: superAdmin.id
-				},
-				{
-					slug: 'azetta-signature',
-					title: 'Azetta Signature',
-					summary: 'Hunian premium 12 unit di kawasan Ngaglik.',
-					location: 'Jl. Palagan KM 12',
-					city: 'Sleman',
-					province: 'DI Yogyakarta',
-					status: 'PLANNED',
-					yearStarted: 2026,
-					landAreaM2: 2600,
-					unitCount: 12,
-					coverImageUrl: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde',
-					galleryUrls: [],
-					isPublished: false,
-					sortOrder: 2,
-					createdById: superAdmin.id
-				}
-			]
+	const projects = [
+		{
+			slug: 'azetta-residence',
+			title: 'Azetta Residence',
+			summary: 'Cluster 24 unit di Sleman Utara dengan konsep hunian tropis.',
+			location: 'Jl. Kaliurang KM 9',
+			city: 'Sleman',
+			province: 'DI Yogyakarta',
+			status: 'ONGOING' as const,
+			yearStarted: 2024,
+			landAreaM2: 4800,
+			unitCount: 24,
+			coverImageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9',
+			galleryUrls: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c'],
+			isPublished: true,
+			sortOrder: 1
+		},
+		{
+			slug: 'azetta-garden',
+			title: 'Azetta Garden',
+			summary: 'Dua belas unit dengan taman lingkungan di tengah klaster.',
+			location: 'Jl. Palagan KM 7',
+			city: 'Sleman',
+			province: 'DI Yogyakarta',
+			status: 'ONGOING' as const,
+			yearStarted: 2025,
+			landAreaM2: 3200,
+			unitCount: 12,
+			coverImageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
+			galleryUrls: [],
+			isPublished: true,
+			sortOrder: 2
+		},
+		{
+			slug: 'azetta-signature',
+			title: 'Azetta Signature',
+			summary: 'Hunian premium 12 unit di kawasan Ngaglik.',
+			location: 'Jl. Palagan KM 12',
+			city: 'Sleman',
+			province: 'DI Yogyakarta',
+			status: 'PLANNED' as const,
+			yearStarted: 2026,
+			landAreaM2: 2600,
+			unitCount: 12,
+			coverImageUrl: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde',
+			galleryUrls: [],
+			isPublished: false,
+			sortOrder: 3
+		}
+	];
+
+	for (const project of projects) {
+		await prisma.project.upsert({
+			where: { slug: project.slug },
+			update: {},
+			create: { ...project, createdById: superAdmin.id }
 		});
 	}
 
@@ -194,6 +211,27 @@ async function main() {
 			});
 			await prisma.designTagOnDesign.create({ data: { designId: created.id, tagId: tag.id } });
 		}
+	}
+
+	// Tautkan unit contoh ke proyeknya agar halaman publik punya konteks proyek dan kota.
+	const projectIds = new Map(
+		(await prisma.project.findMany({ select: { id: true, slug: true } })).map((project) => [
+			project.slug,
+			project.id
+		])
+	);
+	const designProject: Record<string, string> = {
+		'azetta-residence-a1': 'azetta-residence',
+		'azetta-residence-b2': 'azetta-residence',
+		'azetta-garden-c1': 'azetta-garden'
+	};
+	for (const [designSlug, projectSlug] of Object.entries(designProject)) {
+		const projectId = projectIds.get(projectSlug);
+		if (!projectId) continue;
+		await prisma.propertyDesign.updateMany({
+			where: { slug: designSlug, projectId: null },
+			data: { projectId }
+		});
 	}
 
 	const articleCount = await prisma.article.count();

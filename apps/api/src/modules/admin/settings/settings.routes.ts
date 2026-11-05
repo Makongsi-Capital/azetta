@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia';
 import { hashIp, requireStaff } from '../../../lib/guard';
-import { getSettings, presignSettingAsset, updateSettings } from './settings.service';
+import { getSettings, updateSettings } from './settings.service';
 
 export const settingRoutes = new Elysia({ prefix: '/admin/settings' })
 	.get('/', async ({ request }) => {
@@ -14,8 +14,4 @@ export const settingRoutes = new Elysia({ prefix: '/admin/settings' })
 			(body ?? {}) as Record<string, unknown>,
 			hashIp(request.headers.get('x-forwarded-for'))
 		);
-	})
-	.post('/assets/presign', async ({ request }) => {
-		await requireStaff(request.headers);
-		return presignSettingAsset();
 	});

@@ -1,12 +1,16 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve, svelte/no-at-html-tags -- mockup: rute belum dibangun; JSON-LD berasal dari konstanta yang di-escape. */
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
+	/* eslint-disable svelte/no-at-html-tags -- JSON-LD berasal dari data API yang di-escape */
 	import PageHero from '#lib/components/site/PageHero.svelte';
-	import { faqs } from '#lib/mock/site.js';
 	import { jsonLdScript } from '#lib/seo.js';
+	import type { PageProps } from './$types';
 
-	const categories = [...new Set(faqs.map((faq) => faq.category))];
+	let { data }: PageProps = $props();
 
-	const jsonLd = {
+	const faqs = $derived(data.faqs);
+	const categories = $derived([...new Set(faqs.map((faq) => faq.category))]);
+
+	const jsonLd = $derived({
 		'@context': 'https://schema.org',
 		'@type': 'FAQPage',
 		mainEntity: faqs.map((faq) => ({
@@ -14,7 +18,7 @@
 			name: faq.question,
 			acceptedAnswer: { '@type': 'Answer', text: faq.answer }
 		}))
-	};
+	});
 </script>
 
 <svelte:head>

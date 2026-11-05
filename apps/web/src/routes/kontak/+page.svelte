@@ -1,6 +1,9 @@
 <script lang="ts">
 	import LeadForm from '#lib/components/site/LeadForm.svelte';
 	import PageHero from '#lib/components/site/PageHero.svelte';
+	import type { PageProps } from './$types';
+
+	let { form }: PageProps = $props();
 
 	const details = [
 		{
@@ -76,8 +79,10 @@
 			</p>
 			<div class="mt-6">
 				<LeadForm
+					type="GENERAL"
 					submitLabel="Kirim pesan"
 					messagePlaceholder="Saya ingin menanyakan unit Tipe 45 di Tamalanrea"
+					{form}
 				/>
 			</div>
 		</div>

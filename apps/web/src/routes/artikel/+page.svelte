@@ -1,9 +1,18 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
 	import ArticleCard from '#lib/components/site/ArticleCard.svelte';
 	import PageHero from '#lib/components/site/PageHero.svelte';
-	import { articles } from '#lib/mock/site.js';
+	import type { PageProps } from './$types';
 
-	const topics = ['Semua', 'Rumah', 'Lahan', 'Biaya', 'Investasi'];
+	let { data }: PageProps = $props();
+
+	const topics = $derived([
+		{ slug: null, label: 'Semua' },
+		...[...new Set(data.articles.flatMap((article) => article.tags))].map((tag) => ({
+			slug: tag,
+			label: tag
+		}))
+	]);
 </script>
 
 <svelte:head>
@@ -23,21 +32,27 @@
 
 <div class="mx-auto max-w-6xl px-4 py-12">
 	<div class="flex flex-wrap gap-2">
-		{#each topics as topic, index (topic)}
-			<span class="badge badge-lg {index === 0 ? 'badge-neutral' : 'badge-outline'}">
-				{topic}
-			</span>
+		{#each topics as topic (topic.label)}
+			<a
+				class="badge badge-lg {data.activeTag === topic.slug ? 'badge-neutral' : 'badge-outline'}"
+				href={topic.slug ? `/artikel?tag=${encodeURIComponent(topic.slug)}` : '/artikel'}
+			>
+				{topic.label}
+			</a>
 		{/each}
 	</div>
 
-	<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-		{#each articles as article (article.slug)}
-			<ArticleCard {article} />
-		{/each}
-	</div>
-
-	<p class="mt-8 text-sm text-brand-gray-600">
-		Kategori dan pencarian artikel diaktifkan setelah konten bertambah. Untuk saat ini, seluruh
-		tulisan ditampilkan dalam satu daftar.
-	</p>
+	{#if data.articles.length === 0}
+		<p
+			class="mt-8 rounded-[1rem] border border-brand-line bg-white p-6 text-sm text-brand-gray-600"
+		>
+			Belum ada artikel yang dipublikasikan.
+		</p>
+	{:else}
+		<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+			{#each data.articles as article (article.slug)}
+				<ArticleCard {article} />
+			{/each}
+		</div>
+	{/if}
 </div>

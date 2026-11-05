@@ -8,7 +8,6 @@ import {
 	duplicateUnit,
 	getUnit,
 	listUnits,
-	presignUnitMedia,
 	publishUnit,
 	setUnitArchived,
 	updateUnit
@@ -60,10 +59,6 @@ export const unitRoutes = new Elysia({ prefix: '/admin/units' })
 			(body ?? {}) as Record<string, unknown>,
 			hashIp(request.headers.get('x-forwarded-for'))
 		);
-	})
-	.post('/:id/media/presign', async ({ request }) => {
-		await requireStaff(request.headers);
-		return presignUnitMedia();
 	})
 	.post('/:id/media', async ({ request, params, body }) => {
 		await requireStaff(request.headers);

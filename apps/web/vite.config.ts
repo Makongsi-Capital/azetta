@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+	// Baca .env dari root workspace supaya PUBLIC_API_BASE_URL sama dengan yang dipakai API.
+	envDir: '../..',
 	plugins: [
 		tailwindcss(),
 		sveltekit({

@@ -1,5 +1,6 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve, svelte/no-at-html-tags -- mockup: sebagian rute belum dibangun; JSON-LD berasal dari konstanta yang di-escape. */
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
+	/* eslint-disable svelte/no-at-html-tags -- deskripsi proyek berasal dari API dan disanitasi saat penyimpanan */
 	import PropertyCard from '#lib/components/site/PropertyCard.svelte';
 	import SectionHeading from '#lib/components/site/SectionHeading.svelte';
 	import { jsonLdScript } from '#lib/seo.js';
@@ -10,11 +11,13 @@
 	const project = $derived(data.project);
 	const isCompleted = $derived(project.status === 'SELESAI');
 	const period = $derived(
-		project.yearCompleted
-			? `${project.yearStarted}–${project.yearCompleted}`
-			: `${project.yearStarted}–sekarang`
+		project.yearStarted
+			? `${project.yearStarted}${project.yearCompleted ? `–${project.yearCompleted}` : '–sekarang'}`
+			: '—'
 	);
-	const area = $derived(new Intl.NumberFormat('id-ID').format(project.landAreaM2));
+	const area = $derived(
+		project.landAreaM2 === null ? null : new Intl.NumberFormat('id-ID').format(project.landAreaM2)
+	);
 
 	const jsonLd = $derived({
 		'@context': 'https://schema.org',
@@ -22,7 +25,7 @@
 		name: project.title,
 		description: project.summary,
 		image: project.cover,
-		dateCreated: String(project.yearStarted),
+		dateCreated: project.yearStarted ? String(project.yearStarted) : undefined,
 		locationCreated: {
 			'@type': 'Place',
 			name: `${project.location}, ${project.city}`
@@ -82,11 +85,11 @@
 		</div>
 		<div class="bg-white p-4">
 			<dt class="text-xs text-brand-gray-600">Jumlah unit</dt>
-			<dd class="mt-1 text-lg font-bold tabular-nums">{project.unitCount} unit</dd>
+			<dd class="mt-1 text-lg font-bold tabular-nums">{project.unitCount ?? '—'} unit</dd>
 		</div>
 		<div class="bg-white p-4">
 			<dt class="text-xs text-brand-gray-600">Luas lahan</dt>
-			<dd class="mt-1 text-lg font-bold tabular-nums">{area} m²</dd>
+			<dd class="mt-1 text-lg font-bold tabular-nums">{area === null ? '—' : `${area} m²`}</dd>
 		</div>
 		<div class="bg-white p-4">
 			<dt class="text-xs text-brand-gray-600">Status</dt>
@@ -97,11 +100,16 @@
 	<div class="mt-10 grid gap-10 lg:grid-cols-[1fr_320px] lg:items-start">
 		<div>
 			<h2 class="text-xl">Tentang proyek</h2>
-			<p class="mt-3 text-brand-gray-600">
-				{project.title} dikembangkan di {project.location}, {project.city}, dengan {project.unitCount}
-				unit pada lahan seluas {area} m². Tata letak dibuat agar setiap unit mendapat akses jalan lingkungan
-				dan saluran air hujan yang memadai.
-			</p>
+			{#if project.descriptionHtml}
+				<div class="prose mt-3 text-brand-gray-600">{@html project.descriptionHtml}</div>
+			{:else}
+				<p class="mt-3 text-brand-gray-600">
+					{project.title} dikembangkan di {project.location}, {project.city}{project.unitCount
+						? `, dengan ${project.unitCount} unit`
+						: ''}{area === null ? '' : ` pada lahan seluas ${area} m²`}. Tata letak dibuat agar
+					setiap unit mendapat akses jalan lingkungan dan saluran air hujan yang memadai.
+				</p>
+			{/if}
 			<p class="mt-3 text-brand-gray-600">
 				Progres dilaporkan berkala kepada pembeli dan pemilik lahan: foto lapangan, tahap pekerjaan,
 				dan perkiraan serah terima. Dokumen legalitas ditunjukkan sebelum tanda tangan, bukan

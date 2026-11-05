@@ -1,6 +1,7 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve, svelte/no-at-html-tags -- tombol kembali menuju daftar artikel; pratinjau merender HTML dari editor lokal */
 	import { tick, untrack } from 'svelte';
+	import MediaUpload from '#lib/components/admin/MediaUpload.svelte';
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDate, slugify } from '#lib/format.js';
 	import { articleStatusLabel } from '#lib/labels.js';
@@ -155,6 +156,13 @@
 							placeholder="https://…"
 							bind:value={coverImageUrl}
 						/>
+						<div class="mt-2">
+							<MediaUpload
+								folder="articles"
+								hint="Unggah gambar sampul (maks 10 MB) atau tempel URL di atas."
+								onUploaded={(media) => (coverImageUrl = media.url)}
+							/>
+						</div>
 					</fieldset>
 
 					{#if coverImageUrl}

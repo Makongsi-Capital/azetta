@@ -2,6 +2,9 @@
 	/* eslint-disable svelte/no-navigation-without-resolve -- mockup: rute FAQ belum dibangun */
 	import LeadForm from '#lib/components/site/LeadForm.svelte';
 	import PageHero from '#lib/components/site/PageHero.svelte';
+	import type { PageProps } from './$types';
+
+	let { form }: PageProps = $props();
 
 	const schemes = [
 		{
@@ -133,9 +136,12 @@
 			</p>
 			<div class="mt-6">
 				<LeadForm
+					type="LAND_OFFER"
 					submitLabel="Kirim pengajuan"
 					messagePlaceholder="Lokasi, luas, status kepemilikan, dan maksud Anda"
 					withCity
+					withLand
+					{form}
 				/>
 			</div>
 		</div>

@@ -27,13 +27,13 @@ datasource db {
 // ============================================================
 
 model User {
-  id            String    @id
+  id            String   @id
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // admin plugin
   role       String    @default("customer")
@@ -61,6 +61,7 @@ model User {
 
   deletionRequests        AccountDeletionRequest[] @relation("DeletionRequestedBy")
   handledDeletionRequests AccountDeletionRequest[] @relation("DeletionRequestHandledBy")
+  medias                  Media[]
 
   @@index([role])
   @@map("user")
@@ -141,7 +142,7 @@ enum MediaKind {
 }
 
 model PropertyDesign {
-  id Int @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   slug        String  @unique
   title       String
   subtitle    String?
@@ -150,10 +151,10 @@ model PropertyDesign {
 
   category       DesignCategory
   style          String
-  floors         Int    @default(1)
-  bedrooms       Int    @default(0)
-  bathrooms      Int    @default(0)
-  carports       Int    @default(0)
+  floors         Int            @default(1)
+  bedrooms       Int            @default(0)
+  bathrooms      Int            @default(0)
+  carports       Int            @default(0)
   buildingAreaM2 Int
   landAreaMinM2  Int
 
@@ -161,12 +162,15 @@ model PropertyDesign {
   estimatedBuildCostMax BigInt?
   priceFrom             BigInt?
 
-  status      DesignStatus @default(DRAFT)
-  featured    Boolean      @default(false)
-  viewCount   Int          @default(0)
-  publishedAt DateTime?
+  status         DesignStatus @default(DRAFT)
+  featured       Boolean      @default(false)
+  viewCount      Int          @default(0)
+  publishedAt    DateTime?
   seoTitle       String?
   seoDescription String?
+
+  projectId Int?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -181,11 +185,12 @@ model PropertyDesign {
   @@index([category, style])
   @@index([featured, status])
   @@index([deletedAt])
+  @@index([projectId])
   @@map("property_design")
 }
 
 model PropertyDesignMedia {
-  id Int @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   designId   Int
   kind       MediaKind @default(IMAGE)
   storageKey String
@@ -204,7 +209,7 @@ model PropertyDesignMedia {
 }
 
 model DesignTag {
-  id Int @id @default(autoincrement())
+  id   Int    @id @default(autoincrement())
   slug String @unique
   name String @unique
 
@@ -331,10 +336,10 @@ enum InvestmentInstrument {
 }
 
 model Lead {
-  id String @id @default(uuid(7)) @db.Uuid
-  reference String     @unique
+  id        String       @id @default(uuid(7)) @db.Uuid
+  reference String       @unique
   type      LeadType
-  status    LeadStatus @default(NEW)
+  status    LeadStatus   @default(NEW)
   priority  LeadPriority @default(NORMAL)
 
   name            String
@@ -347,31 +352,31 @@ model Lead {
   designId Int?
   design   PropertyDesign? @relation(fields: [designId], references: [id], onDelete: SetNull)
 
-  source       LeadSource @default(WEBSITE)
-  landingPath  String?
-  referrerUrl  String?
-  utmSource    String?
-  utmMedium    String?
-  utmCampaign  String?
-  utmContent   String?
-  utmTerm      String?
-  ipHash       String?
-  userAgent    String?
+  source      LeadSource @default(WEBSITE)
+  landingPath String?
+  referrerUrl String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+  ipHash      String?
+  userAgent   String?
 
   userId       String?
   user         User?   @relation("LeadCreatedBy", fields: [userId], references: [id], onDelete: SetNull)
   assignedToId String?
   assignedTo   User?   @relation("LeadAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
 
-  estimatedValue   BigInt?
-  lostReason       String?
-  firstContactedAt DateTime?
-  lastContactedAt  DateTime?
-  nextFollowUpAt   DateTime?
-  closedAt         DateTime?
-  spamScore        Int       @default(0)
-  idempotencyKey   String?   @unique
-  customerNote     String?   @db.Text
+  estimatedValue        BigInt?
+  lostReason            String?
+  firstContactedAt      DateTime?
+  lastContactedAt       DateTime?
+  nextFollowUpAt        DateTime?
+  closedAt              DateTime?
+  spamScore             Int       @default(0)
+  idempotencyKey        String?   @unique
+  customerNote          String?   @db.Text
   customerNoteUpdatedAt DateTime?
 
   createdAt DateTime  @default(now())
@@ -394,7 +399,7 @@ model Lead {
 }
 
 model LandSubmission {
-  id Int @id @default(autoincrement())
+  id      Int    @id @default(autoincrement())
   leadId  String @unique @db.Uuid
   address String
 
@@ -402,17 +407,17 @@ model LandSubmission {
   city     String
   district String?
 
-  areaM2            Int
-  frontageM         Int?
-  ownershipStatus   OwnershipStatus
+  areaM2              Int
+  frontageM           Int?
+  ownershipStatus     OwnershipStatus
   certificateOnBehalf String?
-  zoning            String?
-  currentUse        String?
-  roadAccess        String?
-  estimatedValue    BigInt?
-  expectedScheme    ExpectedScheme
-  startTimeline     StartTimeline?
-  notes             String? @db.Text
+  zoning              String?
+  currentUse          String?
+  roadAccess          String?
+  estimatedValue      BigInt?
+  expectedScheme      ExpectedScheme
+  startTimeline       StartTimeline?
+  notes               String?         @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -424,14 +429,14 @@ model LandSubmission {
 }
 
 model InvestmentInterest {
-  id Int @id @default(autoincrement())
-  leadId    String @unique @db.Uuid
-  budgetRange       BudgetRange
+  id                 Int                   @id @default(autoincrement())
+  leadId             String                @unique @db.Uuid
+  budgetRange        BudgetRange
   preferredLocations String[]
-  horizonMonths     Int?
-  riskProfile       RiskProfile @default(UNKNOWN)
-  instrument        InvestmentInstrument?
-  notes             String? @db.Text
+  horizonMonths      Int?
+  riskProfile        RiskProfile           @default(UNKNOWN)
+  instrument         InvestmentInstrument?
+  notes              String?               @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -442,8 +447,8 @@ model InvestmentInterest {
 }
 
 model LeadActivity {
-  id Int @id @default(autoincrement())
-  leadId String @db.Uuid
+  id     Int          @id @default(autoincrement())
+  leadId String       @db.Uuid
   type   ActivityType
   body   String?      @db.Text
   /// [LeadActivityMeta]
@@ -462,8 +467,8 @@ model LeadActivity {
 }
 
 model LeadAttachment {
-  id Int @id @default(autoincrement())
-  leadId     String @db.Uuid
+  id         Int            @id @default(autoincrement())
+  leadId     String         @db.Uuid
   kind       AttachmentKind @default(LAND_PHOTO)
   fileName   String
   storageKey String
@@ -491,12 +496,12 @@ enum ProjectStatus {
 }
 
 model Project {
-  id Int @id @default(autoincrement())
-  slug        String        @unique
+  id          Int     @id @default(autoincrement())
+  slug        String  @unique
   title       String
   summary     String?
   /// HTML tersanitasi (Tiptap)
-  description String?       @db.Text
+  description String? @db.Text
 
   location String
   city     String
@@ -510,14 +515,16 @@ model Project {
 
   coverImageUrl String?
   galleryUrls   String[]
-  isPublished   Boolean @default(false)
-  sortOrder     Int     @default(0)
+  isPublished   Boolean  @default(false)
+  sortOrder     Int      @default(0)
 
   seoTitle       String?
   seoDescription String?
 
   createdById String?
   createdBy   User?   @relation("ProjectAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+
+  units PropertyDesign[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -540,19 +547,19 @@ enum ArticleStatus {
 }
 
 model Article {
-  id Int @id @default(autoincrement())
-  slug          String        @unique
-  title         String
-  excerpt       String?
+  id             Int           @id @default(autoincrement())
+  slug           String        @unique
+  title          String
+  excerpt        String?
   /// HTML tersanitasi (Tiptap)
-  content       String        @db.Text
-  coverImageUrl String?
-  status        ArticleStatus @default(DRAFT)
-  publishedAt   DateTime?
+  content        String        @db.Text
+  coverImageUrl  String?
+  status         ArticleStatus @default(DRAFT)
+  publishedAt    DateTime?
   readingMinutes Int?
-  tags          String[]
-  viewCount     Int           @default(0)
-  seoTitle      String?
+  tags           String[]
+  viewCount      Int           @default(0)
+  seoTitle       String?
   seoDescription String?
 
   authorId String?
@@ -568,7 +575,7 @@ model Article {
 }
 
 model Faq {
-  id Int @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   question  String
   answer    String  @db.Text
   category  String  @default("umum")
@@ -583,7 +590,7 @@ model Faq {
 }
 
 model Testimonial {
-  id Int @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
   role        String?
   projectName String?
@@ -616,7 +623,7 @@ model SiteSetting {
 // ============================================================
 
 model AuditLog {
-  id Int @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   action     String
   entityType String
   entityId   String
@@ -637,11 +644,11 @@ model AuditLog {
 }
 
 model FunnelEvent {
-  id Int @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
   path      String
   designId  Int?
-  leadId    String? @db.Uuid
+  leadId    String?  @db.Uuid
   sessionId String?
   /// [FunnelProps]
   props     Json?
@@ -660,7 +667,7 @@ enum DeletionRequestStatus {
 }
 
 model AccountDeletionRequest {
-  id String @id @default(nanoid())
+  id     String                @id @default(nanoid())
   userId String
   reason String?
   status DeletionRequestStatus @default(PENDING)
@@ -676,4 +683,23 @@ model AccountDeletionRequest {
   @@index([userId, status])
   @@index([status, requestedAt])
   @@map("account_deletion_request")
+}
+
+model Media {
+  id            String  @id @default(nanoid(16))
+  key           String  @unique
+  url           String
+  mime          String
+  size          Int
+  folder        String
+  original_name String?
+  uploaded_by   String?
+
+  created_at DateTime @default(now())
+
+  uploader User? @relation(fields: [uploaded_by], references: [id], onDelete: SetNull)
+
+  @@index([folder])
+  @@index([created_at])
+  @@map("media")
 }

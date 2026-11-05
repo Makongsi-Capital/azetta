@@ -1,15 +1,16 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- mockup: rute tujuan belum dibangun */
-	import { account } from '#lib/mock/account.js';
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
 	import type { LayoutProps } from './$types';
 
-	let { children }: LayoutProps = $props();
+	let { data, children }: LayoutProps = $props();
 
-	const initials = account.name
-		.split(' ')
-		.slice(0, 2)
-		.map((part) => part.charAt(0))
-		.join('');
+	const initials = $derived(
+		data.user.name
+			.split(' ')
+			.slice(0, 2)
+			.map((part) => part.charAt(0))
+			.join('')
+	);
 </script>
 
 <div class="border-b border-brand-line bg-base-100">
@@ -21,11 +22,19 @@
 		</span>
 		<div class="mr-auto">
 			<p class="text-xs text-brand-gray-600">Akun saya</p>
-			<p class="text-sm font-bold">{account.name}</p>
+			<p class="text-sm font-bold">{data.user.name}</p>
 		</div>
-		<span class="badge badge-outline badge-sm hidden sm:inline-flex">Data demo</span>
+		{#if data.user.emailVerified}
+			<span class="badge badge-success badge-sm hidden border-0 sm:inline-flex">Terverifikasi</span>
+		{:else}
+			<span class="badge badge-warning badge-sm hidden border-0 sm:inline-flex">
+				Email belum terverifikasi
+			</span>
+		{/if}
 		<a class="btn btn-ghost btn-sm" href="/akun">Ringkasan</a>
-		<a class="btn btn-outline btn-sm" href="/masuk">Keluar</a>
+		<form method="POST" action="/keluar">
+			<button class="btn btn-outline btn-sm" type="submit">Keluar</button>
+		</form>
 	</div>
 </div>
 

@@ -64,7 +64,8 @@ azetta/
 │  │  │  ├─ lib/
 │  │  │  │  ├─ auth.ts         # instance Better Auth
 │  │  │  │  ├─ prisma.ts       # PrismaClient singleton
-│  │  │  │  ├─ storage.ts      # presigned URL R2/S3
+│  │  │  │  ├─ object-storage.ts # klien S3 (put/delete/URL)
+│  │  │  │  ├─ storage.service.ts # unggah + tabel media
 │  │  │  │  ├─ mailer.ts       # notifikasi email
 │  │  │  │  ├─ turnstile.ts    # verifikasi CAPTCHA
 │  │  │  │  └─ logger.ts       # pino
@@ -188,10 +189,10 @@ bun run build
 | Ikon | Iconify (`@iconify/svelte`) | Ikon on-demand, tidak menambah banyak bobot | Font icon |
 | Kontrak | TypeBox | Dipakai native Elysia; bisa dipakai validasi klien | Zod (butuh lapisan konversi ekstra di Elysia) |
 | Editor konten | Tiptap (WYSIWYG) | Tim non-teknis dapat menulis tanpa menghafal sintaks; ringan, MIT, dan dapat diperluas | Markdown textarea + preview (butuh pelatihan sintaks) |
-| Media | Cloudflare R2 + URL presigned | Murah, egress gratis, kompatibel S3 | Simpan di disk VPS (tidak skalabel) |
+| Media | Object storage S3-compatible (R2/is3) via API | Murah, egress gratis, kompatibel S3; kredensial hanya di server | Presigned PUT dari browser (kredensial/bucket policy lebih rumit) |
 | Antrian/job | `setInterval` in-process + endpoint cron | Tidak butuh infrastruktur tambahan di MVP | Redis/BullMQ (ditunda) |
 
-Catatan implementasi editor: admin memakai `@tiptap/core` + StarterKit dengan ekstensi Link, Image, dan Table; gambar diunggah lewat presign R2. API menyanitasi HTML dengan allowlist (mis. `sanitize-html`) sebelum menyimpan, dan halaman publik hanya merender HTML hasil sanitasi. Tiptap dimuat **hanya** di bundel admin.
+Catatan implementasi editor: admin memakai `@tiptap/core` + StarterKit dengan ekstensi Link, Image, dan Table; gambar diunggah lewat `POST /admin/media` (multipart) ke object storage. API menyanitasi HTML dengan allowlist (mis. `sanitize-html`) sebelum menyimpan, dan halaman publik hanya merender HTML hasil sanitasi. Tiptap dimuat **hanya** di bundel admin.
 
 ## 5. Alur permintaan
 
@@ -226,7 +227,7 @@ Browser
         ├─ validasi TypeBox
         ├─ normalisasi nomor telepon
         ├─ simpan Lead (+ LandSubmission untuk LAND_OFFER)
-        ├─ simpan lampiran (presigned → metadata)
+        ├─ simpan lampiran (unggah multipart → tabel media → lead_attachment)
         └─ enqueue notifikasi (tidak menunggu)
               → 201 { data: { reference, ... } }
 ```
@@ -364,15 +365,17 @@ Aturan tambahan:
 
 | Aspek | Keputusan |
 |-------|-----------|
-| Penyimpanan | Cloudflare R2 (bucket privat) |
+| Penyimpanan | Object storage S3-compatible (is3.cloudhost.id atau Cloudflare R2) |
 | Bucket produksi | `azetta-prod-media` dengan custom domain `media.azetta.id` |
-| Media publik unit | Disajikan lewat CDN dengan URL stabil; objek tidak dapat didaftar publik |
-| Lampiran lead (foto lahan) | Bucket privat; akses hanya via URL presigned 15 menit |
-| Unggah admin | Presigned `PUT`, maks 10 MB, MIME diizinkan: JPEG/PNG/WebP |
-| Unggah publik | Presigned `PUT` dengan content-type & size dibatasi, dipakai sekali, kedaluwarsa 10 menit |
-| Nama objek | `units/{unitId}/{nanoid}.webp`, `leads/{leadId}/{nanoid}.jpg` |
-| Optimasi | Varian 400/800/1600 px dibuat saat upload (sharp) atau on-the-fly Image Resizing Cloudflare |
-| Pembersihan | Objek tanpa referensi dihapus oleh job mingguan (orphan sweep) |
+| Jalur unggah | Klien → API (`multipart/form-data`) → `@aws-sdk/client-s3` (`PutObjectCommand`) |
+| Metadata | Tabel `media` (key, url, mime, size, folder, original_name, uploaded_by) |
+| Media publik unit | Disajikan lewat CDN dengan URL stabil dari `OBJECT_STORAGE_PUBLIC_URL` |
+| Lampiran lead (foto lahan) | Folder `leads`; maks 5 berkas/lead, ≤5 MB/berkas, JPEG/PNG/WebP |
+| Unggah admin | `POST /admin/media`, maks `OBJECT_STORAGE_MAX_UPLOAD_BYTES` (default 10 MB) |
+| Nama objek | `{folder}/{yyyy}/{mm}/{random}.{ext}` — folder `units`, `projects`, `articles`, `settings`, `media`, `leads` |
+| Hapus | `DELETE /admin/media/:id` menghapus objek lalu baris `media` |
+| Optimasi | Varian 400/800/1600 px (sharp) atau Image Resizing, belum diimplementasikan |
+| Pembersihan | Objek tanpa referensi dihapus oleh job mingguan (orphan sweep), belum diimplementasikan |
 
 ## 9. Kontrak & validasi
 

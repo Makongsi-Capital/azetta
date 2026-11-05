@@ -1,15 +1,9 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- mockup: sebagian rute tujuan belum dibangun */
-	import { goto } from '$app/navigation';
+	/* eslint-disable svelte/no-navigation-without-resolve -- sebagian href dibangun dari data API */
 	import AuthShell from '#lib/components/site/AuthShell.svelte';
+	import type { PageProps } from './$types';
 
-	let email = $state('');
-	let password = $state('');
-
-	function submit(event: SubmitEvent) {
-		event.preventDefault();
-		void goto('/akun');
-	}
+	let { form }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -22,25 +16,31 @@
 </svelte:head>
 
 <AuthShell title="Masuk ke akun Anda" description="Pantau progres unit dan status pengajuan Anda.">
-	<form class="mt-6 grid gap-4" onsubmit={submit}>
+	<form method="POST" class="mt-6 grid gap-4">
+		{#if form?.message}
+			<p role="alert" class="alert alert-error">{form.message}</p>
+		{/if}
 		<fieldset class="fieldset">
 			<legend class="fieldset-legend">Email</legend>
 			<input
 				class="input w-full"
+				name="email"
 				type="email"
 				autocomplete="email"
+				required
 				placeholder="nama@email.com"
-				bind:value={email}
+				value={form?.email ?? ''}
 			/>
 		</fieldset>
 		<fieldset class="fieldset">
 			<legend class="fieldset-legend">Kata sandi</legend>
 			<input
 				class="input w-full"
+				name="password"
 				type="password"
 				autocomplete="current-password"
+				required
 				placeholder="••••••••"
-				bind:value={password}
 			/>
 		</fieldset>
 
@@ -51,8 +51,4 @@
 		<a class="link link-hover text-brand-gray-600" href="/lupa-sandi">Lupa kata sandi?</a>
 		<a class="link link-hover font-bold" href="/daftar">Buat akun</a>
 	</div>
-
-	<p class="mt-6 border-t border-brand-line pt-4 text-xs text-brand-gray-600">
-		Mode pratinjau: gunakan email dan kata sandi apa pun untuk membuka halaman akun contoh.
-	</p>
 </AuthShell>

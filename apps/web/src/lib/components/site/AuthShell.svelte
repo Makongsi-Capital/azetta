@@ -1,5 +1,5 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- mockup: sebagian rute tujuan belum dibangun */
+	/* eslint-disable svelte/no-navigation-without-resolve -- rute diisi statis */
 	import Logo from '#lib/components/Logo.svelte';
 
 	interface Props {
@@ -38,7 +38,7 @@
 			</ul>
 		</div>
 
-		<p class="text-xs text-brand-gray-500">Data demo — tampilan pratinjau.</p>
+		<p class="text-xs text-brand-gray-500">Azetta — akun pelanggan.</p>
 	</div>
 
 	<div class="flex items-center justify-center px-4 py-12">
