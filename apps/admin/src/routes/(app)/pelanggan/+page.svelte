@@ -7,7 +7,12 @@
 	import StatCard from '#lib/components/admin/StatCard.svelte';
 	import StatusBadge from '#lib/components/admin/StatusBadge.svelte';
 	import { downloadCsv, formatDateTime, initials } from '#lib/format.js';
-	import { currentUser, customers } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const currentUser = data.currentUser!;
+	const customers = data.customers;
 
 	const perPage = 10;
 

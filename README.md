@@ -28,8 +28,15 @@ cp .env.example .env
 docker compose -f db.compose.yaml up -d   # PostgreSQL 16 (:5432) + Mailpit (:1025, UI :8025)
 bun install
 bun run db:generate      # generate Prisma Client ke packages/db/src/generated
+bun run db:migrate       # terapkan migrasi ke PostgreSQL lokal
+bun run db:seed          # isi data demo + akun admin awal
 bun run dev               # api :3000, web :5173, admin :5174
 ```
+
+Akun admin hasil seed: `admin@azetta.id` / `Admin12345!`. Alternatif tanpa seed: isi
+`ADMIN_BOOTSTRAP_EMAIL` dan `ADMIN_BOOTSTRAP_PASSWORD` di `.env`; API akan membuat
+super admin pertama saat boot. Panel admin memakai Better Auth (`/api/auth/*`) dan
+menolak akun dengan peran `customer`.
 
 Pemeriksaan cepat:
 
@@ -51,6 +58,7 @@ curl http://localhost:3000/health
 | `bun run db:generate`                       | Generate Prisma Client, tipe JSON, dan skema TypeBox (Prismabox) |
 | `bun run db:migrate`                        | Buat/terapkan migrasi Prisma (`migrate dev`)                     |
 | `bun run db:deploy`                         | Terapkan migrasi di staging/produksi                             |
+| `bun run db:seed`                           | Isi data demo + akun super admin awal                            |
 | `bun run db:studio`                         | Buka Prisma Studio                                               |
 | `bun run build`                             | Build semua aplikasi                                             |
 

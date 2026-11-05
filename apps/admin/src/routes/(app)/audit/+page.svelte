@@ -4,7 +4,12 @@
 	import Pagination from '#lib/components/admin/Pagination.svelte';
 	import StatCard from '#lib/components/admin/StatCard.svelte';
 	import { formatDateInput, formatDateTime } from '#lib/format.js';
-	import { auditLogs, MOCK_NOW } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const auditLogs = data.logs;
+	const MOCK_NOW = new Date(data.now);
 
 	const perPage = 10;
 

@@ -4,6 +4,7 @@
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDate, formatRupiah, slugify } from '#lib/format.js';
 	import { designCategoryLabel, designStatusLabel } from '#lib/labels.js';
+	import { submitAction } from '#lib/action.js';
 	import type { DesignUnit } from '#lib/mock/admin.js';
 
 	interface Props {
@@ -75,7 +76,7 @@
 		gallery = gallery.filter((_, current) => current !== index);
 	}
 
-	function submit(event: SubmitEvent) {
+	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		notice = '';
 		errorMessage = '';
@@ -85,10 +86,36 @@
 			return;
 		}
 
-		notice =
-			mode === 'create'
-				? 'Unit baru disimpan (demo). Data belum dikirim ke API.'
-				: 'Perubahan unit disimpan (demo). Data belum dikirim ke API.';
+		const body = new FormData();
+		body.set('title', title);
+		body.set('slug', slug || title);
+		body.set('subtitle', subtitle);
+		body.set('category', category);
+		body.set('style', style);
+		body.set('status', status);
+		body.set('featured', String(featured));
+		body.set('floors', String(floors));
+		body.set('bedrooms', String(bedrooms));
+		body.set('bathrooms', String(bathrooms));
+		body.set('carports', String(carports));
+		body.set('buildingAreaM2', String(buildingAreaM2));
+		body.set('landAreaMinM2', String(landAreaMinM2));
+		body.set('priceFrom', String(priceFrom));
+		body.set('estimatedBuildCostMin', String(estimatedBuildCostMin));
+		body.set('estimatedBuildCostMax', String(estimatedBuildCostMax));
+		body.set('description', description);
+		body.set('cover', cover);
+		for (const url of gallery) body.append('gallery', url);
+		body.set('tags', tags);
+		body.set('seoTitle', seoTitle);
+		body.set('seoDescription', seoDescription);
+
+		const result = await submitAction('save', body);
+		if (!result.ok) {
+			errorMessage = result.message ?? 'Unit gagal disimpan.';
+			return;
+		}
+		notice = result.message ?? 'Unit disimpan.';
 	}
 </script>
 

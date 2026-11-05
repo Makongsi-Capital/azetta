@@ -33,4 +33,4 @@
 	{/snippet}
 </PageHeader>
 
-<ArticleForm article={data.article} mode="edit" />
+<ArticleForm article={data.article} mode="edit" staffUsers={data.staffUsers} />

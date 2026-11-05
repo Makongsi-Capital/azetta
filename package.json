@@ -24,7 +24,8 @@
 		"db:migrate": "bun --env-file=.env run --filter @azetta/db migrate",
 		"db:deploy": "bun --env-file=.env run --filter @azetta/db deploy",
 		"db:studio": "bun --env-file=.env run --filter @azetta/db studio",
-		"prepare": "husky"
+		"prepare": "husky",
+		"db:seed": "bun --env-file=.env run --filter @azetta/api seed"
 	},
 	"lint-staged": {
 		"*.{ts,js,svelte}": [

@@ -7,7 +7,12 @@
 	import StatusBadge from '#lib/components/admin/StatusBadge.svelte';
 	import { formatDate, formatNumber, formatRupiahShort } from '#lib/format.js';
 	import { designCategoryLabel, designStatusLabel, designStatusTone } from '#lib/labels.js';
-	import { MOCK_NOW, units } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const units = data.units;
+	const MOCK_NOW = new Date();
 
 	const perPage = 10;
 

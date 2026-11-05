@@ -4,9 +4,14 @@
 	import PageHeader from '#lib/components/admin/PageHeader.svelte';
 	import StatCard from '#lib/components/admin/StatCard.svelte';
 	import { formatDateTime } from '#lib/format.js';
-	import { faqs as seedFaqs, MOCK_NOW, type FaqItem } from '#lib/mock/admin.js';
+	import { submitAction } from '#lib/action.js';
+	import type { FaqItem } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
 
-	let items = $state<FaqItem[]>([...seedFaqs]);
+	let { data }: PageProps = $props();
+
+	const MOCK_NOW = new Date();
+	let items = $state<FaqItem[]>([...data.faqs]);
 	let q = $state('');
 	let categoryFilter = $state('all');
 	let notice = $state('');
@@ -70,37 +75,91 @@
 		dialogOpen = true;
 	}
 
-	function save(event: SubmitEvent) {
+	async function save(event: SubmitEvent) {
 		event.preventDefault();
+
+		const result =
+			editingId === null
+				? await submitAction('create', {
+						question: form.question,
+						answer: form.answer,
+						category: form.category,
+						sortOrder: form.sortOrder,
+						isActive: String(form.isActive)
+					})
+				: await submitAction('update', {
+						id: editingId,
+						question: form.question,
+						answer: form.answer,
+						category: form.category,
+						sortOrder: form.sortOrder,
+						isActive: String(form.isActive)
+					});
+
+		if (!result.ok) {
+			notice = result.message ?? 'FAQ gagal disimpan.';
+			return;
+		}
 
 		if (editingId === null) {
 			const nextId = Math.max(0, ...items.map((item) => item.id)) + 1;
 			items = [...items, { id: nextId, ...form, updatedAt: MOCK_NOW.toISOString() }];
-			notice = 'FAQ baru ditambahkan (demo).';
 		} else {
 			items = items.map((item) =>
 				item.id === editingId ? { ...item, ...form, updatedAt: MOCK_NOW.toISOString() } : item
 			);
-			notice = 'FAQ diperbarui (demo).';
 		}
 
+		notice = result.message ?? 'FAQ disimpan.';
 		dialogOpen = false;
 	}
 
-	function toggleActive(item: FaqItem) {
+	async function toggleActive(item: FaqItem) {
+		const result = await submitAction('toggle', {
+			id: item.id,
+			isActive: String(!item.isActive)
+		});
+		if (!result.ok) {
+			notice = result.message ?? 'Status FAQ gagal diubah.';
+			return;
+		}
+
 		items = items.map((current) =>
 			current.id === item.id
 				? { ...current, isActive: !current.isActive, updatedAt: MOCK_NOW.toISOString() }
 				: current
 		);
-		notice = `FAQ "${item.question}" ${item.isActive ? 'dinonaktifkan' : 'diaktifkan'} (demo).`;
+		notice = result.message ?? 'Status FAQ diperbarui.';
 	}
 
-	function move(item: FaqItem, direction: -1 | 1) {
+	async function move(item: FaqItem, direction: -1 | 1) {
 		const ordered = [...items].sort((a, b) => a.sortOrder - b.sortOrder);
 		const index = ordered.findIndex((current) => current.id === item.id);
 		const target = ordered[index + direction];
 		if (!target) return;
+
+		const [first, second] = await Promise.all([
+			submitAction('update', {
+				id: item.id,
+				question: item.question,
+				answer: item.answer,
+				category: item.category,
+				sortOrder: target.sortOrder,
+				isActive: String(item.isActive)
+			}),
+			submitAction('update', {
+				id: target.id,
+				question: target.question,
+				answer: target.answer,
+				category: target.category,
+				sortOrder: item.sortOrder,
+				isActive: String(target.isActive)
+			})
+		]);
+		if (!first.ok || !second.ok) {
+			notice = first.message ?? second.message ?? 'Urutan FAQ gagal disimpan.';
+			return;
+		}
 
 		items = items.map((current) => {
 			if (current.id === item.id) return { ...current, sortOrder: target.sortOrder };
@@ -109,10 +168,16 @@
 		});
 	}
 
-	function confirmDelete() {
+	async function confirmDelete() {
 		if (!deleteTarget) return;
-		items = items.filter((item) => item.id !== deleteTarget?.id);
-		notice = `FAQ "${deleteTarget.question}" dihapus (demo).`;
+		const target = deleteTarget;
+		const result = await submitAction('delete', { id: target.id });
+		if (!result.ok) {
+			notice = result.message ?? 'FAQ gagal dihapus.';
+			return;
+		}
+		items = items.filter((item) => item.id !== target.id);
+		notice = `FAQ "${target.question}" dihapus.`;
 		deleteTarget = null;
 	}
 

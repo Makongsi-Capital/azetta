@@ -6,14 +6,15 @@
 	import StatusBadge from '#lib/components/admin/StatusBadge.svelte';
 	import { formatDateTime, initials } from '#lib/format.js';
 	import { deletionStatusLabel, deletionStatusTone } from '#lib/labels.js';
-	import {
-		currentUser,
-		deletionRequests as seedRequests,
-		MOCK_NOW,
-		type DeletionRequest
-	} from '#lib/mock/admin.js';
+	import { submitAction } from '#lib/action.js';
+	import type { DeletionRequest } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
 
-	let items = $state<DeletionRequest[]>([...seedRequests]);
+	let { data }: PageProps = $props();
+
+	const currentUser = data.currentUser!;
+	const MOCK_NOW = new Date();
+	let items = $state<DeletionRequest[]>([...data.requests]);
 	let statusFilter = $state('all');
 	let q = $state('');
 	let notice = $state('');
@@ -49,12 +50,23 @@
 		processNote = '';
 	}
 
-	function submitProcess(event: SubmitEvent) {
+	async function submitProcess(event: SubmitEvent) {
 		event.preventDefault();
 		if (!processTarget) return;
 
+		const target = processTarget;
+		const result = await submitAction('process', {
+			id: target.id,
+			status: processAction,
+			note: processNote.trim()
+		});
+		if (!result.ok) {
+			notice = result.message ?? 'Permohonan gagal diproses.';
+			return;
+		}
+
 		items = items.map((item) =>
-			item.id === processTarget?.id
+			item.id === target.id
 				? {
 						...item,
 						status: processAction,
@@ -65,7 +77,7 @@
 				: item
 		);
 
-		notice = `Permohonan ${processTarget.name} ditandai ${deletionStatusLabel[processAction].toLowerCase()} (demo).`;
+		notice = `Permohonan ${target.name} ditandai ${deletionStatusLabel[processAction].toLowerCase()}.`;
 		processTarget = null;
 	}
 

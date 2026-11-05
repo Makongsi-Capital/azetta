@@ -6,6 +6,7 @@
 	import PageHeader from '#lib/components/admin/PageHeader.svelte';
 	import Pagination from '#lib/components/admin/Pagination.svelte';
 	import StatusBadge from '#lib/components/admin/StatusBadge.svelte';
+	import { submitAction } from '#lib/action.js';
 	import { downloadCsv, formatDateTime, formatRelative, initials } from '#lib/format.js';
 	import {
 		leadPriorityLabel,
@@ -16,14 +17,14 @@
 		leadTypeLabel,
 		leadTypeShort
 	} from '#lib/labels.js';
-	import {
-		currentUser,
-		leads as seedLeads,
-		MOCK_NOW,
-		type Lead,
-		type LeadPriority,
-		type LeadType
-	} from '#lib/mock/admin.js';
+	import type { Lead, LeadPriority, LeadType } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const currentUser = data.currentUser!;
+	const seedLeads = data.leads;
+	const MOCK_NOW = new Date();
 
 	type Tab = 'all' | 'new' | 'uncontacted' | 'mine';
 
@@ -144,8 +145,22 @@
 		notice = `${filtered.length} lead diekspor ke CSV (demo).`;
 	}
 
-	function addManualLead(event: SubmitEvent) {
+	async function addManualLead(event: SubmitEvent) {
 		event.preventDefault();
+
+		const result = await submitAction('create', {
+			name: manualForm.name,
+			phone: manualForm.phone,
+			email: manualForm.email,
+			city: manualForm.city,
+			type: manualForm.type,
+			priority: manualForm.priority,
+			message: manualForm.message
+		});
+		if (!result.ok) {
+			notice = result.message ?? 'Lead gagal ditambahkan.';
+			return;
+		}
 
 		const index = manualLeads.length + 1;
 		const newLead: Lead = {
@@ -188,7 +203,7 @@
 
 		manualLeads = [newLead, ...manualLeads];
 		dialogOpen = false;
-		notice = `Lead ${newLead.name} ditambahkan ke daftar (demo).`;
+		notice = result.message ?? `Lead ${newLead.name} ditambahkan.`;
 		manualForm = {
 			name: '',
 			phone: '',

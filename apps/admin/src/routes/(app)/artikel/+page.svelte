@@ -7,7 +7,11 @@
 	import StatusBadge from '#lib/components/admin/StatusBadge.svelte';
 	import { formatDate, formatNumber } from '#lib/format.js';
 	import { articleStatusLabel, articleStatusTone } from '#lib/labels.js';
-	import { articles } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const articles = data.articles;
 
 	const perPage = 10;
 

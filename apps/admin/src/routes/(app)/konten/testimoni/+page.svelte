@@ -4,13 +4,14 @@
 	import PageHeader from '#lib/components/admin/PageHeader.svelte';
 	import StatCard from '#lib/components/admin/StatCard.svelte';
 	import { formatDateTime, initials } from '#lib/format.js';
-	import {
-		MOCK_NOW,
-		testimonials as seedTestimonials,
-		type TestimonialItem
-	} from '#lib/mock/admin.js';
+	import { submitAction } from '#lib/action.js';
+	import type { TestimonialItem } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
 
-	let items = $state<TestimonialItem[]>([...seedTestimonials]);
+	let { data }: PageProps = $props();
+
+	const MOCK_NOW = new Date();
+	let items = $state<TestimonialItem[]>([...data.testimonials]);
 	let q = $state('');
 	let publishFilter = $state('all');
 	let notice = $state('');
@@ -80,7 +81,7 @@
 		dialogOpen = true;
 	}
 
-	function save(event: SubmitEvent) {
+	async function save(event: SubmitEvent) {
 		event.preventDefault();
 
 		const payload = {
@@ -94,31 +95,70 @@
 			updatedAt: MOCK_NOW.toISOString()
 		};
 
+		const result =
+			editingId === null
+				? await submitAction('create', {
+						...payload,
+						role: form.role,
+						projectName: form.projectName,
+						avatarUrl: form.avatarUrl,
+						isPublished: String(form.isPublished)
+					})
+				: await submitAction('update', {
+						id: editingId,
+						...payload,
+						role: form.role,
+						projectName: form.projectName,
+						avatarUrl: form.avatarUrl,
+						isPublished: String(form.isPublished)
+					});
+
+		if (!result.ok) {
+			notice = result.message ?? 'Testimoni gagal disimpan.';
+			return;
+		}
+
 		if (editingId === null) {
 			const nextId = Math.max(0, ...items.map((item) => item.id)) + 1;
 			items = [...items, { id: nextId, ...payload }];
-			notice = 'Testimoni baru ditambahkan (demo).';
 		} else {
 			items = items.map((item) => (item.id === editingId ? { ...item, ...payload } : item));
-			notice = 'Testimoni diperbarui (demo).';
 		}
 
+		notice = result.message ?? 'Testimoni disimpan.';
 		dialogOpen = false;
 	}
 
-	function togglePublished(item: TestimonialItem) {
+	async function togglePublished(item: TestimonialItem) {
+		const result = await submitAction('toggle', {
+			id: item.id,
+			isPublished: String(!item.isPublished)
+		});
+		if (!result.ok) {
+			notice = result.message ?? 'Status testimoni gagal diubah.';
+			return;
+		}
+
 		items = items.map((current) =>
 			current.id === item.id
 				? { ...current, isPublished: !current.isPublished, updatedAt: MOCK_NOW.toISOString() }
 				: current
 		);
-		notice = `Testimoni ${item.name} ${item.isPublished ? 'disembunyikan' : 'diterbitkan'} (demo).`;
+		notice =
+			result.message ??
+			`Testimoni ${item.name} ${item.isPublished ? 'disembunyikan' : 'diterbitkan'}.`;
 	}
 
-	function confirmDelete() {
+	async function confirmDelete() {
 		if (!deleteTarget) return;
-		items = items.filter((item) => item.id !== deleteTarget?.id);
-		notice = `Testimoni ${deleteTarget.name} dihapus (demo).`;
+		const target = deleteTarget;
+		const result = await submitAction('delete', { id: target.id });
+		if (!result.ok) {
+			notice = result.message ?? 'Testimoni gagal dihapus.';
+			return;
+		}
+		items = items.filter((item) => item.id !== target.id);
+		notice = `Testimoni ${target.name} dihapus.`;
 		deleteTarget = null;
 	}
 

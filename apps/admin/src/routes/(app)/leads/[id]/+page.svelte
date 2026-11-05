@@ -29,20 +29,15 @@
 		startTimelineLabel
 	} from '#lib/labels.js';
 	import { attachmentKindLabel } from '#lib/labels.js';
-	import {
-		currentUser,
-		MOCK_NOW,
-		staffUsers,
-		type ActivityType,
-		type LeadActivity,
-		type LeadPriority,
-		type LeadStatus
-	} from '#lib/mock/admin.js';
+	import type { ActivityType, LeadActivity, LeadPriority, LeadStatus } from '#lib/mock/admin.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
 	const lead = untrack(() => data.lead);
+	const currentUser = data.currentUser!;
+	const staffUsers = data.staffUsers;
+	const MOCK_NOW = new Date();
 
 	let status = $state<string>(lead.status);
 	let priority = $state<string>(lead.priority);
@@ -76,7 +71,29 @@
 	const priorityTone = $derived(leadPriorityTone[priority as LeadPriority] ?? 'badge-outline');
 	const priorityLabel = $derived(leadPriorityLabel[priority as LeadPriority] ?? priority);
 
-	function saveHandling() {
+	async function submitAction(name: string, fields: Record<string, string>): Promise<boolean> {
+		const body = new FormData();
+		for (const [key, value] of Object.entries(fields)) body.set(key, value);
+
+		const response = await fetch(`?/${name}`, {
+			method: 'POST',
+			body,
+			headers: { accept: 'application/json' }
+		});
+		const result = (await response.json()) as {
+			type: string;
+			data?: { message?: string };
+		};
+
+		if (result.type === 'failure') {
+			errorMessage = result.data?.message ?? 'Perubahan gagal disimpan.';
+			return false;
+		}
+		notice = result.data?.message ?? 'Perubahan disimpan.';
+		return true;
+	}
+
+	async function saveHandling() {
 		notice = '';
 		errorMessage = '';
 
@@ -84,6 +101,18 @@
 			errorMessage = 'Alasan kalah wajib diisi sebelum menyimpan status LOST.';
 			return;
 		}
+
+		const saved = await submitAction('saveHandling', {
+			status,
+			persistedStatus,
+			priority,
+			assignee,
+			estimatedValue: String(estimatedValue ?? ''),
+			followUp,
+			lostReason,
+			customerNote
+		});
+		if (!saved) return;
 
 		if (status !== persistedStatus) {
 			activities = [
@@ -98,14 +127,15 @@
 			];
 			persistedStatus = status;
 		}
-
-		notice = 'Perubahan penanganan disimpan (demo).';
 	}
 
-	function addActivity(event: SubmitEvent) {
+	async function addActivity(event: SubmitEvent) {
 		event.preventDefault();
 		const body = activityBody.trim();
 		if (!body) return;
+
+		const saved = await submitAction('addActivity', { type: activityType, body });
+		if (!saved) return;
 
 		activities = [
 			...activities,
@@ -119,7 +149,6 @@
 		];
 
 		activityBody = '';
-		notice = 'Aktivitas baru dicatat (demo).';
 	}
 
 	async function copyReference() {

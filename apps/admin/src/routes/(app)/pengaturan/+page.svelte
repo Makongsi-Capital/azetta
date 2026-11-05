@@ -2,34 +2,61 @@
 	import PageHeader from '#lib/components/admin/PageHeader.svelte';
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDateTime } from '#lib/format.js';
-	import { currentUser, MOCK_NOW } from '#lib/mock/admin.js';
+	import { submitAction } from '#lib/action.js';
+	import type { PageProps } from './$types';
 
-	let siteName = $state('Azetta');
-	let tagline = $state('Rumah tapak, kerja sama lahan, dan proyek properti.');
+	let { data }: PageProps = $props();
+
+	const currentUser = data.currentUser!;
+	const MOCK_NOW = new Date();
+	const saved = (data.settings.site ?? {}) as Record<string, string>;
+
+	let siteName = $state(saved.siteName ?? 'Azetta');
+	let tagline = $state(saved.tagline ?? 'Rumah tapak, kerja sama lahan, dan proyek properti.');
 	let siteDescription = $state(
-		'Azetta membangun rumah tapak di Yogyakarta dan membuka kerja sama lahan bagi pemilik yang ingin mengembangkan properti.'
+		saved.siteDescription ??
+			'Azetta membangun rumah tapak di Yogyakarta dan membuka kerja sama lahan bagi pemilik yang ingin mengembangkan properti.'
 	);
-	let whatsapp = $state('6281234567890');
-	let email = $state('halo@azetta.id');
-	let phone = $state('0274 555 123');
-	let address = $state('Jl. Kaliurang KM 9, Sleman, DI Yogyakarta');
-	let operationalHours = $state('Senin–Sabtu, 09.00–17.00 WIB');
+	let whatsapp = $state(saved.whatsapp ?? '6281234567890');
+	let email = $state(saved.email ?? 'halo@azetta.id');
+	let phone = $state(saved.phone ?? '0274 555 123');
+	let address = $state(saved.address ?? 'Jl. Kaliurang KM 9, Sleman, DI Yogyakarta');
+	let operationalHours = $state(saved.operationalHours ?? 'Senin–Sabtu, 09.00–17.00 WIB');
 
-	let privacyUrl = $state('/kebijakan-privasi');
-	let termsUrl = $state('/syarat-ketentuan');
-	let legalDocumentName = $state('legal-azetta-2026.pdf');
+	let privacyUrl = $state(saved.privacyUrl ?? '/kebijakan-privasi');
+	let termsUrl = $state(saved.termsUrl ?? '/syarat-ketentuan');
+	let legalDocumentName = $state(saved.legalDocumentName ?? 'legal-azetta-2026.pdf');
 
-	let ga4MeasurementId = $state('G-XXXXXXX');
-	let metaPixelId = $state('');
+	let ga4MeasurementId = $state(saved.ga4MeasurementId ?? 'G-XXXXXXX');
+	let metaPixelId = $state(saved.metaPixelId ?? '');
 
-	let logoUrl = $state('/brand/logo-azetta.svg');
-	let faviconUrl = $state('/brand/favicon.svg');
+	let logoUrl = $state(saved.logoUrl ?? '/brand/logo-azetta.svg');
+	let faviconUrl = $state(saved.faviconUrl ?? '/brand/favicon.svg');
 
 	let notice = $state('');
 
-	function save(event: SubmitEvent) {
+	async function save(event: SubmitEvent) {
 		event.preventDefault();
-		notice = `Pengaturan disimpan (demo) oleh ${currentUser.name}. Perubahan nyata akan tercatat di audit log.`;
+		const result = await submitAction('save', {
+			siteName,
+			tagline,
+			siteDescription,
+			whatsapp,
+			email,
+			phone,
+			address,
+			operationalHours,
+			privacyUrl,
+			termsUrl,
+			legalDocumentName,
+			ga4MeasurementId,
+			metaPixelId,
+			logoUrl,
+			faviconUrl
+		});
+		notice =
+			result.message ??
+			`Pengaturan disimpan oleh ${currentUser.name}. Perubahan tercatat di audit log.`;
 	}
 
 	function mockUpload(event: Event) {

@@ -13,15 +13,12 @@
 		leadStatusTone,
 		leadTypeLabel
 	} from '#lib/labels.js';
-	import {
-		leadSeries,
-		leadStats,
-		leads,
-		leadsByStatus,
-		leadsByType,
-		MOCK_NOW,
-		upcomingFollowUps
-	} from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const { leadSeries, leadStats, leads, leadsByStatus, leadsByType, upcomingFollowUps } = data;
+	const MOCK_NOW = new Date(data.now);
 
 	const maxCount = Math.max(1, ...leadSeries.map((point) => point.count));
 	const maxStatus = Math.max(1, ...leadsByStatus.map((row) => row.count));

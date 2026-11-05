@@ -7,7 +7,11 @@
 	import StatusBadge from '#lib/components/admin/StatusBadge.svelte';
 	import { formatNumber } from '#lib/format.js';
 	import { projectStatusLabel, projectStatusTone } from '#lib/labels.js';
-	import { projects } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const projects = data.projects;
 
 	const perPage = 10;
 

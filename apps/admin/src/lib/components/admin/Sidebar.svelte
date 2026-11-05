@@ -3,7 +3,6 @@
 	import { page } from '$app/state';
 	import Logo from '#lib/components/Logo.svelte';
 	import { roleLabel } from '#lib/labels.js';
-	import { currentUser, deletionRequests, leadStats } from '#lib/mock/admin.js';
 	import { initials } from '#lib/format.js';
 
 	interface NavItem {
@@ -23,11 +22,10 @@
 
 	let { collapsed, mobileOpen, oncollapse, onnavigate }: Props = $props();
 
-	const pendingDeletions = deletionRequests.filter(
-		(request) => request.status === 'PENDING'
-	).length;
+	const currentUser = $derived(page.data.currentUser);
+	const pendingDeletions = $derived(page.data.pendingDeletions ?? 0);
 
-	const sections: { label: string; items: NavItem[] }[] = [
+	const sections = $derived<{ label: string; items: NavItem[] }[]>([
 		{
 			label: 'Operasional',
 			items: [
@@ -36,7 +34,7 @@
 					href: '/leads',
 					label: 'Lead',
 					icon: 'icon-[mdi--account-multiple-outline]',
-					badge: leadStats.new
+					badge: page.data.leadStats?.new ?? 0
 				}
 			]
 		},
@@ -89,14 +87,14 @@
 				{ href: '/audit', label: 'Audit log', icon: 'icon-[mdi--history]' }
 			]
 		}
-	];
+	]);
 
 	const visibleSections = $derived(
 		sections
 			.map((section) => ({
 				...section,
 				items: section.items.filter(
-					(item) => !item.superAdminOnly || currentUser.role === 'super_admin'
+					(item) => !item.superAdminOnly || currentUser?.role === 'super_admin'
 				)
 			}))
 			.filter((section) => section.items.length > 0)
@@ -177,11 +175,13 @@
 			<span
 				class="grid size-8 shrink-0 place-items-center rounded-full border border-brand-line bg-white text-[11px] font-bold"
 			>
-				{initials(currentUser.name)}
+				{initials(currentUser?.name ?? 'Admin')}
 			</span>
 			<div class="min-w-0 {collapsed ? 'lg:hidden' : ''}">
-				<p class="truncate text-xs font-bold">{currentUser.name}</p>
-				<p class="truncate text-[11px] text-brand-gray-600">{roleLabel[currentUser.role]}</p>
+				<p class="truncate text-xs font-bold">{currentUser?.name ?? 'Admin'}</p>
+				<p class="truncate text-[11px] text-brand-gray-600">
+					{roleLabel[(currentUser?.role ?? 'admin') as keyof typeof roleLabel]}
+				</p>
 			</div>
 		</div>
 

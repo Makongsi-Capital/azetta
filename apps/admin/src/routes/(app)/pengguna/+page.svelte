@@ -5,9 +5,15 @@
 	import StatCard from '#lib/components/admin/StatCard.svelte';
 	import { formatDateTime, initials } from '#lib/format.js';
 	import { roleLabel } from '#lib/labels.js';
-	import { currentUser, MOCK_NOW, staffUsers, type Role, type StaffUser } from '#lib/mock/admin.js';
+	import { submitAction } from '#lib/action.js';
+	import type { Role, StaffUser } from '#lib/mock/admin.js';
+	import type { PageProps } from './$types';
 
-	let items = $state<StaffUser[]>([...staffUsers]);
+	let { data }: PageProps = $props();
+
+	const currentUser = data.currentUser!;
+	const MOCK_NOW = new Date();
+	let items = $state<StaffUser[]>([...data.users]);
 	let notice = $state('');
 
 	let dialogOpen = $state(false);
@@ -20,38 +26,62 @@
 		disabled: items.filter((user) => user.banned).length
 	});
 
-	function changeRole(user: StaffUser, role: string) {
+	async function changeRole(user: StaffUser, role: string) {
 		if (user.id === currentUser.id && role !== 'super_admin') {
 			notice = 'Anda tidak dapat menurunkan peran akun sendiri.';
+			return;
+		}
+
+		const result = await submitAction('updateRole', { id: user.id, role });
+		if (!result.ok) {
+			notice = result.message ?? 'Peran gagal diubah.';
 			return;
 		}
 
 		items = items.map((current) =>
 			current.id === user.id ? { ...current, role: role as Role } : current
 		);
-		notice = `Peran ${user.name} diubah menjadi ${roleLabel[role as Role]} (demo).`;
+		notice = result.message ?? `Peran ${user.name} diubah menjadi ${roleLabel[role as Role]}.`;
 	}
 
-	function toggleDisabled(user: StaffUser) {
+	async function toggleDisabled(user: StaffUser) {
 		if (user.id === currentUser.id) {
 			notice = 'Anda tidak dapat menonaktifkan akun sendiri.';
+			return;
+		}
+
+		const result = await submitAction('setDisabled', {
+			id: user.id,
+			banned: String(!user.banned)
+		});
+		if (!result.ok) {
+			notice = result.message ?? 'Status akun gagal diubah.';
 			return;
 		}
 
 		items = items.map((current) =>
 			current.id === user.id ? { ...current, banned: !current.banned } : current
 		);
-		notice = `Akun ${user.name} ${user.banned ? 'diaktifkan' : 'dinonaktifkan'} (demo).`;
+		notice = `Akun ${user.name} ${user.banned ? 'diaktifkan' : 'dinonaktifkan'}.`;
 	}
 
-	function createUser(event: SubmitEvent) {
+	async function createUser(event: SubmitEvent) {
 		event.preventDefault();
 
-		const nextId = `u-${Math.max(0, ...items.map((user) => Number(user.id.replace('u-', '')))) + 1}`;
+		const result = await submitAction('create', {
+			name: form.name,
+			email: form.email,
+			role: form.role
+		});
+		if (!result.ok) {
+			notice = result.message ?? 'Pengguna gagal dibuat.';
+			return;
+		}
+
 		items = [
 			...items,
 			{
-				id: nextId,
+				id: `u-${Date.now()}`,
 				name: form.name,
 				email: form.email,
 				role: form.role as Role,
@@ -61,7 +91,7 @@
 			}
 		];
 
-		notice = `Pengguna internal ${form.name} dibuat (demo).`;
+		notice = result.message ?? `Pengguna internal ${form.name} dibuat.`;
 		dialogOpen = false;
 		form = { name: '', email: '', role: 'admin' };
 	}

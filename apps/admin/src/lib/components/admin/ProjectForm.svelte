@@ -4,6 +4,7 @@
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDate, slugify } from '#lib/format.js';
 	import { projectStatusLabel } from '#lib/labels.js';
+	import { submitAction } from '#lib/action.js';
 	import type { ProjectItem } from '#lib/mock/admin.js';
 
 	interface Props {
@@ -63,7 +64,7 @@
 		galleryUrls = galleryUrls.filter((_, current) => current !== index);
 	}
 
-	function submit(event: SubmitEvent) {
+	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		notice = '';
 		errorMessage = '';
@@ -73,10 +74,32 @@
 			return;
 		}
 
-		notice =
-			mode === 'create'
-				? 'Proyek baru disimpan (demo). Data belum dikirim ke API.'
-				: 'Perubahan proyek disimpan (demo). Data belum dikirim ke API.';
+		const body = new FormData();
+		body.set('title', title);
+		body.set('slug', slug || title);
+		body.set('summary', summary);
+		body.set('description', description);
+		body.set('location', location);
+		body.set('city', city);
+		body.set('province', province);
+		body.set('status', status);
+		body.set('yearStarted', String(yearStarted));
+		body.set('yearCompleted', String(yearCompleted));
+		body.set('landAreaM2', String(landAreaM2));
+		body.set('unitCount', String(unitCount));
+		body.set('coverImageUrl', coverImageUrl);
+		for (const url of galleryUrls) body.append('galleryUrls', url);
+		body.set('isPublished', String(isPublished));
+		body.set('sortOrder', String(sortOrder));
+		body.set('seoTitle', seoTitle);
+		body.set('seoDescription', seoDescription);
+
+		const result = await submitAction('save', body);
+		if (!result.ok) {
+			errorMessage = result.message ?? 'Proyek gagal disimpan.';
+			return;
+		}
+		notice = result.message ?? 'Proyek disimpan.';
 	}
 </script>
 

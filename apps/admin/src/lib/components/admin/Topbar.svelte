@@ -3,13 +3,14 @@
 	import { page } from '$app/state';
 	import { initials } from '#lib/format.js';
 	import { roleLabel } from '#lib/labels.js';
-	import { currentUser } from '#lib/mock/admin.js';
 
 	interface Props {
 		onopensidebar: () => void;
 	}
 
 	let { onopensidebar }: Props = $props();
+
+	const currentUser = $derived(page.data.currentUser);
 
 	let userMenu = $state<HTMLDetailsElement>();
 
@@ -72,25 +73,25 @@
 			</div>
 		</form>
 
-		<span class="badge badge-outline badge-sm hidden xl:inline-flex">Data demo</span>
-
 		<details bind:this={userMenu} class="dropdown dropdown-end">
 			<summary class="btn btn-ghost btn-sm gap-2 px-2">
 				<span
 					class="grid size-8 place-items-center rounded-full border border-brand-line bg-base-200 text-[11px] font-bold"
 				>
-					{initials(currentUser.name)}
+					{initials(currentUser?.name ?? 'Admin')}
 				</span>
 				<span class="hidden text-left sm:block">
-					<span class="block text-xs leading-tight font-bold">{currentUser.name}</span>
-					<span class="block text-[11px] text-brand-gray-600">{roleLabel[currentUser.role]}</span>
+					<span class="block text-xs leading-tight font-bold">{currentUser?.name ?? 'Admin'}</span>
+					<span class="block text-[11px] text-brand-gray-600"
+						>{roleLabel[(currentUser?.role ?? 'admin') as keyof typeof roleLabel]}</span
+					>
 				</span>
 				<span class="icon-[mdi--chevron-down] size-4"></span>
 			</summary>
 
 			<ul class="menu dropdown-content z-50 mt-2 w-60 border border-brand-line bg-base-100 p-2">
 				<li class="menu-title">
-					<span class="truncate text-xs">{currentUser.email}</span>
+					<span class="truncate text-xs">{currentUser?.email ?? ''}</span>
 				</li>
 				<li>
 					<a href="/pengaturan" onclick={closeMenu}>
@@ -105,7 +106,7 @@
 					</a>
 				</li>
 				<li class="mt-1 border-t border-brand-line pt-1">
-					<a href="/login" onclick={closeMenu}>
+					<a href="/logout" onclick={closeMenu}>
 						<span class="icon-[mdi--logout] size-4"></span>
 						Keluar
 					</a>

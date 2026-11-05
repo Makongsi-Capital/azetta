@@ -4,14 +4,16 @@
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDate, slugify } from '#lib/format.js';
 	import { articleStatusLabel } from '#lib/labels.js';
-	import { staffUsers, type ArticleItem } from '#lib/mock/admin.js';
+	import { submitAction } from '#lib/action.js';
+	import type { ArticleItem } from '#lib/mock/admin.js';
 
 	interface Props {
 		article?: ArticleItem;
 		mode: 'create' | 'edit';
+		staffUsers: { id: string; name: string }[];
 	}
 
-	let { article, mode }: Props = $props();
+	let { article, mode, staffUsers }: Props = $props();
 
 	// Nilai awal formulir sengaja diambil sekali; perubahan prop tidak menimpa editan pengguna.
 	const initial = untrack(() => article);
@@ -24,7 +26,7 @@
 	let status = $state<string>(initial?.status ?? 'DRAFT');
 	let tags = $state(initial?.tags.join(', ') ?? '');
 	let readingMinutes = $state(initial?.readingMinutes ?? 5);
-	let authorId = $state(initial?.authorId ?? 'u-1');
+	let authorId = $state(initial?.authorId ?? staffUsers[0]?.id ?? '');
 	let seoTitle = $state(initial?.seoTitle ?? '');
 	let seoDescription = $state(initial?.seoDescription ?? '');
 
@@ -66,7 +68,7 @@
 		el.selectionEnd = start + before.length + selected.length;
 	}
 
-	function submit(event: SubmitEvent) {
+	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		notice = '';
 		errorMessage = '';
@@ -76,10 +78,25 @@
 			return;
 		}
 
-		notice =
-			mode === 'create'
-				? 'Artikel baru disimpan (demo). Data belum dikirim ke API.'
-				: 'Perubahan artikel disimpan (demo). Data belum dikirim ke API.';
+		const body = new FormData();
+		body.set('title', title);
+		body.set('slug', slug || title);
+		body.set('excerpt', excerpt);
+		body.set('content', content);
+		body.set('coverImageUrl', coverImageUrl);
+		body.set('status', status);
+		body.set('tags', tags);
+		body.set('readingMinutes', String(readingMinutes));
+		body.set('authorId', authorId);
+		body.set('seoTitle', seoTitle);
+		body.set('seoDescription', seoDescription);
+
+		const result = await submitAction('save', body);
+		if (!result.ok) {
+			errorMessage = result.message ?? 'Artikel gagal disimpan.';
+			return;
+		}
+		notice = result.message ?? 'Artikel disimpan.';
 	}
 </script>
 

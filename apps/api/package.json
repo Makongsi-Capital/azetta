@@ -8,11 +8,13 @@
 		"start": "bun src/index.ts",
 		"build": "tsc --noEmit",
 		"check": "tsc --noEmit",
-		"test": "vitest run"
+		"test": "vitest run",
+		"seed": "bun --env-file=../../.env scripts/seed.ts"
 	},
 	"dependencies": {
 		"@azetta/db": "workspace:*",
 		"@sinclair/typebox": "^0.34.52",
+		"better-auth": "1.7.17",
 		"elysia": "^1.4.30"
 	},
 	"devDependencies": {

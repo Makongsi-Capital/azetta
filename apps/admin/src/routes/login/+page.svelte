@@ -1,15 +1,9 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- tujuan navigasi adalah rute dashboard yang statis */
-	import { goto } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import Logo from '#lib/components/Logo.svelte';
+	import type { PageProps } from './$types';
 
-	let email = $state('');
-	let password = $state('');
-
-	function submit(event: SubmitEvent) {
-		event.preventDefault();
-		void goto('/dashboard');
-	}
+	let { data, form }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -46,7 +40,19 @@
 				Gunakan akun internal yang diberikan oleh super admin.
 			</p>
 
-			<form class="mt-8 grid gap-4" onsubmit={submit}>
+			<form class="mt-8 grid gap-4" method="POST" use:enhance>
+				{#if form?.message}
+					<div class="alert alert-error text-sm" role="alert">
+						<span class="icon-[mdi--alert-circle-outline] size-5"></span>
+						<span>{form.message}</span>
+					</div>
+				{:else if data.forbidden}
+					<div class="alert alert-warning text-sm" role="alert">
+						<span class="icon-[mdi--shield-alert-outline] size-5"></span>
+						<span>Akun ini bukan staf internal Azetta.</span>
+					</div>
+				{/if}
+
 				<fieldset class="fieldset">
 					<legend class="fieldset-legend">Email</legend>
 					<input
@@ -55,8 +61,8 @@
 						name="email"
 						autocomplete="email"
 						placeholder="nama@azetta.id"
+						value={form?.email ?? ''}
 						required
-						bind:value={email}
 					/>
 				</fieldset>
 
@@ -69,7 +75,6 @@
 						autocomplete="current-password"
 						placeholder="••••••••"
 						required
-						bind:value={password}
 					/>
 				</fieldset>
 
@@ -77,7 +82,7 @@
 			</form>
 
 			<div class="mt-6 border-t border-brand-line pt-4 text-xs text-brand-gray-600">
-				<p>Mode pratinjau: gunakan email dan kata sandi apa pun untuk membuka dashboard contoh.</p>
+				<p>Gunakan akun internal yang diberikan oleh super admin.</p>
 				<a
 					class="link link-hover mt-2 inline-flex items-center gap-1 font-bold"
 					href="https://azetta.id"
