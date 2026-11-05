@@ -1,0 +1,20 @@
+# Secrets & local config
+.env
+.env.*
+!.env.example
+
+# Dependencies & build output (dipasang/dibangun di dalam image)
+**/node_modules
+**/.svelte-kit
+**/build
+**/dist
+**/coverage
+**/test-results
+**/playwright-report
+
+# VCS & non-runtime docs
+.git
+.gitignore
+docs
+*.md
+!README.md

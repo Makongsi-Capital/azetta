@@ -6,5 +6,10 @@ export const variables = defineEnvVars({
 		public: true,
 		description: 'Basis URL API Azetta, mis. http://localhost:3000',
 		schema: (value: string | undefined) => value?.trim() || 'http://localhost:3000'
+	},
+	PUBLIC_TURNSTILE_SITE_KEY: {
+		public: true,
+		description: 'Site key Turnstile; kosongkan untuk mematikan widget (dev)',
+		schema: (value: string | undefined) => value?.trim() || ''
 	}
 });

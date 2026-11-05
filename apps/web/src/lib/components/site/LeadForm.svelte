@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Turnstile from './Turnstile.svelte';
 	import type { LeadType } from '#lib/api/types.js';
 
 	interface LeadFormResult {
@@ -51,6 +52,8 @@
 			return async ({ update }) => {
 				await update();
 				submitting = false;
+				// Token Turnstile sekali pakai; reset supaya percobaan ulang tetap bisa dikirim.
+				window.turnstile?.reset();
 			};
 		}}
 	>
@@ -215,6 +218,8 @@
 				Saya setuju data ini diproses untuk keperluan tindak lanjut pengajuan.
 			</span>
 		</label>
+
+		<Turnstile />
 
 		<div class="sm:col-span-2">
 			<button class="btn btn-primary w-full sm:w-auto" type="submit" disabled={submitting}>

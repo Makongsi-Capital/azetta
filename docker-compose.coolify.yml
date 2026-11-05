@@ -1,0 +1,148 @@
+# Coolify (Build Pack: Docker Compose)
+#   Base Directory          : /
+#   Docker Compose Location : /docker-compose.coolify.yml
+#
+# Yang perlu diisi di Coolify → Environment Variables:
+#   WEB_ORIGIN, ADMIN_ORIGIN          URL publik, mis. https://azetta.id (tanpa trailing slash)
+#   OBJECT_STORAGE_*                  kredensial S3/R2
+#   TURNSTILE_SECRET_KEY, PUBLIC_TURNSTILE_SITE_KEY
+#   RESEND_API_KEY, MAIL_FROM, SALES_NOTIFY_EMAIL
+#   ADMIN_BOOTSTRAP_EMAIL, ADMIN_BOOTSTRAP_PASSWORD   (wajib: seed produksi hanya membuat akun ini)
+#
+# Variabel SERVICE_* adalah "magic variable" Coolify: domain web/admin dibuat otomatis
+# dan diarahkan ke port 3000 container. Kalau lebih suka mengatur domain lewat tab
+# Domains, hapus dua baris SERVICE_URL_* di bawah.
+#
+# Catatan: image runner memakai adapter-node v6 yang mengabaikan ORIGIN; origin
+# diturunkan dari header Host/X-Forwarded-* yang dipasang proxy Coolify.
+
+x-app-env: &app-env
+  NODE_ENV: production
+  PORT: '3000'
+  DATABASE_URL: postgresql://azetta:${SERVICE_PASSWORD_DB}@db:5432/azetta?schema=public
+  # API hanya dipanggil server-side dari web/admin → cukup URL internal.
+  BETTER_AUTH_URL: http://api:3000
+  PUBLIC_API_BASE_URL: http://api:3000
+  BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
+  WEB_ORIGIN: ${WEB_ORIGIN:?}
+  ADMIN_ORIGIN: ${ADMIN_ORIGIN:?}
+  COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+  IP_HASH_SALT: ${SERVICE_HEX_32_IPHASHSALT}
+  OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:?}
+  OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-}
+  OBJECT_STORAGE_ACCESS_KEY_ID: ${OBJECT_STORAGE_ACCESS_KEY_ID:?}
+  OBJECT_STORAGE_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_SECRET_ACCESS_KEY:?}
+  OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:?}
+  OBJECT_STORAGE_PUBLIC_URL: ${OBJECT_STORAGE_PUBLIC_URL:?}
+  OBJECT_STORAGE_MAX_UPLOAD_BYTES: ${OBJECT_STORAGE_MAX_UPLOAD_BYTES:-2097152}
+  TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?}
+  PUBLIC_TURNSTILE_SITE_KEY: ${PUBLIC_TURNSTILE_SITE_KEY:?}
+  RESEND_API_KEY: ${RESEND_API_KEY:?}
+  MAIL_FROM: ${MAIL_FROM:?}
+  SALES_NOTIFY_EMAIL: ${SALES_NOTIFY_EMAIL:?}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
+  CLOUDFLARE_PURGE_TOKEN: ${CLOUDFLARE_PURGE_TOKEN:-}
+  RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
+  ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
+  ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: azetta
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_DB}
+      POSTGRES_DB: azetta
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U azetta -d azetta']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrator:
+    restart: 'no'
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+
+  api:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner-api
+    depends_on:
+      db:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    environment:
+      <<: *app-env
+    expose:
+      - '3000'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'bun',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  admin:
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner-admin
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3000'
+      PUBLIC_API_BASE_URL: http://api:3000
+      PROTOCOL_HEADER: x-forwarded-proto
+      # Coolify: generate domain + routing ke container port 3000
+      SERVICE_URL_ADMIN_3000: /
+    expose:
+      - '3000'
+
+  web:
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner-web
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3000'
+      PUBLIC_API_BASE_URL: http://api:3000
+      PUBLIC_TURNSTILE_SITE_KEY: ${PUBLIC_TURNSTILE_SITE_KEY:?}
+      PROTOCOL_HEADER: x-forwarded-proto
+      # Coolify: generate domain + routing ke container port 3000
+      SERVICE_URL_WEB_3000: /
+    expose:
+      - '3000'
+
+volumes:
+  db_data:

@@ -12,6 +12,17 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	/** Subset of the Cloudflare Turnstile JS API yang dipakai form publik. */
+	interface TurnstileApi {
+		render(container: HTMLElement, options: Record<string, unknown>): string;
+		reset(widgetId?: string): void;
+		remove(widgetId: string): void;
+	}
+
+	interface Window {
+		turnstile?: TurnstileApi;
+	}
 }
 
 export {};

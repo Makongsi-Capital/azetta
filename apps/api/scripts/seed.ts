@@ -5,8 +5,13 @@
 import { prisma } from '../src/lib/prisma';
 import { auth } from '../src/lib/auth';
 
-const ADMIN_EMAIL = 'admin@azetta.id';
-const ADMIN_PASSWORD = 'Admin12345!';
+const BOOTSTRAP_EMAIL = process.env.ADMIN_BOOTSTRAP_EMAIL?.trim();
+const BOOTSTRAP_PASSWORD = process.env.ADMIN_BOOTSTRAP_PASSWORD?.trim();
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+// Kredensial lokal boleh default; di produksi wajib lewat env (lihat main()).
+const ADMIN_EMAIL = BOOTSTRAP_EMAIL || 'admin@azetta.id';
+const ADMIN_PASSWORD = BOOTSTRAP_PASSWORD || 'Admin12345!';
 
 const daysAgo = (days: number, hour = 9) => {
 	const date = new Date();
@@ -31,7 +36,18 @@ async function ensureUser(email: string, password: string, name: string, role: s
 }
 
 async function main() {
+	if (IS_PRODUCTION && !(BOOTSTRAP_EMAIL && BOOTSTRAP_PASSWORD)) {
+		console.warn('Seed dilewati: ADMIN_BOOTSTRAP_EMAIL/PASSWORD wajib diisi di produksi.');
+		return;
+	}
+
 	const superAdmin = await ensureUser(ADMIN_EMAIL, ADMIN_PASSWORD, 'Rina Pratama', 'super_admin');
+
+	if (IS_PRODUCTION) {
+		console.info(`Seed produksi: akun admin ${ADMIN_EMAIL} dipastikan ada.`);
+		return;
+	}
+
 	await ensureUser('dimas@azetta.id', 'Admin12345!', 'Dimas Anggara', 'admin');
 	const customer = await ensureUser(
 		'budi@example.com',

@@ -1,0 +1,161 @@
+name: azetta
+
+# Dipakai bersama oleh migrator & api.
+# Seed meng-import src/env.ts, jadi migrator butuh set env yang sama lengkapnya.
+x-app-env: &app-env
+  NODE_ENV: production
+  PORT: '3000'
+  DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@db:5432/azetta?schema=public
+  # API hanya dipanggil server-side dari web/admin, jadi URL internal sudah cukup.
+  BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://azetta-api:3000}
+  PUBLIC_API_BASE_URL: ${PUBLIC_API_BASE_URL:-http://azetta-api:3000}
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+  WEB_ORIGIN: ${PROTOCOL:-https}://${WEB_HOST}
+  ADMIN_ORIGIN: ${PROTOCOL:-https}://${ADMIN_HOST}
+  COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+  IP_HASH_SALT: ${IP_HASH_SALT}
+  OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT}
+  OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-}
+  OBJECT_STORAGE_ACCESS_KEY_ID: ${OBJECT_STORAGE_ACCESS_KEY_ID}
+  OBJECT_STORAGE_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_SECRET_ACCESS_KEY}
+  OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET}
+  OBJECT_STORAGE_PUBLIC_URL: ${OBJECT_STORAGE_PUBLIC_URL}
+  OBJECT_STORAGE_MAX_UPLOAD_BYTES: ${OBJECT_STORAGE_MAX_UPLOAD_BYTES:-2097152}
+  TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY}
+  PUBLIC_TURNSTILE_SITE_KEY: ${PUBLIC_TURNSTILE_SITE_KEY}
+  RESEND_API_KEY: ${RESEND_API_KEY}
+  MAIL_FROM: ${MAIL_FROM}
+  SALES_NOTIFY_EMAIL: ${SALES_NOTIFY_EMAIL}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
+  CLOUDFLARE_PURGE_TOKEN: ${CLOUDFLARE_PURGE_TOKEN:-}
+  RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
+  ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
+  ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: azetta-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: azetta
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - stack
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d azetta']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrator:
+    container_name: azetta-migrator
+    restart: 'no'
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+    networks:
+      - stack
+
+  api:
+    container_name: azetta-api
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner-api
+    depends_on:
+      db:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    environment:
+      <<: *app-env
+    networks:
+      - stack
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'bun',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  admin:
+    container_name: azetta-admin
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner-admin
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3000'
+      PUBLIC_API_BASE_URL: http://azetta-api:3000
+      PROTOCOL_HEADER: x-forwarded-proto
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.azetta-admin.service=azetta-admin
+      - traefik.http.routers.azetta-admin.entrypoints=websecure
+      - traefik.http.routers.azetta-admin.rule=Host(`${ADMIN_HOST}`)
+      - traefik.http.services.azetta-admin.loadbalancer.server.port=3000
+      - traefik.docker.network=proxy
+    networks:
+      - proxy
+      - stack
+
+  web:
+    container_name: azetta-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner-web
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3000'
+      PUBLIC_API_BASE_URL: http://azetta-api:3000
+      PUBLIC_TURNSTILE_SITE_KEY: ${PUBLIC_TURNSTILE_SITE_KEY}
+      PROTOCOL_HEADER: x-forwarded-proto
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.web.service=web
+      - traefik.http.routers.web.entrypoints=websecure
+      - traefik.http.routers.web.rule=Host(`${WEB_HOST}`)
+      - traefik.http.services.web.loadbalancer.server.port=3000
+      - traefik.docker.network=proxy
+    networks:
+      - proxy
+      - stack
+
+networks:
+  proxy:
+    external: true
+  stack:
+    driver: bridge
+
+volumes:
+  postgres_data:

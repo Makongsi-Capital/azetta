@@ -75,6 +75,8 @@ export async function submitLead(
 		phone: values.phone,
 		consent: true,
 		honeypot: text(form, 'honeypot'),
+		// Token Turnstile; input hidden-nya dibuat otomatis di dalam <form> oleh widget.
+		turnstileToken: text(form, 'cf-turnstile-response'),
 		idempotencyKey: crypto.randomUUID()
 	};
 
