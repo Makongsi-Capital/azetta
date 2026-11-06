@@ -1,0 +1,37 @@
+# Environment variables untuk Coolify — stack docker-compose.coolify.yml
+# Tempel isi file ini ke Coolify → Environment Variables (atau import sebagai .env).
+# Semua nilai di bawah placeholder: ganti dulu sebelum deploy.
+
+# ── Wajib diisi (compose memakai ${VAR:?} → deploy gagal bila kosong) ─────────
+DATABASE_URL=postgresql://azetta:GANTI_PASSWORD@GANTI_HOST_DB:5432/azetta?schema=public
+OBJECT_STORAGE_ENDPOINT=https://is3.cloudhost.id
+OBJECT_STORAGE_ACCESS_KEY_ID=GANTI_ACCESS_KEY_ID
+OBJECT_STORAGE_SECRET_ACCESS_KEY=GANTI_SECRET_ACCESS_KEY
+OBJECT_STORAGE_BUCKET=azetta-prod-media
+OBJECT_STORAGE_PUBLIC_URL=https://media.azetta.id
+TURNSTILE_SECRET_KEY=GANTI_TURNSTILE_SECRET_KEY
+PUBLIC_TURNSTILE_SITE_KEY=GANTI_TURNSTILE_SITE_KEY
+RESEND_API_KEY=re_GANTI_RESEND_API_KEY
+MAIL_FROM=no-reply@azetta.id
+SALES_NOTIFY_EMAIL=sales@azetta.id
+
+# ── Opsional (kosongkan untuk memakai default compose/kode) ──────────────────
+COOKIE_DOMAIN=
+OBJECT_STORAGE_REGION=auto
+OBJECT_STORAGE_MAX_UPLOAD_BYTES=2097152
+ADMIN_EMAIL_SEED=admin@azetta.id
+ADMIN_PASSWORD_SEED=GANTI_PASSWORD_SUPER_ADMIN
+
+# ── Dibuat otomatis oleh Coolify (jangan diisi manual) ───────────────────────
+# SERVICE_PASSWORD_64_BETTERAUTH  → dipakai sebagai BETTER_AUTH_SECRET
+# SERVICE_HEX_32_IPHASHSALT       → dipakai sebagai IP_HASH_SALT
+
+# ── Sudah di-set langsung di compose, tidak perlu diisi di Coolify ───────────
+# NODE_ENV=production
+# PORT=3000
+# BETTER_AUTH_URL=http://api:3000
+# PUBLIC_API_BASE_URL=http://api:3000
+# HOST=0.0.0.0
+# PROTOCOL_HEADER=x-forwarded-proto
+# SERVICE_URL_ADMIN_3000=/
+# SERVICE_URL_WEB_3000=/
