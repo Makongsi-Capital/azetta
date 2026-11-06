@@ -3,6 +3,8 @@
 #   Docker Compose Location : /docker-compose.coolify.yml
 #
 # Yang perlu diisi di Coolify → Environment Variables:
+#   DATABASE_URL                      connection string DB eksternal, mis.
+#                                     postgresql://azetta:<password>@<host-db>:5432/azetta?schema=public
 #   WEB_ORIGIN, ADMIN_ORIGIN          URL publik, mis. https://azetta.id (tanpa trailing slash)
 #   OBJECT_STORAGE_*                  kredensial S3/R2
 #   TURNSTILE_SECRET_KEY, PUBLIC_TURNSTILE_SITE_KEY
@@ -19,7 +21,8 @@
 x-app-env: &app-env
   NODE_ENV: production
   PORT: '3000'
-  DATABASE_URL: postgresql://azetta:${SERVICE_PASSWORD_DB}@db:5432/azetta?schema=public
+  # DB hidup di luar stack ini (tapi satu network), jadi URL-nya datang dari env.
+  DATABASE_URL: ${DATABASE_URL:?}
   # API hanya dipanggil server-side dari web/admin → cukup URL internal.
   BETTER_AUTH_URL: http://api:3000
   PUBLIC_API_BASE_URL: http://api:3000
@@ -48,30 +51,12 @@ x-app-env: &app-env
   ADMIN_PASSWORD_SEED: ${ADMIN_PASSWORD_SEED:-}
 
 services:
-  db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: azetta
-      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_DB}
-      POSTGRES_DB: azetta
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U azetta -d azetta']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   migrator:
     restart: 'no'
     build:
       context: .
       dockerfile: Dockerfile
       target: migrator
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
       <<: *app-env
 
@@ -82,8 +67,6 @@ services:
       dockerfile: Dockerfile
       target: runner-api
     depends_on:
-      db:
-        condition: service_healthy
       migrator:
         condition: service_completed_successfully
     environment:
@@ -143,6 +126,3 @@ services:
       SERVICE_URL_WEB_3000: /
     expose:
       - '3000'
-
-volumes:
-  db_data:
