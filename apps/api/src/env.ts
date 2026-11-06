@@ -10,8 +10,6 @@ const EnvSchema = Type.Object({
 	DATABASE_URL: Type.String({ minLength: 1 }),
 	BETTER_AUTH_SECRET: Type.String({ minLength: 32 }),
 	BETTER_AUTH_URL: Type.String({ minLength: 1 }),
-	WEB_ORIGIN: Type.String({ minLength: 1 }),
-	ADMIN_ORIGIN: Type.String({ minLength: 1 }),
 	COOKIE_DOMAIN: Type.String({ default: '' }),
 	IP_HASH_SALT: Type.String({ minLength: 1 }),
 	OBJECT_STORAGE_ENDPOINT: Type.Optional(Type.String()),
@@ -22,15 +20,9 @@ const EnvSchema = Type.Object({
 	OBJECT_STORAGE_PUBLIC_URL: Type.String({ minLength: 1 }),
 	OBJECT_STORAGE_MAX_UPLOAD_BYTES: Type.Optional(Type.Number({ minimum: 1 })),
 	TURNSTILE_SECRET_KEY: Type.String({ minLength: 1 }),
-	PUBLIC_TURNSTILE_SITE_KEY: Type.String({ minLength: 1 }),
-	PUBLIC_API_BASE_URL: Type.String({ minLength: 1 }),
 	RESEND_API_KEY: Type.String({ minLength: 1 }),
 	MAIL_FROM: Type.String({ minLength: 1 }),
 	SALES_NOTIFY_EMAIL: Type.String({ minLength: 1 }),
-	SENTRY_DSN: Type.Optional(Type.String()),
-	CLOUDFLARE_ZONE_ID: Type.Optional(Type.String()),
-	CLOUDFLARE_PURGE_TOKEN: Type.Optional(Type.String()),
-	RESEND_WEBHOOK_SECRET: Type.Optional(Type.String()),
 	ADMIN_EMAIL_SEED: Type.Optional(Type.String()),
 	ADMIN_PASSWORD_SEED: Type.Optional(Type.String())
 });
@@ -48,28 +40,18 @@ const REQUIRED_KEYS = [
 	'DATABASE_URL',
 	'BETTER_AUTH_SECRET',
 	'BETTER_AUTH_URL',
-	'WEB_ORIGIN',
-	'ADMIN_ORIGIN',
 	'IP_HASH_SALT',
 	'OBJECT_STORAGE_ACCESS_KEY_ID',
 	'OBJECT_STORAGE_SECRET_ACCESS_KEY',
 	'OBJECT_STORAGE_BUCKET',
 	'OBJECT_STORAGE_PUBLIC_URL',
 	'TURNSTILE_SECRET_KEY',
-	'PUBLIC_TURNSTILE_SITE_KEY',
-	'PUBLIC_API_BASE_URL',
 	'RESEND_API_KEY',
 	'MAIL_FROM',
 	'SALES_NOTIFY_EMAIL'
 ] as const;
 
-const URL_KEYS = [
-	'BETTER_AUTH_URL',
-	'WEB_ORIGIN',
-	'ADMIN_ORIGIN',
-	'OBJECT_STORAGE_PUBLIC_URL',
-	'PUBLIC_API_BASE_URL'
-] as const;
+const URL_KEYS = ['BETTER_AUTH_URL', 'OBJECT_STORAGE_PUBLIC_URL'] as const;
 
 export function loadEnv(source: Record<string, string | undefined> = process.env): Env {
 	const missing = REQUIRED_KEYS.filter((key) => (source[key] ?? '').trim() === '');

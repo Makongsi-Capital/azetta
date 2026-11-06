@@ -13,7 +13,8 @@ export const auth = betterAuth({
 	basePath: '/api/auth',
 	secret: env.BETTER_AUTH_SECRET,
 	database: prismaAdapter(prisma, { provider: 'postgresql' }),
-	trustedOrigins: [env.WEB_ORIGIN, env.ADMIN_ORIGIN],
+	// Tidak ada request browser langsung ke API (semua lewat server web/admin),
+	// jadi trustedOrigins cukup default Better Auth (baseURL).
 	emailAndPassword: {
 		enabled: true,
 		disableSignUp: false,

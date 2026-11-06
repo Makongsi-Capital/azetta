@@ -18,29 +18,12 @@ import { pruneRateLimits } from './lib/rate-limit';
 import { meRoutes } from './modules/account/account.routes';
 
 const env = getEnv();
-const allowedOrigins = new Set([env.WEB_ORIGIN, env.ADMIN_ORIGIN]);
 
+// API hanya dipanggil server-side (web/admin) lewat fetch internal, jadi tidak perlu CORS.
 const app = new Elysia()
 	.onRequest(({ request, set }) => {
 		const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
 		set.headers['x-request-id'] = requestId;
-
-		const origin = request.headers.get('origin');
-		if (origin && allowedOrigins.has(origin)) {
-			set.headers['access-control-allow-origin'] = origin;
-			set.headers['access-control-allow-credentials'] = 'true';
-			set.headers['access-control-allow-headers'] = 'Content-Type, Authorization, X-Request-Id';
-			set.headers['access-control-allow-methods'] = 'GET, POST, PATCH, DELETE, OPTIONS';
-			set.headers['vary'] = 'Origin';
-		}
-
-		if (request.method === 'OPTIONS') {
-			const headers = new Headers();
-			for (const [key, value] of Object.entries(set.headers)) {
-				headers.set(key, String(value));
-			}
-			return new Response(null, { status: 204, headers });
-		}
 	})
 	.onError(({ error, code, request, set }) => {
 		const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();

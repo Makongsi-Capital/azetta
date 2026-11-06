@@ -88,8 +88,6 @@ Aturan:
 | `DATABASE_URL` | ✅ | `postgresql://user:pass@db:5432/azetta` | Termasuk `?schema=public&connection_limit=10` |
 | `BETTER_AUTH_SECRET` | ✅ | 32+ byte acak | Rotasi = semua sesi logout |
 | `BETTER_AUTH_URL` | ✅ | `https://api.azetta.id` | Basis URL auth |
-| `WEB_ORIGIN` | ✅ | `https://azetta.id` | CORS & tautan |
-| `ADMIN_ORIGIN` | ✅ | `https://admin.azetta.id` | CORS |
 | `COOKIE_DOMAIN` | ✅ | `.azetta.id` | Produksi; kosong saat lokal |
 | `IP_HASH_SALT` | ✅ | acak | Untuk `ipHash` |
 | `OBJECT_STORAGE_ENDPOINT` | ⚠️ | `https://is3.cloudhost.id` | Endpoint S3-compatible (kosong = AWS) |
@@ -99,13 +97,10 @@ Aturan:
 | `OBJECT_STORAGE_PUBLIC_URL` | ✅ | `https://media.azetta.id` | URL publik objek |
 | `OBJECT_STORAGE_MAX_UPLOAD_BYTES` | ⚠️ | `10485760` | Batas unggah admin (byte) |
 | `TURNSTILE_SECRET_KEY` | ✅ | — | Verifikasi server |
-| `PUBLIC_TURNSTILE_SITE_KEY` | ✅ | — | Klien |
 | `RESEND_API_KEY` / `MAIL_FROM` | ✅ | `no-reply@azetta.id` | Notifikasi |
 | `SALES_NOTIFY_EMAIL` | ✅ | `sales@azetta.id` | Penerima lead |
-| `SENTRY_DSN` | ⚠️ | — | Disarankan |
-| `PUBLIC_API_BASE_URL` | ✅ | `https://api.azetta.id` | Dipakai web/admin |
-| `CLOUDFLARE_ZONE_ID` / `CLOUDFLARE_PURGE_TOKEN` | ⚠️ | — | Purge cache |
-| `RESEND_WEBHOOK_SECRET` | ❌ | — | Opsional: pantau bounce/complaint email verifikasi |
+| `PUBLIC_API_BASE_URL` | ✅ | `https://api.azetta.id` | Hanya web/admin (API tidak memakainya) |
+| `PUBLIC_TURNSTILE_SITE_KEY` | ✅ | — | Hanya web (klien) |
 | `ADMIN_EMAIL_SEED` / `_PASSWORD` | ❌ | — | Hanya untuk inisialisasi awal; hapus setelah dipakai |
 
 Semua divalidasi saat boot (`apps/api/src/env.ts`); aplikasi menolak start bila ada yang hilang. Variabel `PUBLIC_*` untuk SvelteKit diekspos ke klien — **jangan** pernah menaruh rahasia di sana.

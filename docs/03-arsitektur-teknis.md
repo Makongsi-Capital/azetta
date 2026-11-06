@@ -283,14 +283,11 @@ admin.azetta.id                api.azetta.id
      │◄──────────────────────────────│  { user: { id, role, ... } }
 ```
 
-Karena `admin.azetta.id` dan `api.azetta.id` berada pada registri domain yang sama, cookie `lax` cukup dan tidak perlu CORS longgar. CORS tetap dibatasi ke origin yang dikenal:
+Karena `admin.azetta.id` dan `api.azetta.id` berada pada registri domain yang sama, cookie `lax` cukup. Lebih penting lagi: aplikasi web/admin memanggil API **server-side** (SvelteKit `fetch` internal dengan header cookie diteruskan manual), sehingga tidak ada request lintas-origin dari browser dan API **tidak perlu CORS** sama sekali:
 
 ```ts
 // apps/api/src/index.ts (ringkas)
-const ALLOWED = [env.WEB_ORIGIN, env.ADMIN_ORIGIN];
-
 new Elysia()
-  .use(cors({ origin: ALLOWED, credentials: true }))
   .use(authGuard)               // derive { user, session }
   .use(rateLimit)
   .use(errorHandler)

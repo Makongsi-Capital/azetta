@@ -1,8 +1,4 @@
-const API_BASE = (
-	process.env.PUBLIC_API_BASE_URL ||
-	process.env.API_BASE_URL ||
-	'http://localhost:3000'
-).replace(/\/$/, '');
+const API_BASE = (process.env.PUBLIC_API_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 export interface ApiUser {
 	id: string;

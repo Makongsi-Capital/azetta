@@ -6,16 +6,12 @@ const validEnv: Record<string, string> = {
 	DATABASE_URL: 'postgresql://azetta:azetta@localhost:5432/azetta?schema=public',
 	BETTER_AUTH_SECRET: 'dev-only-better-auth-secret-change-me',
 	BETTER_AUTH_URL: 'http://localhost:3000',
-	WEB_ORIGIN: 'http://localhost:5173',
-	ADMIN_ORIGIN: 'http://localhost:5174',
 	IP_HASH_SALT: 'dev-salt',
 	OBJECT_STORAGE_ACCESS_KEY_ID: 'dev-key',
 	OBJECT_STORAGE_SECRET_ACCESS_KEY: 'dev-secret',
 	OBJECT_STORAGE_BUCKET: 'azetta-dev-media',
 	OBJECT_STORAGE_PUBLIC_URL: 'http://localhost:9000/azetta-dev-media',
 	TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA',
-	PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA',
-	PUBLIC_API_BASE_URL: 'http://localhost:3000',
 	RESEND_API_KEY: 're_dev_placeholder',
 	MAIL_FROM: 'no-reply@azetta.test',
 	SALES_NOTIFY_EMAIL: 'sales@azetta.test'
@@ -50,6 +46,6 @@ describe('loadEnv', () => {
 	});
 
 	it('menolak URL yang tidak valid', () => {
-		expect(() => loadEnv({ ...validEnv, WEB_ORIGIN: 'bukan-url' })).toThrow(/WEB_ORIGIN/);
+		expect(() => loadEnv({ ...validEnv, BETTER_AUTH_URL: 'bukan-url' })).toThrow(/BETTER_AUTH_URL/);
 	});
 });
