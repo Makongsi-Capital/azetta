@@ -5,13 +5,13 @@
 import { prisma } from '../src/lib/prisma';
 import { auth } from '../src/lib/auth';
 
-const BOOTSTRAP_EMAIL = process.env.ADMIN_BOOTSTRAP_EMAIL?.trim();
-const BOOTSTRAP_PASSWORD = process.env.ADMIN_BOOTSTRAP_PASSWORD?.trim();
+const EMAIL_SEED = process.env.ADMIN_EMAIL_SEED?.trim();
+const PASSWORD_SEED = process.env.ADMIN_PASSWORD_SEED?.trim();
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 // Kredensial lokal boleh default; di produksi wajib lewat env (lihat main()).
-const ADMIN_EMAIL = BOOTSTRAP_EMAIL || 'admin@azetta.id';
-const ADMIN_PASSWORD = BOOTSTRAP_PASSWORD || 'Admin12345!';
+const ADMIN_EMAIL = EMAIL_SEED || 'admin@azetta.id';
+const ADMIN_PASSWORD = PASSWORD_SEED || 'Admin12345!';
 
 const daysAgo = (days: number, hour = 9) => {
 	const date = new Date();
@@ -36,8 +36,8 @@ async function ensureUser(email: string, password: string, name: string, role: s
 }
 
 async function main() {
-	if (IS_PRODUCTION && !(BOOTSTRAP_EMAIL && BOOTSTRAP_PASSWORD)) {
-		console.warn('Seed dilewati: ADMIN_BOOTSTRAP_EMAIL/PASSWORD wajib diisi di produksi.');
+	if (IS_PRODUCTION && !(EMAIL_SEED && PASSWORD_SEED)) {
+		console.warn('Seed dilewati: ADMIN_EMAIL_SEED/PASSWORD wajib diisi di produksi.');
 		return;
 	}
 

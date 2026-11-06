@@ -61,8 +61,8 @@ export type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSess
 
 /** Buat akun super admin pertama dari env (idempoten). */
 export async function ensureBootstrapAdmin(): Promise<void> {
-	const email = env.ADMIN_BOOTSTRAP_EMAIL?.trim();
-	const password = env.ADMIN_BOOTSTRAP_PASSWORD?.trim();
+	const email = env.ADMIN_EMAIL_SEED?.trim();
+	const password = env.ADMIN_PASSWORD_SEED?.trim();
 	if (!email || !password) return;
 
 	const existing = await prisma.user.findUnique({ where: { email } });

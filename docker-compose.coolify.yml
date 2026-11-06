@@ -7,7 +7,7 @@
 #   OBJECT_STORAGE_*                  kredensial S3/R2
 #   TURNSTILE_SECRET_KEY, PUBLIC_TURNSTILE_SITE_KEY
 #   RESEND_API_KEY, MAIL_FROM, SALES_NOTIFY_EMAIL
-#   ADMIN_BOOTSTRAP_EMAIL, ADMIN_BOOTSTRAP_PASSWORD   (wajib: seed produksi hanya membuat akun ini)
+#   ADMIN_EMAIL_SEED, ADMIN_PASSWORD_SEED   (wajib: seed produksi hanya membuat akun ini)
 #
 # Variabel SERVICE_* adalah "magic variable" Coolify: domain web/admin dibuat otomatis
 # dan diarahkan ke port 3000 container. Kalau lebih suka mengatur domain lewat tab
@@ -44,8 +44,8 @@ x-app-env: &app-env
   CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
   CLOUDFLARE_PURGE_TOKEN: ${CLOUDFLARE_PURGE_TOKEN:-}
   RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
-  ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
-  ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
+  ADMIN_EMAIL_SEED: ${ADMIN_EMAIL_SEED:-}
+  ADMIN_PASSWORD_SEED: ${ADMIN_PASSWORD_SEED:-}
 
 services:
   db:

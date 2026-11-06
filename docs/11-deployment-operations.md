@@ -106,7 +106,7 @@ Aturan:
 | `PUBLIC_API_BASE_URL` | ✅ | `https://api.azetta.id` | Dipakai web/admin |
 | `CLOUDFLARE_ZONE_ID` / `CLOUDFLARE_PURGE_TOKEN` | ⚠️ | — | Purge cache |
 | `RESEND_WEBHOOK_SECRET` | ❌ | — | Opsional: pantau bounce/complaint email verifikasi |
-| `ADMIN_BOOTSTRAP_EMAIL` / `_PASSWORD` | ❌ | — | Hanya untuk inisialisasi awal; hapus setelah dipakai |
+| `ADMIN_EMAIL_SEED` / `_PASSWORD` | ❌ | — | Hanya untuk inisialisasi awal; hapus setelah dipakai |
 
 Semua divalidasi saat boot (`apps/api/src/env.ts`); aplikasi menolak start bila ada yang hilang. Variabel `PUBLIC_*` untuk SvelteKit diekspos ke klien — **jangan** pernah menaruh rahasia di sana.
 

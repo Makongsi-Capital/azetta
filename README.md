@@ -34,7 +34,7 @@ bun run dev               # api :3000, web :5173, admin :5174
 ```
 
 Akun admin hasil seed: `admin@azetta.id` / `Admin12345!`. Alternatif tanpa seed: isi
-`ADMIN_BOOTSTRAP_EMAIL` dan `ADMIN_BOOTSTRAP_PASSWORD` di `.env`; API akan membuat
+`ADMIN_EMAIL_SEED` dan `ADMIN_PASSWORD_SEED` di `.env`; API akan membuat
 super admin pertama saat boot. Panel admin memakai Better Auth (`/api/auth/*`) dan
 menolak akun dengan peran `customer`.
 

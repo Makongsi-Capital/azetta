@@ -31,8 +31,8 @@ const EnvSchema = Type.Object({
 	CLOUDFLARE_ZONE_ID: Type.Optional(Type.String()),
 	CLOUDFLARE_PURGE_TOKEN: Type.Optional(Type.String()),
 	RESEND_WEBHOOK_SECRET: Type.Optional(Type.String()),
-	ADMIN_BOOTSTRAP_EMAIL: Type.Optional(Type.String()),
-	ADMIN_BOOTSTRAP_PASSWORD: Type.Optional(Type.String())
+	ADMIN_EMAIL_SEED: Type.Optional(Type.String()),
+	ADMIN_PASSWORD_SEED: Type.Optional(Type.String())
 });
 
 export type Env = Static<typeof EnvSchema>;
