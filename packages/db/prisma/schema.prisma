@@ -118,118 +118,95 @@ model Verification {
 }
 
 // ============================================================
-// Katalog desain
+// Katalog unit
 // ============================================================
 
-enum DesignCategory {
-  RESIDENTIAL
-  COMMERCIAL
-  RENOVATION
-  INTERIOR
-}
-
-enum DesignStatus {
+enum UnitPublishStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
 }
 
-enum MediaKind {
-  IMAGE
+enum UnitSalesStatus {
+  AVAILABLE
+  INDENT
+  SOLD
+}
+
+enum UnitMediaKind {
+  RENDER
   FLOOR_PLAN
-  RENDER_3D
+  PHOTO
+  SITE_PLAN
   VIDEO
 }
 
-model PropertyDesign {
+model Unit {
   id          Int     @id @default(autoincrement())
   slug        String  @unique
+  unitCode    String
+  typeName    String
   title       String
   subtitle    String?
   /// HTML tersanitasi (Tiptap)
   description String  @db.Text
 
-  category       DesignCategory
-  style          String
-  floors         Int            @default(1)
-  bedrooms       Int            @default(0)
-  bathrooms      Int            @default(0)
-  carports       Int            @default(0)
-  buildingAreaM2 Int
-  landAreaMinM2  Int
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
 
+  floors         Int @default(1)
+  bedrooms       Int @default(0)
+  bathrooms      Int @default(0)
+  carports       Int @default(0)
+  buildingAreaM2 Int
+  landAreaM2     Int
+
+  priceFrom BigInt?
+  /// Internal saja — tidak pernah dikirim ke API publik (Q8)
   estimatedBuildCostMin BigInt?
   estimatedBuildCostMax BigInt?
-  priceFrom             BigInt?
 
-  status         DesignStatus @default(DRAFT)
-  featured       Boolean      @default(false)
-  viewCount      Int          @default(0)
+  publishStatus  UnitPublishStatus @default(DRAFT)
+  salesStatus    UnitSalesStatus   @default(AVAILABLE)
+  featured       Boolean           @default(false)
+  viewCount      Int               @default(0)
   publishedAt    DateTime?
   seoTitle       String?
   seoDescription String?
-
-  projectId Int?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  media PropertyDesignMedia[]
-  /// @prismabox.hide
-  tags  DesignTagOnDesign[]
+  media UnitMedia[]
   leads Lead[]
 
-  @@index([status, publishedAt])
-  @@index([category, style])
-  @@index([featured, status])
+  @@unique([projectId, unitCode])
+  @@index([publishStatus, publishedAt])
+  @@index([projectId, publishStatus])
+  @@index([salesStatus, publishStatus])
+  @@index([typeName])
   @@index([deletedAt])
-  @@index([projectId])
-  @@map("property_design")
+  @@map("unit")
 }
 
-model PropertyDesignMedia {
-  id         Int       @id @default(autoincrement())
-  designId   Int
-  kind       MediaKind @default(IMAGE)
+model UnitMedia {
+  id         Int           @id @default(autoincrement())
+  unitId     Int
+  kind       UnitMediaKind @default(RENDER)
   storageKey String
   url        String
   alt        String?
   width      Int?
   height     Int?
-  sortOrder  Int       @default(0)
-  isCover    Boolean   @default(false)
-  createdAt  DateTime  @default(now())
+  sortOrder  Int           @default(0)
+  isCover    Boolean       @default(false)
+  createdAt  DateTime      @default(now())
 
-  design PropertyDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
+  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
 
-  @@index([designId, sortOrder])
-  @@map("property_design_media")
-}
-
-model DesignTag {
-  id   Int    @id @default(autoincrement())
-  slug String @unique
-  name String @unique
-
-  /// @prismabox.hide
-  designs DesignTagOnDesign[]
-
-  @@map("design_tag")
-}
-
-/// @prismabox.hide
-model DesignTagOnDesign {
-  designId Int
-  tagId    Int
-
-  design PropertyDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
-  tag    DesignTag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([designId, tagId])
-  @@index([tagId])
-  @@map("design_tag_on_design")
+  @@index([unitId, sortOrder])
+  @@map("unit_media")
 }
 
 // ============================================================
@@ -237,9 +214,8 @@ model DesignTagOnDesign {
 // ============================================================
 
 enum LeadType {
-  BUY_DESIGN
+  BUY_UNIT
   LAND_OFFER
-  INVEST
   GENERAL
 }
 
@@ -313,28 +289,6 @@ enum StartTimeline {
   UNKNOWN
 }
 
-enum BudgetRange {
-  UNDER_500M
-  M500_1B
-  B1_5
-  B5_20
-  ABOVE_20B
-}
-
-enum RiskProfile {
-  CONSERVATIVE
-  MODERATE
-  AGGRESSIVE
-  UNKNOWN
-}
-
-enum InvestmentInstrument {
-  EQUITY
-  PROFIT_SHARE
-  FIXED_RETURN
-  OPEN
-}
-
 model Lead {
   id        String       @id @default(uuid(7)) @db.Uuid
   reference String       @unique
@@ -349,8 +303,8 @@ model Lead {
   city            String?
   message         String? @db.Text
 
-  designId Int?
-  design   PropertyDesign? @relation(fields: [designId], references: [id], onDelete: SetNull)
+  unitId Int?
+  unit   Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
 
   source      LeadSource @default(WEBSITE)
   landingPath String?
@@ -383,17 +337,16 @@ model Lead {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  landSubmission     LandSubmission?
-  investmentInterest InvestmentInterest?
-  activities         LeadActivity[]
-  attachments        LeadAttachment[]
+  landSubmission LandSubmission?
+  activities     LeadActivity[]
+  attachments    LeadAttachment[]
 
   @@index([status, createdAt])
   @@index([type, status])
   @@index([assignedToId, status])
   @@index([phoneNormalized])
   @@index([createdAt])
-  @@index([designId])
+  @@index([unitId])
   @@index([deletedAt])
   @@map("lead")
 }
@@ -426,24 +379,6 @@ model LandSubmission {
 
   @@index([province, city])
   @@map("land_submission")
-}
-
-model InvestmentInterest {
-  id                 Int                   @id @default(autoincrement())
-  leadId             String                @unique @db.Uuid
-  budgetRange        BudgetRange
-  preferredLocations String[]
-  horizonMonths      Int?
-  riskProfile        RiskProfile           @default(UNKNOWN)
-  instrument         InvestmentInstrument?
-  notes              String?               @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
-  @@map("investment_interest")
 }
 
 model LeadActivity {
@@ -524,7 +459,7 @@ model Project {
   createdById String?
   createdBy   User?   @relation("ProjectAuthor", fields: [createdById], references: [id], onDelete: SetNull)
 
-  units PropertyDesign[]
+  units Unit[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -647,7 +582,7 @@ model FunnelEvent {
   id        Int      @id @default(autoincrement())
   name      String
   path      String
-  designId  Int?
+  unitId    Int?
   leadId    String?  @db.Uuid
   sessionId String?
   /// [FunnelProps]
@@ -655,7 +590,7 @@ model FunnelEvent {
   createdAt DateTime @default(now())
 
   @@index([name, createdAt])
-  @@index([designId])
+  @@index([unitId])
   @@index([leadId])
   @@map("funnel_event")
 }

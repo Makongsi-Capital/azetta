@@ -13,10 +13,9 @@ export type ProjectViewStatus = 'SEDANG BERJALAN' | 'SELESAI' | 'DIRENCANAKAN';
 export interface UnitView {
 	id: number;
 	slug: string;
+	unitCode: string;
 	title: string;
 	type: string;
-	style: string;
-	category: string;
 	project: string;
 	projectSlug: string;
 	floors: number;
@@ -145,10 +144,9 @@ export function toUnit(unit: ApiUnit): UnitView {
 	return {
 		id: unit.id,
 		slug: unit.slug,
+		unitCode: unit.unitCode,
 		title: unit.title,
-		type: unit.style,
-		style: unit.style,
-		category: unit.category,
+		type: unit.typeName,
 		project: unit.project?.title ?? 'Azetta',
 		projectSlug: unit.project?.slug ?? '',
 		floors: unit.floors,

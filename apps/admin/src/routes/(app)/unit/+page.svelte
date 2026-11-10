@@ -6,7 +6,12 @@
 	import StatCard from '#lib/components/admin/StatCard.svelte';
 	import StatusBadge from '#lib/components/admin/StatusBadge.svelte';
 	import { formatDate, formatNumber, formatRupiahShort } from '#lib/format.js';
-	import { designCategoryLabel, designStatusLabel, designStatusTone } from '#lib/labels.js';
+	import {
+		unitPublishStatusLabel,
+		unitPublishStatusTone,
+		unitSalesStatusLabel,
+		unitSalesStatusTone
+	} from '#lib/labels.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -17,14 +22,14 @@
 	const perPage = 10;
 
 	let q = $state('');
-	let statusFilter = $state('all');
-	let categoryFilter = $state('all');
+	let publishFilter = $state('all');
+	let salesFilter = $state('all');
 	let currentPage = $state(1);
 
 	const counts = $derived({
-		published: units.filter((unit) => unit.status === 'PUBLISHED').length,
-		draft: units.filter((unit) => unit.status === 'DRAFT').length,
-		archived: units.filter((unit) => unit.status === 'ARCHIVED').length,
+		published: units.filter((unit) => unit.publishStatus === 'PUBLISHED').length,
+		draft: units.filter((unit) => unit.publishStatus === 'DRAFT').length,
+		archived: units.filter((unit) => unit.publishStatus === 'ARCHIVED').length,
 		views: units.reduce((total, unit) => total + unit.viewCount, 0)
 	});
 
@@ -32,11 +37,18 @@
 		const term = q.trim().toLowerCase();
 
 		return units.filter((unit) => {
-			if (statusFilter !== 'all' && unit.status !== statusFilter) return false;
-			if (categoryFilter !== 'all' && unit.category !== categoryFilter) return false;
+			if (publishFilter !== 'all' && unit.publishStatus !== publishFilter) return false;
+			if (salesFilter !== 'all' && unit.salesStatus !== salesFilter) return false;
 			if (!term) return true;
 
-			return [unit.title, unit.slug, unit.style, unit.subtitle ?? '']
+			return [
+				unit.title,
+				unit.slug,
+				unit.unitCode,
+				unit.typeName,
+				unit.projectTitle,
+				unit.subtitle ?? ''
+			]
 				.filter(Boolean)
 				.some((value) => value.toLowerCase().includes(term));
 		});
@@ -47,8 +59,8 @@
 
 	function resetFilters() {
 		q = '';
-		statusFilter = 'all';
-		categoryFilter = 'all';
+		publishFilter = 'all';
+		salesFilter = 'all';
 		currentPage = 1;
 	}
 </script>
@@ -96,7 +108,7 @@
 			<input
 				type="search"
 				class="grow"
-				placeholder="Cari judul, slug, atau gaya…"
+				placeholder="Cari judul, kode, tipe, atau proyek…"
 				aria-label="Cari unit"
 				bind:value={q}
 				oninput={() => (currentPage = 1)}
@@ -105,24 +117,24 @@
 
 		<select
 			class="select select-sm border-brand-line"
-			aria-label="Filter status unit"
-			bind:value={statusFilter}
+			aria-label="Filter status publish"
+			bind:value={publishFilter}
 			onchange={() => (currentPage = 1)}
 		>
 			<option value="all">Semua status</option>
-			{#each Object.entries(designStatusLabel) as [value, label] (value)}
+			{#each Object.entries(unitPublishStatusLabel) as [value, label] (value)}
 				<option {value}>{label}</option>
 			{/each}
 		</select>
 
 		<select
 			class="select select-sm border-brand-line"
-			aria-label="Filter kategori unit"
-			bind:value={categoryFilter}
+			aria-label="Filter ketersediaan"
+			bind:value={salesFilter}
 			onchange={() => (currentPage = 1)}
 		>
-			<option value="all">Semua kategori</option>
-			{#each Object.entries(designCategoryLabel) as [value, label] (value)}
+			<option value="all">Semua ketersediaan</option>
+			{#each Object.entries(unitSalesStatusLabel) as [value, label] (value)}
 				<option {value}>{label}</option>
 			{/each}
 		</select>
@@ -146,7 +158,7 @@
 				<thead>
 					<tr class="border-brand-line text-xs">
 						<th>Unit</th>
-						<th class="hidden md:table-cell">Kategori</th>
+						<th class="hidden md:table-cell">Tipe / kode</th>
 						<th class="hidden lg:table-cell">Spesifikasi</th>
 						<th>Harga mulai</th>
 						<th>Status</th>
@@ -178,23 +190,29 @@
 								</div>
 							</td>
 							<td class="hidden text-xs md:table-cell">
-								{designCategoryLabel[unit.category]}
-								<span class="block text-brand-gray-600">{unit.style}</span>
+								{unit.typeName}
+								<span class="block font-mono text-brand-gray-600">{unit.unitCode}</span>
 							</td>
 							<td class="hidden text-xs lg:table-cell">
 								{unit.bedrooms} KT · {unit.bathrooms} KM
 								<span class="block text-brand-gray-600">
-									{unit.buildingAreaM2} m² / {unit.landAreaMinM2} m²
+									{unit.buildingAreaM2} m² / {unit.landAreaM2} m²
 								</span>
 							</td>
 							<td class="text-xs font-bold whitespace-nowrap tabular-nums">
 								{unit.priceFrom ? formatRupiahShort(unit.priceFrom) : '—'}
 							</td>
 							<td>
-								<StatusBadge
-									label={designStatusLabel[unit.status]}
-									tone={designStatusTone[unit.status]}
-								/>
+								<div class="flex flex-col items-start gap-1">
+									<StatusBadge
+										label={unitPublishStatusLabel[unit.publishStatus]}
+										tone={unitPublishStatusTone[unit.publishStatus]}
+									/>
+									<StatusBadge
+										label={unitSalesStatusLabel[unit.salesStatus]}
+										tone={unitSalesStatusTone[unit.salesStatus]}
+									/>
+								</div>
 							</td>
 							<td class="hidden text-xs tabular-nums xl:table-cell">
 								{formatNumber(unit.viewCount)}
@@ -204,7 +222,7 @@
 							</td>
 							<td class="text-right">
 								<div class="flex justify-end gap-1">
-									{#if unit.status === 'PUBLISHED'}
+									{#if unit.publishStatus === 'PUBLISHED'}
 										<a
 											class="btn btn-ghost btn-xs"
 											href="https://azetta.id/rumah/{unit.slug}"

@@ -8,15 +8,14 @@ import {
 	pickEnum,
 	toStringArray
 } from '../../lib/http';
-import { serializeDesign } from '../../lib/serialize';
+import { serializeUnit } from '../../lib/serialize';
 import { storage } from '../../lib/storage.service';
 import { getEnv } from '../../env';
 
 const env = getEnv();
 
-const designInclude = {
+const unitInclude = {
 	media: { orderBy: { sortOrder: 'asc' as const } },
-	tags: { include: { tag: true } },
 	project: {
 		select: { slug: true, title: true, city: true, province: true, location: true }
 	}
@@ -24,7 +23,7 @@ const designInclude = {
 
 type Query = Record<string, string | undefined>;
 
-type DesignWithRelations = Parameters<typeof serializeDesign>[0] & {
+type UnitWithRelations = Parameters<typeof serializeUnit>[0] & {
 	project?: {
 		slug: string;
 		title: string;
@@ -34,7 +33,7 @@ type DesignWithRelations = Parameters<typeof serializeDesign>[0] & {
 	} | null;
 };
 
-function publicProject(project: DesignWithRelations['project']) {
+function publicProject(project: UnitWithRelations['project']) {
 	return project
 		? {
 				slug: project.slug,
@@ -46,41 +45,32 @@ function publicProject(project: DesignWithRelations['project']) {
 		: null;
 }
 
-function publicDesign(design: DesignWithRelations, includeDescription: boolean) {
-	const serialized = serializeDesign(design);
+function publicUnit(unit: UnitWithRelations, includeDescription: boolean) {
+	const serialized = serializeUnit(unit);
 	return {
 		id: serialized.id,
 		slug: serialized.slug,
-		typeName: serialized.title,
+		unitCode: serialized.unitCode,
+		typeName: serialized.typeName,
 		title: serialized.title,
 		subtitle: serialized.subtitle,
-		project: publicProject(design.project),
+		project: publicProject(unit.project),
 		...(includeDescription ? { description: serialized.description } : {}),
-		style: serialized.style,
-		category: serialized.category,
 		floors: serialized.floors,
 		bedrooms: serialized.bedrooms,
 		bathrooms: serialized.bathrooms,
 		carports: serialized.carports,
 		buildingAreaM2: serialized.buildingAreaM2,
-		landAreaM2: serialized.landAreaMinM2,
-		priceFrom: serialized.priceFrom ? serialized.priceFrom.toString() : null,
+		landAreaM2: serialized.landAreaM2,
+		priceFrom: serialized.priceFrom,
 		featured: serialized.featured,
-		salesStatus: 'AVAILABLE',
+		salesStatus: serialized.salesStatus,
 		cover: serialized.cover
 			? { url: serialized.cover, alt: serialized.title, width: null, height: null }
 			: null,
 		...(includeDescription
 			? {
-					media: design.media.map((media) => ({
-						id: media.id,
-						kind: media.kind,
-						url: media.url,
-						alt: media.alt,
-						width: media.width,
-						height: media.height,
-						isCover: media.isCover
-					})),
+					media: serialized.media,
 					publishedAt: serialized.publishedAt,
 					updatedAt: serialized.updatedAt,
 					seo: { title: serialized.seoTitle, description: serialized.seoDescription }
@@ -94,7 +84,7 @@ function normalizePhone(phone: string): string {
 }
 
 function referenceFor(type: string): string {
-	const prefix = { BUY_DESIGN: 'DS', LAND_OFFER: 'LD', INVEST: 'IV', GENERAL: 'GN' }[type] ?? 'GN';
+	const prefix = { BUY_UNIT: 'BU', LAND_OFFER: 'LD', GENERAL: 'GN' }[type] ?? 'GN';
 	const now = new Date();
 	return `AZT-${prefix}-${String(now.getFullYear()).slice(2)}${String(now.getMonth() + 1).padStart(2, '0')}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
@@ -120,6 +110,11 @@ export async function listUnits(query: Query) {
 		maxPerPage: 50
 	});
 	const type = query.type?.trim() || undefined;
+	const salesStatusQuery = query.salesStatus?.trim();
+	const salesStatus =
+		salesStatusQuery === 'AVAILABLE' || salesStatusQuery === 'INDENT' || salesStatusQuery === 'SOLD'
+			? (salesStatusQuery as 'AVAILABLE' | 'INDENT' | 'SOLD')
+			: undefined;
 	const bedrooms = query.bedrooms ? Number(query.bedrooms) : undefined;
 	const minLandArea = query.minLandArea ? Number(query.minLandArea) : undefined;
 	const minBuildingArea = query.minBuildingArea ? Number(query.minBuildingArea) : undefined;
@@ -128,13 +123,15 @@ export async function listUnits(query: Query) {
 
 	const where = {
 		deletedAt: null,
-		status: 'PUBLISHED' as const,
+		publishStatus: 'PUBLISHED' as const,
+		...(salesStatus ? { salesStatus } : {}),
 		...(query.q
 			? {
 					OR: [
 						{ title: { contains: query.q, mode: 'insensitive' as const } },
 						{ subtitle: { contains: query.q, mode: 'insensitive' as const } },
-						{ style: { contains: query.q, mode: 'insensitive' as const } }
+						{ typeName: { contains: query.q, mode: 'insensitive' as const } },
+						{ unitCode: { contains: query.q, mode: 'insensitive' as const } }
 					]
 				}
 			: {})
@@ -151,13 +148,13 @@ export async function listUnits(query: Query) {
 			: where;
 	const filtered = {
 		...scoped,
-		...(type ? { style: { contains: type, mode: 'insensitive' as const } } : {}),
+		...(type ? { typeName: { equals: type, mode: 'insensitive' as const } } : {}),
 		...(query.featured === 'true' ? { featured: true } : {}),
 		...(Number.isInteger(bedrooms) && Number(bedrooms) > 0
 			? { bedrooms: { gte: Number(bedrooms) } }
 			: {}),
 		...(Number.isInteger(minLandArea) && Number(minLandArea) > 0
-			? { landAreaMinM2: { gte: Number(minLandArea) } }
+			? { landAreaM2: { gte: Number(minLandArea) } }
 			: {}),
 		...(Number.isInteger(minBuildingArea) && Number(minBuildingArea) > 0
 			? { buildingAreaM2: { gte: Number(minBuildingArea) } }
@@ -178,22 +175,22 @@ export async function listUnits(query: Query) {
 			: query.sort === '-priceFrom'
 				? ({ priceFrom: 'desc' } as const)
 				: query.sort === '-landAreaM2'
-					? ({ landAreaMinM2: 'desc' } as const)
+					? ({ landAreaM2: 'desc' } as const)
 					: ({ publishedAt: 'desc' } as const);
 
 	const [rows, total] = await Promise.all([
-		prisma.propertyDesign.findMany({
+		prisma.unit.findMany({
 			where: filtered,
-			include: designInclude,
+			include: unitInclude,
 			orderBy,
 			skip,
 			take
 		}),
-		prisma.propertyDesign.count({ where: filtered })
+		prisma.unit.count({ where: filtered })
 	]);
 
 	return list(
-		rows.map((row) => publicDesign(row, false)),
+		rows.map((row) => publicUnit(row, false)),
 		{
 			page,
 			perPage,
@@ -210,13 +207,13 @@ export async function getUnitFilters() {
 			select: { slug: true, title: true, city: true },
 			orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }]
 		}),
-		prisma.propertyDesign.findMany({
-			where: { deletedAt: null, status: 'PUBLISHED' },
-			select: { style: true, category: true },
-			distinct: ['style']
+		prisma.unit.findMany({
+			where: { deletedAt: null, publishStatus: 'PUBLISHED' },
+			select: { typeName: true },
+			distinct: ['typeName']
 		}),
-		prisma.propertyDesign.aggregate({
-			where: { deletedAt: null, status: 'PUBLISHED' },
+		prisma.unit.aggregate({
+			where: { deletedAt: null, publishStatus: 'PUBLISHED' },
 			_min: { priceFrom: true },
 			_max: { priceFrom: true }
 		})
@@ -224,7 +221,7 @@ export async function getUnitFilters() {
 	return ok({
 		cities: [...new Set(projects.map((row) => row.city).filter(Boolean))],
 		projects: projects.map((row) => ({ slug: row.slug, title: row.title, city: row.city })),
-		types: types.map((row) => row.style).filter(Boolean),
+		types: types.map((row) => row.typeName).filter(Boolean),
 		minPrice: priceRange._min.priceFrom?.toString() ?? null,
 		maxPrice: priceRange._max.priceFrom?.toString() ?? null
 	});
@@ -236,32 +233,32 @@ function toBigInt(value: string | undefined): bigint | undefined {
 }
 
 export async function getUnitBySlug(slug: string) {
-	const design = await prisma.propertyDesign.findFirst({
-		where: { slug, status: 'PUBLISHED', deletedAt: null },
-		include: designInclude
+	const unit = await prisma.unit.findFirst({
+		where: { slug, publishStatus: 'PUBLISHED', deletedAt: null },
+		include: unitInclude
 	});
-	if (!design) throw notFound('Unit tidak ditemukan.');
-	return ok(publicDesign(design, true));
+	if (!unit) throw notFound('Unit tidak ditemukan.');
+	return ok(publicUnit(unit, true));
 }
 
 export async function getRelatedUnits(slug: string) {
-	const design = await prisma.propertyDesign.findFirst({
-		where: { slug, status: 'PUBLISHED', deletedAt: null }
+	const unit = await prisma.unit.findFirst({
+		where: { slug, publishStatus: 'PUBLISHED', deletedAt: null }
 	});
-	if (!design) throw notFound('Unit tidak ditemukan.');
+	if (!unit) throw notFound('Unit tidak ditemukan.');
 
-	const rows = await prisma.propertyDesign.findMany({
+	const rows = await prisma.unit.findMany({
 		where: {
-			id: { not: design.id },
-			status: 'PUBLISHED',
+			id: { not: unit.id },
+			publishStatus: 'PUBLISHED',
 			deletedAt: null,
-			OR: [{ category: design.category }, { style: design.style }]
+			OR: [{ projectId: unit.projectId }, { typeName: unit.typeName }]
 		},
-		include: designInclude,
+		include: unitInclude,
 		take: 4,
 		orderBy: { publishedAt: 'desc' }
 	});
-	return ok(rows.map((row) => publicDesign(row, false)));
+	return ok(rows.map((row) => publicUnit(row, false)));
 }
 
 export async function listProjects(query: Query) {
@@ -417,12 +414,7 @@ interface LeadContext {
 }
 
 export async function createPublicLead(payload: Record<string, unknown>, context: LeadContext) {
-	const type = pickEnum(String(payload.type ?? ''), [
-		'BUY_DESIGN',
-		'LAND_OFFER',
-		'INVEST',
-		'GENERAL'
-	]);
+	const type = pickEnum(String(payload.type ?? ''), ['BUY_UNIT', 'LAND_OFFER', 'GENERAL']);
 	if (!type) throw badRequest('Tipe lead tidak valid.');
 
 	const name = typeof payload.name === 'string' ? payload.name.trim() : '';
@@ -477,7 +469,7 @@ export async function createPublicLead(payload: Record<string, unknown>, context
 			email: typeof payload.email === 'string' && payload.email ? payload.email : null,
 			city: typeof payload.city === 'string' && payload.city ? payload.city : null,
 			message: typeof payload.message === 'string' && payload.message ? payload.message : null,
-			designId: Number.isInteger(payload.designId) ? Number(payload.designId) : null,
+			unitId: Number.isInteger(payload.unitId) ? Number(payload.unitId) : null,
 			userId: context.userId,
 			source: 'WEBSITE',
 			idempotencyKey,
@@ -563,7 +555,7 @@ export async function recordEvents(payload: Record<string, unknown>) {
 			data: {
 				name: String(item.name),
 				path: String(item.path),
-				designId: Number.isInteger(item.designId) ? Number(item.designId) : null,
+				unitId: Number.isInteger(item.unitId) ? Number(item.unitId) : null,
 				leadId: typeof item.leadId === 'string' ? item.leadId : null,
 				sessionId: typeof item.sessionId === 'string' ? item.sessionId : null,
 				props: (item.props ?? undefined) as never

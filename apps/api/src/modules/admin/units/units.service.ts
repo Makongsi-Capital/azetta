@@ -1,4 +1,4 @@
-import { DesignCategory, DesignStatus, type Prisma } from '@azetta/db';
+import { UnitMediaKind, UnitPublishStatus, UnitSalesStatus, type Prisma } from '@azetta/db';
 import { objectKeyFromUrl } from '../../../lib/object-storage';
 import { prisma } from '../../../lib/prisma';
 import {
@@ -13,16 +13,16 @@ import {
 	toStringArray
 } from '../../../lib/http';
 import type { StaffActor } from '../../../lib/guard';
-import { serializeDesign } from '../../../lib/serialize';
+import { serializeUnit } from '../../../lib/serialize';
 import { sanitizeHtml } from '../../../lib/sanitize';
 import { recordAudit } from '../../../lib/audit';
 
-const CATEGORIES = Object.values(DesignCategory);
-const STATUSES = Object.values(DesignStatus);
+const PUBLISH_STATUSES = Object.values(UnitPublishStatus);
+const SALES_STATUSES = Object.values(UnitSalesStatus);
+const MEDIA_KINDS = Object.values(UnitMediaKind);
 
-const designInclude = {
-	media: { orderBy: { sortOrder: 'asc' as const } },
-	tags: { include: { tag: true } }
+const unitInclude = {
+	media: { orderBy: { sortOrder: 'asc' as const } }
 };
 
 type Query = Record<string, string | undefined>;
@@ -47,33 +47,53 @@ function parseNumber(value: unknown, fallback = 0): number {
 	return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-async function saveTags(designId: number, tagNames: string[]) {
-	await prisma.designTagOnDesign.deleteMany({ where: { designId } });
-	for (const name of tagNames) {
-		const slug = slugify(name);
-		if (!slug) continue;
-		const tag = await prisma.designTag.upsert({
-			where: { slug },
-			update: {},
-			create: { slug, name }
-		});
-		await prisma.designTagOnDesign.create({ data: { designId, tagId: tag.id } });
-	}
+function normalizeUnitCode(value: unknown): string {
+	return typeof value === 'string' ? value.trim().toUpperCase() : '';
 }
 
-async function replaceMedia(designId: number, cover: string | null, gallery: string[]) {
-	await prisma.propertyDesignMedia.deleteMany({ where: { designId } });
+async function assertProjectExists(projectId: number) {
+	const project = await prisma.project.findFirst({
+		where: { id: projectId, deletedAt: null },
+		select: { id: true }
+	});
+	if (!project) throw badRequest('Proyek tidak ditemukan.');
+}
+
+async function assertUnitCodeUnique(projectId: number, unitCode: string, excludeId?: number) {
+	const duplicate = await prisma.unit.findFirst({
+		where: { projectId, unitCode, ...(excludeId ? { id: { not: excludeId } } : {}) },
+		select: { id: true }
+	});
+	if (duplicate) throw conflict(`Kode unit "${unitCode}" sudah dipakai pada proyek ini.`);
+}
+
+async function nextAvailableUnitCode(projectId: number, base: string) {
+	let candidate = `${base}-COPY`;
+	let index = 2;
+	while (
+		await prisma.unit.findFirst({
+			where: { projectId, unitCode: candidate },
+			select: { id: true }
+		})
+	) {
+		candidate = `${base}-COPY${index++}`;
+	}
+	return candidate;
+}
+
+async function replaceMedia(unitId: number, cover: string | null, gallery: string[]) {
+	await prisma.unitMedia.deleteMany({ where: { unitId } });
 	const urls = [...new Set([cover, ...gallery].filter((url): url is string => !!url))];
 	let order = 0;
 	for (const url of urls) {
-		await prisma.propertyDesignMedia.create({
+		await prisma.unitMedia.create({
 			data: {
-				designId,
+				unitId,
 				url,
 				storageKey: objectKeyFromUrl(url),
 				isCover: url === cover,
 				sortOrder: order++,
-				kind: 'IMAGE'
+				kind: 'PHOTO'
 			}
 		});
 	}
@@ -85,20 +105,23 @@ export async function listUnits(query: Query) {
 		maxPerPage: 100
 	});
 	const term = normalizeSearch(query.q);
-	const category = pickEnum(query.category, CATEGORIES);
-	const status = pickEnum(query.status, STATUSES);
+	const publishStatus = pickEnum(query.publishStatus ?? query.status, PUBLISH_STATUSES);
+	const salesStatus = pickEnum(query.salesStatus, SALES_STATUSES);
+	const projectId = query.projectId ? Number(query.projectId) : undefined;
 
-	const where: Prisma.PropertyDesignWhereInput = {
+	const where: Prisma.UnitWhereInput = {
 		deletedAt: null,
-		...(category ? { category } : {}),
-		...(status ? { status } : {}),
+		...(projectId && Number.isInteger(projectId) ? { projectId } : {}),
+		...(publishStatus ? { publishStatus } : {}),
+		...(salesStatus ? { salesStatus } : {}),
 		...(query.featured === 'true' ? { featured: true } : {}),
 		...(term
 			? {
 					OR: [
 						{ title: { contains: term, mode: 'insensitive' } },
 						{ slug: { contains: term, mode: 'insensitive' } },
-						{ style: { contains: term, mode: 'insensitive' } }
+						{ unitCode: { contains: term, mode: 'insensitive' } },
+						{ typeName: { contains: term, mode: 'insensitive' } }
 					]
 				}
 			: {})
@@ -111,14 +134,16 @@ export async function listUnits(query: Query) {
 				? ({ priceFrom: 'desc' } as const)
 				: query.sort === 'title'
 					? ({ title: 'asc' } as const)
-					: ({ updatedAt: 'desc' } as const);
+					: query.sort === 'unitCode'
+						? ({ unitCode: 'asc' } as const)
+						: ({ updatedAt: 'desc' } as const);
 
 	const [rows, total] = await Promise.all([
-		prisma.propertyDesign.findMany({ where, include: designInclude, orderBy, skip, take }),
-		prisma.propertyDesign.count({ where })
+		prisma.unit.findMany({ where, include: unitInclude, orderBy, skip, take }),
+		prisma.unit.count({ where })
 	]);
 
-	return list(rows.map(serializeDesign), {
+	return list(rows.map(serializeUnit), {
 		page,
 		perPage,
 		total,
@@ -134,28 +159,45 @@ export async function createUnit(
 	const title = typeof payload.title === 'string' ? payload.title.trim() : '';
 	if (!title) throw badRequest('Judul unit wajib diisi.');
 
+	const projectId = Number(payload.projectId);
+	if (!Number.isInteger(projectId) || projectId <= 0) {
+		throw badRequest('Proyek wajib dipilih.');
+	}
+	await assertProjectExists(projectId);
+
 	const slug = slugify(String(payload.slug ?? title));
-	const existing = await prisma.propertyDesign.findUnique({ where: { slug } });
+	const existing = await prisma.unit.findUnique({ where: { slug } });
 	if (existing) throw conflict(`Slug "${slug}" sudah dipakai.`);
 
-	const design = await prisma.propertyDesign.create({
+	const unitCode = normalizeUnitCode(payload.unitCode) || slug.toUpperCase();
+	if (!unitCode) throw badRequest('Kode unit wajib diisi.');
+	await assertUnitCodeUnique(projectId, unitCode);
+
+	const created = await prisma.unit.create({
 		data: {
 			slug,
+			unitCode,
+			typeName: typeof payload.typeName === 'string' && payload.typeName ? payload.typeName : title,
 			title,
 			subtitle: typeof payload.subtitle === 'string' && payload.subtitle ? payload.subtitle : null,
 			description: sanitizeHtml(String(payload.description ?? '')),
-			category: pickEnum(String(payload.category ?? 'RESIDENTIAL'), CATEGORIES) ?? 'RESIDENTIAL',
-			style: typeof payload.style === 'string' ? payload.style : '',
+			projectId,
 			floors: parseNumber(payload.floors, 1),
 			bedrooms: parseNumber(payload.bedrooms),
 			bathrooms: parseNumber(payload.bathrooms),
 			carports: parseNumber(payload.carports),
 			buildingAreaM2: parseNumber(payload.buildingAreaM2),
-			landAreaMinM2: parseNumber(payload.landAreaMinM2),
+			landAreaM2: parseNumber(payload.landAreaM2 ?? payload.landAreaMinM2),
 			estimatedBuildCostMin: parseBigInt(payload.estimatedBuildCostMin),
 			estimatedBuildCostMax: parseBigInt(payload.estimatedBuildCostMax),
 			priceFrom: parseBigInt(payload.priceFrom),
+			publishStatus: pickEnum(String(payload.publishStatus ?? ''), PUBLISH_STATUSES) ?? 'DRAFT',
+			salesStatus: pickEnum(String(payload.salesStatus ?? ''), SALES_STATUSES) ?? 'AVAILABLE',
 			featured: payload.featured === true,
+			publishedAt:
+				pickEnum(String(payload.publishStatus ?? ''), PUBLISH_STATUSES) === 'PUBLISHED'
+					? new Date()
+					: null,
 			seoTitle: typeof payload.seoTitle === 'string' && payload.seoTitle ? payload.seoTitle : null,
 			seoDescription:
 				typeof payload.seoDescription === 'string' && payload.seoDescription
@@ -165,35 +207,34 @@ export async function createUnit(
 	});
 
 	await replaceMedia(
-		design.id,
+		created.id,
 		String(payload.cover ?? '') || null,
 		toStringArray(payload.gallery as string[])
 	);
-	await saveTags(design.id, toStringArray(payload.tags as string[]));
 
 	await recordAudit({
-		action: 'design.create',
-		entityType: 'PropertyDesign',
-		entityId: design.id,
+		action: 'unit.create',
+		entityType: 'Unit',
+		entityId: created.id,
 		actorId: actor.id,
 		ipHash,
-		after: { title, slug }
+		after: { title, slug, unitCode }
 	});
 
-	const created = await prisma.propertyDesign.findUnique({
-		where: { id: design.id },
-		include: designInclude
+	const result = await prisma.unit.findUnique({
+		where: { id: created.id },
+		include: unitInclude
 	});
-	return ok(serializeDesign(created!));
+	return ok(serializeUnit(result!));
 }
 
 export async function getUnit(id: string) {
-	const design = await prisma.propertyDesign.findFirst({
+	const unit = await prisma.unit.findFirst({
 		where: { id: Number(id), deletedAt: null },
-		include: designInclude
+		include: unitInclude
 	});
-	if (!design) throw notFound('Unit tidak ditemukan.');
-	return ok(serializeDesign(design));
+	if (!unit) throw notFound('Unit tidak ditemukan.');
+	return ok(serializeUnit(unit));
 }
 
 export async function updateUnit(
@@ -202,32 +243,56 @@ export async function updateUnit(
 	payload: Record<string, unknown>,
 	ipHash: string | null
 ) {
-	const existing = await prisma.propertyDesign.findFirst({
+	const existing = await prisma.unit.findFirst({
 		where: { id: Number(id), deletedAt: null }
 	});
 	if (!existing) throw notFound('Unit tidak ditemukan.');
 
-	const data: Prisma.PropertyDesignUpdateInput = {};
+	const data: Prisma.UnitUpdateInput = {};
 	if (typeof payload.title === 'string' && payload.title.trim()) data.title = payload.title.trim();
 	if (typeof payload.slug === 'string' && payload.slug.trim()) {
 		const slug = slugify(payload.slug);
 		if (slug !== existing.slug) {
-			const duplicate = await prisma.propertyDesign.findUnique({ where: { slug } });
+			const duplicate = await prisma.unit.findUnique({ where: { slug } });
 			if (duplicate) throw conflict(`Slug "${slug}" sudah dipakai.`);
 			data.slug = slug;
 		}
 	}
 	if ('subtitle' in payload) data.subtitle = payload.subtitle ? String(payload.subtitle) : null;
 	if (typeof payload.description === 'string') data.description = sanitizeHtml(payload.description);
-	const category = pickEnum(String(payload.category ?? ''), CATEGORIES);
-	if (category) data.category = category;
-	if (typeof payload.style === 'string') data.style = payload.style;
+	if (typeof payload.typeName === 'string' && payload.typeName.trim()) {
+		data.typeName = payload.typeName.trim();
+	}
+
+	let projectId = existing.projectId;
+	if ('projectId' in payload) {
+		const nextProjectId = Number(payload.projectId);
+		if (!Number.isInteger(nextProjectId) || nextProjectId <= 0) {
+			throw badRequest('Proyek wajib dipilih.');
+		}
+		await assertProjectExists(nextProjectId);
+		projectId = nextProjectId;
+		data.project = { connect: { id: nextProjectId } };
+	}
+
+	if ('unitCode' in payload) {
+		const unitCode = normalizeUnitCode(payload.unitCode);
+		if (!unitCode) throw badRequest('Kode unit wajib diisi.');
+		if (unitCode !== existing.unitCode || projectId !== existing.projectId) {
+			await assertUnitCodeUnique(projectId, unitCode, existing.id);
+		}
+		data.unitCode = unitCode;
+	} else if (projectId !== existing.projectId) {
+		await assertUnitCodeUnique(projectId, existing.unitCode, existing.id);
+	}
+
 	if ('floors' in payload) data.floors = parseNumber(payload.floors, existing.floors);
 	if ('bedrooms' in payload) data.bedrooms = parseNumber(payload.bedrooms);
 	if ('bathrooms' in payload) data.bathrooms = parseNumber(payload.bathrooms);
 	if ('carports' in payload) data.carports = parseNumber(payload.carports);
 	if ('buildingAreaM2' in payload) data.buildingAreaM2 = parseNumber(payload.buildingAreaM2);
-	if ('landAreaMinM2' in payload) data.landAreaMinM2 = parseNumber(payload.landAreaMinM2);
+	if ('landAreaM2' in payload) data.landAreaM2 = parseNumber(payload.landAreaM2);
+	if ('landAreaMinM2' in payload) data.landAreaM2 = parseNumber(payload.landAreaMinM2);
 	if ('estimatedBuildCostMin' in payload) {
 		data.estimatedBuildCostMin = parseBigInt(payload.estimatedBuildCostMin);
 	}
@@ -235,13 +300,24 @@ export async function updateUnit(
 		data.estimatedBuildCostMax = parseBigInt(payload.estimatedBuildCostMax);
 	}
 	if ('priceFrom' in payload) data.priceFrom = parseBigInt(payload.priceFrom);
+	if ('publishStatus' in payload) {
+		const publishStatus = pickEnum(String(payload.publishStatus ?? ''), PUBLISH_STATUSES);
+		if (!publishStatus) throw badRequest('Status publish tidak valid.');
+		data.publishStatus = publishStatus;
+		if (publishStatus === 'PUBLISHED' && !existing.publishedAt) data.publishedAt = new Date();
+	}
+	if ('salesStatus' in payload) {
+		const salesStatus = pickEnum(String(payload.salesStatus ?? ''), SALES_STATUSES);
+		if (!salesStatus) throw badRequest('Status ketersediaan tidak valid.');
+		data.salesStatus = salesStatus;
+	}
 	if (typeof payload.featured === 'boolean') data.featured = payload.featured;
 	if ('seoTitle' in payload) data.seoTitle = payload.seoTitle ? String(payload.seoTitle) : null;
 	if ('seoDescription' in payload) {
 		data.seoDescription = payload.seoDescription ? String(payload.seoDescription) : null;
 	}
 
-	await prisma.propertyDesign.update({ where: { id: existing.id }, data });
+	await prisma.unit.update({ where: { id: existing.id }, data });
 	if ('cover' in payload || 'gallery' in payload) {
 		await replaceMedia(
 			existing.id,
@@ -249,34 +325,33 @@ export async function updateUnit(
 			toStringArray(payload.gallery as string[])
 		);
 	}
-	if ('tags' in payload) await saveTags(existing.id, toStringArray(payload.tags as string[]));
 
 	await recordAudit({
-		action: 'design.update',
-		entityType: 'PropertyDesign',
+		action: 'unit.update',
+		entityType: 'Unit',
 		entityId: existing.id,
 		actorId: actor.id,
 		ipHash,
-		before: { title: existing.title, status: existing.status },
+		before: { title: existing.title, publishStatus: existing.publishStatus },
 		after: { title: data.title ?? existing.title }
 	});
 
-	const updated = await prisma.propertyDesign.findUnique({
+	const updated = await prisma.unit.findUnique({
 		where: { id: existing.id },
-		include: designInclude
+		include: unitInclude
 	});
-	return ok(serializeDesign(updated!));
+	return ok(serializeUnit(updated!));
 }
 
 export async function archiveUnit(actor: StaffActor, id: string, ipHash: string | null) {
-	const existing = await prisma.propertyDesign.findFirst({
+	const existing = await prisma.unit.findFirst({
 		where: { id: Number(id), deletedAt: null }
 	});
 	if (!existing) throw notFound('Unit tidak ditemukan.');
 
 	const activeLeads = await prisma.lead.count({
 		where: {
-			designId: existing.id,
+			unitId: existing.id,
 			deletedAt: null,
 			status: { notIn: ['WON', 'LOST', 'SPAM'] }
 		}
@@ -285,24 +360,24 @@ export async function archiveUnit(actor: StaffActor, id: string, ipHash: string 
 		throw conflict('Unit masih memiliki lead aktif dan tidak dapat diarsipkan.');
 	}
 
-	await prisma.propertyDesign.update({
+	await prisma.unit.update({
 		where: { id: existing.id },
-		data: { status: 'ARCHIVED', deletedAt: new Date() }
+		data: { publishStatus: 'ARCHIVED', deletedAt: new Date() }
 	});
 	await recordAudit({
-		action: 'design.archive',
-		entityType: 'PropertyDesign',
+		action: 'unit.archive',
+		entityType: 'Unit',
 		entityId: existing.id,
 		actorId: actor.id,
 		ipHash,
-		before: { status: existing.status },
-		after: { status: 'ARCHIVED' }
+		before: { publishStatus: existing.publishStatus },
+		after: { publishStatus: 'ARCHIVED' }
 	});
 	return ok({ id: existing.id, archived: true });
 }
 
 export async function publishUnit(actor: StaffActor, id: string, ipHash: string | null) {
-	const existing = await prisma.propertyDesign.findFirst({
+	const existing = await prisma.unit.findFirst({
 		where: { id: Number(id), deletedAt: null },
 		include: { media: true }
 	});
@@ -323,44 +398,44 @@ export async function publishUnit(actor: StaffActor, id: string, ipHash: string 
 		);
 	}
 
-	const updated = await prisma.propertyDesign.update({
+	const updated = await prisma.unit.update({
 		where: { id: existing.id },
-		data: { status: 'PUBLISHED', publishedAt: existing.publishedAt ?? new Date() },
-		include: designInclude
+		data: { publishStatus: 'PUBLISHED', publishedAt: existing.publishedAt ?? new Date() },
+		include: unitInclude
 	});
 	await recordAudit({
-		action: 'design.publish',
-		entityType: 'PropertyDesign',
+		action: 'unit.publish',
+		entityType: 'Unit',
 		entityId: existing.id,
 		actorId: actor.id,
 		ipHash,
-		before: { status: existing.status },
-		after: { status: 'PUBLISHED' }
+		before: { publishStatus: existing.publishStatus },
+		after: { publishStatus: 'PUBLISHED' }
 	});
-	return ok(serializeDesign(updated));
+	return ok(serializeUnit(updated));
 }
 
 export async function setUnitArchived(actor: StaffActor, id: string, ipHash: string | null) {
-	const existing = await prisma.propertyDesign.findFirst({
+	const existing = await prisma.unit.findFirst({
 		where: { id: Number(id), deletedAt: null }
 	});
 	if (!existing) throw notFound('Unit tidak ditemukan.');
 
-	const updated = await prisma.propertyDesign.update({
+	const updated = await prisma.unit.update({
 		where: { id: existing.id },
-		data: { status: 'ARCHIVED' },
-		include: designInclude
+		data: { publishStatus: 'ARCHIVED' },
+		include: unitInclude
 	});
 	await recordAudit({
-		action: 'design.archive',
-		entityType: 'PropertyDesign',
+		action: 'unit.archive',
+		entityType: 'Unit',
 		entityId: existing.id,
 		actorId: actor.id,
 		ipHash,
-		before: { status: existing.status },
-		after: { status: 'ARCHIVED' }
+		before: { publishStatus: existing.publishStatus },
+		after: { publishStatus: 'ARCHIVED' }
 	});
-	return ok(serializeDesign(updated));
+	return ok(serializeUnit(updated));
 }
 
 export async function duplicateUnit(
@@ -369,43 +444,48 @@ export async function duplicateUnit(
 	payload: Record<string, unknown>,
 	ipHash: string | null
 ) {
-	const existing = await prisma.propertyDesign.findFirst({
+	const existing = await prisma.unit.findFirst({
 		where: { id: Number(id), deletedAt: null },
-		include: designInclude
+		include: unitInclude
 	});
 	if (!existing) throw notFound('Unit tidak ditemukan.');
 
-	const slug = slugify(String(payload.slug ?? `${existing.slug}-copy`));
-	if (await prisma.propertyDesign.findUnique({ where: { slug } })) {
-		throw conflict(`Slug "${slug}" sudah dipakai.`);
+	const slugBase = slugify(String(payload.slug ?? `${existing.slug}-copy`));
+	let slug = slugBase;
+	let slugIndex = 2;
+	while (await prisma.unit.findUnique({ where: { slug } })) {
+		slug = `${slugBase}-${slugIndex++}`;
 	}
+	const unitCode = await nextAvailableUnitCode(existing.projectId, existing.unitCode);
 
-	const created = await prisma.propertyDesign.create({
+	const created = await prisma.unit.create({
 		data: {
 			slug,
+			unitCode,
+			typeName: existing.typeName,
 			title: `${existing.title} (salinan)`,
 			subtitle: existing.subtitle,
 			description: existing.description,
-			category: existing.category,
-			style: existing.style,
+			projectId: existing.projectId,
 			floors: existing.floors,
 			bedrooms: existing.bedrooms,
 			bathrooms: existing.bathrooms,
 			carports: existing.carports,
 			buildingAreaM2: existing.buildingAreaM2,
-			landAreaMinM2: existing.landAreaMinM2,
+			landAreaM2: existing.landAreaM2,
 			estimatedBuildCostMin: existing.estimatedBuildCostMin,
 			estimatedBuildCostMax: existing.estimatedBuildCostMax,
 			priceFrom: existing.priceFrom,
 			seoTitle: existing.seoTitle,
 			seoDescription: existing.seoDescription,
-			status: 'DRAFT'
+			publishStatus: 'DRAFT',
+			salesStatus: existing.salesStatus
 		}
 	});
 	for (const media of existing.media) {
-		await prisma.propertyDesignMedia.create({
+		await prisma.unitMedia.create({
 			data: {
-				designId: created.id,
+				unitId: created.id,
 				kind: media.kind,
 				storageKey: media.storageKey,
 				url: media.url,
@@ -419,8 +499,8 @@ export async function duplicateUnit(
 	}
 
 	await recordAudit({
-		action: 'design.duplicate',
-		entityType: 'PropertyDesign',
+		action: 'unit.duplicate',
+		entityType: 'Unit',
 		entityId: created.id,
 		actorId: actor.id,
 		ipHash,
@@ -428,29 +508,31 @@ export async function duplicateUnit(
 		after: { id: created.id }
 	});
 
-	const result = await prisma.propertyDesign.findUnique({
+	const result = await prisma.unit.findUnique({
 		where: { id: created.id },
-		include: designInclude
+		include: unitInclude
 	});
-	return ok(serializeDesign(result!));
+	return ok(serializeUnit(result!));
 }
 
 export async function addUnitMedia(id: string, payload: Record<string, unknown>) {
 	const url = typeof payload.url === 'string' ? payload.url : '';
 	if (!url) throw badRequest('URL media wajib diisi.');
 
-	const design = await prisma.propertyDesign.findFirst({
+	const unit = await prisma.unit.findFirst({
 		where: { id: Number(id), deletedAt: null }
 	});
-	if (!design) throw notFound('Unit tidak ditemukan.');
+	if (!unit) throw notFound('Unit tidak ditemukan.');
 
-	const media = await prisma.propertyDesignMedia.create({
+	const kind = pickEnum(String(payload.kind ?? ''), MEDIA_KINDS) ?? 'PHOTO';
+
+	const media = await prisma.unitMedia.create({
 		data: {
-			designId: design.id,
+			unitId: unit.id,
 			url,
 			storageKey: objectKeyFromUrl(String(payload.storageKey ?? url)),
 			alt: typeof payload.alt === 'string' ? payload.alt : null,
-			kind: 'IMAGE',
+			kind,
 			isCover: payload.isCover === true,
 			sortOrder: parseNumber(payload.sortOrder)
 		}
@@ -459,10 +541,10 @@ export async function addUnitMedia(id: string, payload: Record<string, unknown>)
 }
 
 export async function deleteUnitMedia(id: string, mediaId: string) {
-	const media = await prisma.propertyDesignMedia.findFirst({
-		where: { id: Number(mediaId), designId: Number(id) }
+	const media = await prisma.unitMedia.findFirst({
+		where: { id: Number(mediaId), unitId: Number(id) }
 	});
 	if (!media) throw notFound('Media tidak ditemukan.');
-	await prisma.propertyDesignMedia.delete({ where: { id: media.id } });
+	await prisma.unitMedia.delete({ where: { id: media.id } });
 	return ok({ id: media.id, deleted: true });
 }

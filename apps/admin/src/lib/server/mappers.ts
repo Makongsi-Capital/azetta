@@ -3,12 +3,12 @@ import type {
 	AuditLogItem,
 	Customer,
 	DeletionRequest,
-	DesignUnit,
 	FaqItem,
 	Lead,
 	ProjectItem,
 	StaffUser,
-	TestimonialItem
+	TestimonialItem,
+	UnitItem
 } from '#lib/mock/admin.js';
 
 function toNumber(value: string | number | null | undefined): number | null {
@@ -24,21 +24,23 @@ export function mapLead(lead: ApiLead): Lead {
 	return { ...lead, estimatedValue: toNumber(lead.estimatedValue) };
 }
 
-interface ApiDesign extends Omit<
-	DesignUnit,
-	'priceFrom' | 'estimatedBuildCostMin' | 'estimatedBuildCostMax'
+interface ApiUnit extends Omit<
+	UnitItem,
+	'priceFrom' | 'estimatedBuildCostMin' | 'estimatedBuildCostMax' | 'projectTitle'
 > {
 	priceFrom: string | number | null;
 	estimatedBuildCostMin: string | number | null;
 	estimatedBuildCostMax: string | number | null;
+	projectTitle?: string | null;
 }
 
-export function mapDesign(design: ApiDesign): DesignUnit {
+export function mapUnit(unit: ApiUnit): UnitItem {
 	return {
-		...design,
-		priceFrom: toNumber(design.priceFrom),
-		estimatedBuildCostMin: toNumber(design.estimatedBuildCostMin),
-		estimatedBuildCostMax: toNumber(design.estimatedBuildCostMax)
+		...unit,
+		projectTitle: unit.projectTitle ?? '',
+		priceFrom: toNumber(unit.priceFrom),
+		estimatedBuildCostMin: toNumber(unit.estimatedBuildCostMin),
+		estimatedBuildCostMax: toNumber(unit.estimatedBuildCostMax)
 	};
 }
 

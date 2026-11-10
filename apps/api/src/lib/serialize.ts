@@ -53,15 +53,6 @@ interface LandRow {
 	notes: string | null;
 }
 
-interface InvestmentRow {
-	budgetRange: string;
-	preferredLocations: string[];
-	horizonMonths: number | null;
-	riskProfile: string;
-	instrument: string | null;
-	notes: string | null;
-}
-
 interface LeadRow {
 	id: string;
 	reference: string;
@@ -73,7 +64,7 @@ interface LeadRow {
 	email: string | null;
 	city: string | null;
 	message: string | null;
-	designId: number | null;
+	unitId: number | null;
 	source: string;
 	assignedToId: string | null;
 	estimatedValue: bigint | null;
@@ -84,10 +75,9 @@ interface LeadRow {
 	customerNote: string | null;
 	createdAt: Date;
 	updatedAt: Date;
-	design?: { id: number; title: string } | null;
+	unit?: { id: number; title: string } | null;
 	assignedTo?: { id: string; name: string } | null;
 	landSubmission?: LandRow | null;
-	investmentInterest?: InvestmentRow | null;
 	attachments?: AttachmentRow[];
 	activities?: ActivityRow[];
 }
@@ -104,8 +94,8 @@ export function serializeLead(lead: LeadRow) {
 		email: lead.email,
 		city: lead.city,
 		message: lead.message,
-		designId: lead.designId,
-		designTitle: lead.design?.title ?? null,
+		unitId: lead.unitId,
+		unitTitle: lead.unit?.title ?? null,
 		source: lead.source,
 		assignedToId: lead.assignedToId,
 		assignedToName: lead.assignedTo?.name ?? null,
@@ -118,7 +108,6 @@ export function serializeLead(lead: LeadRow) {
 		createdAt: lead.createdAt,
 		updatedAt: lead.updatedAt,
 		landSubmission: lead.landSubmission ?? null,
-		investmentInterest: lead.investmentInterest ?? null,
 		attachments: (lead.attachments ?? []).map((attachment) => ({
 			id: attachment.id,
 			kind: attachment.kind,
@@ -147,24 +136,24 @@ interface MediaRow {
 	isCover: boolean;
 }
 
-interface DesignRow {
+interface UnitRow {
 	id: number;
 	slug: string;
+	unitCode: string;
+	typeName: string;
 	title: string;
 	subtitle: string | null;
 	description: string;
-	category: string;
-	style: string;
+	projectId: number;
 	floors: number;
 	bedrooms: number;
 	bathrooms: number;
 	carports: number;
 	buildingAreaM2: number;
-	landAreaMinM2: number;
-	estimatedBuildCostMin: bigint | null;
-	estimatedBuildCostMax: bigint | null;
+	landAreaM2: number;
 	priceFrom: bigint | null;
-	status: string;
+	publishStatus: string;
+	salesStatus: string;
 	featured: boolean;
 	viewCount: number;
 	publishedAt: Date | null;
@@ -172,40 +161,52 @@ interface DesignRow {
 	seoDescription: string | null;
 	createdAt: Date;
 	updatedAt: Date;
-	media: MediaRow[];
-	tags: { tag: { name: string } }[];
+	media: (MediaRow & { storageKey: string; sortOrder: number })[];
 }
 
-export function serializeDesign(design: DesignRow) {
-	const cover = design.media.find((media) => media.isCover) ?? design.media[0];
+/**
+ * Serialisasi unit untuk API. `estimatedBuildCostMin/Max` sengaja tidak pernah
+ * dikirim karena hanya untuk internal (docs v1.7, Q8).
+ */
+export function serializeUnit(unit: UnitRow) {
+	const cover = unit.media.find((media) => media.isCover) ?? unit.media[0];
 	return {
-		id: design.id,
-		slug: design.slug,
-		title: design.title,
-		subtitle: design.subtitle,
-		description: design.description,
-		category: design.category,
-		style: design.style,
-		floors: design.floors,
-		bedrooms: design.bedrooms,
-		bathrooms: design.bathrooms,
-		carports: design.carports,
-		buildingAreaM2: design.buildingAreaM2,
-		landAreaMinM2: design.landAreaMinM2,
-		estimatedBuildCostMin: design.estimatedBuildCostMin?.toString() ?? null,
-		estimatedBuildCostMax: design.estimatedBuildCostMax?.toString() ?? null,
-		priceFrom: design.priceFrom?.toString() ?? null,
-		status: design.status,
-		featured: design.featured,
-		viewCount: design.viewCount,
-		publishedAt: design.publishedAt,
-		seoTitle: design.seoTitle,
-		seoDescription: design.seoDescription,
-		createdAt: design.createdAt,
-		updatedAt: design.updatedAt,
+		id: unit.id,
+		slug: unit.slug,
+		unitCode: unit.unitCode,
+		typeName: unit.typeName,
+		title: unit.title,
+		subtitle: unit.subtitle,
+		description: unit.description,
+		projectId: unit.projectId,
+		floors: unit.floors,
+		bedrooms: unit.bedrooms,
+		bathrooms: unit.bathrooms,
+		carports: unit.carports,
+		buildingAreaM2: unit.buildingAreaM2,
+		landAreaM2: unit.landAreaM2,
+		priceFrom: unit.priceFrom?.toString() ?? null,
+		publishStatus: unit.publishStatus,
+		salesStatus: unit.salesStatus,
+		featured: unit.featured,
+		viewCount: unit.viewCount,
+		publishedAt: unit.publishedAt,
+		seoTitle: unit.seoTitle,
+		seoDescription: unit.seoDescription,
+		createdAt: unit.createdAt,
+		updatedAt: unit.updatedAt,
 		cover: cover?.url ?? null,
-		gallery: design.media.map((media) => media.url),
-		tags: design.tags.map((item) => item.tag.name)
+		gallery: unit.media.map((media) => media.url),
+		media: unit.media.map((media) => ({
+			id: media.id,
+			kind: media.kind,
+			url: media.url,
+			alt: media.alt,
+			width: media.width,
+			height: media.height,
+			isCover: media.isCover,
+			sortOrder: media.sortOrder
+		}))
 	};
 }
 

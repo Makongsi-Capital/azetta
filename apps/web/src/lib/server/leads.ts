@@ -12,7 +12,7 @@ export interface LeadActionData {
 interface SubmitOptions {
 	cookie?: string | null;
 	type: LeadType;
-	designId?: number;
+	unitId?: number;
 	landingPath?: string;
 	referrerUrl?: string | null;
 	withLand?: boolean;
@@ -83,7 +83,7 @@ export async function submitLead(
 	if (values.email) payload.email = values.email;
 	if (values.city) payload.city = values.city;
 	if (values.message) payload.message = values.message;
-	if (options.designId !== undefined) payload.designId = options.designId;
+	if (options.unitId !== undefined) payload.unitId = options.unitId;
 	if (options.landingPath) payload.landingPath = options.landingPath;
 	if (options.referrerUrl) payload.referrerUrl = options.referrerUrl;
 

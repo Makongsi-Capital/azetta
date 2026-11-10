@@ -1,6 +1,9 @@
 <script lang="ts">
+	import type { PageProps } from './$types';
 	import PageHeader from '#lib/components/admin/PageHeader.svelte';
 	import UnitForm from '#lib/components/admin/UnitForm.svelte';
+
+	let { data }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -14,4 +17,4 @@
 	description="Simpan sebagai draf terlebih dahulu, lengkapi media dan SEO, lalu terbitkan."
 />
 
-<UnitForm mode="create" />
+<UnitForm mode="create" projects={data.projects} />

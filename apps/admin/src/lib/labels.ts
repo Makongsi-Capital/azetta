@@ -2,34 +2,29 @@ import type {
 	ActivityType,
 	ArticleStatus,
 	AttachmentKind,
-	BudgetRange,
 	DeletionRequest,
-	DesignCategory,
-	DesignStatus,
 	ExpectedScheme,
-	InvestmentInstrument,
 	LeadPriority,
 	LeadSource,
 	LeadStatus,
 	LeadType,
 	OwnershipStatus,
 	ProjectStatus,
-	RiskProfile,
 	Role,
-	StartTimeline
+	StartTimeline,
+	UnitPublishStatus,
+	UnitSalesStatus
 } from './mock/admin.js';
 
 export const leadTypeLabel: Record<LeadType, string> = {
-	BUY_DESIGN: 'Beli unit',
+	BUY_UNIT: 'Beli unit',
 	LAND_OFFER: 'Tawar lahan',
-	INVEST: 'Investasi',
 	GENERAL: 'Umum'
 };
 
 export const leadTypeShort: Record<LeadType, string> = {
-	BUY_DESIGN: 'BU',
+	BUY_UNIT: 'BU',
 	LAND_OFFER: 'LD',
-	INVEST: 'IV',
 	GENERAL: 'UM'
 };
 
@@ -126,51 +121,34 @@ export const startTimelineLabel: Record<StartTimeline, string> = {
 	UNKNOWN: 'Belum pasti'
 };
 
-export const budgetRangeLabel: Record<BudgetRange, string> = {
-	UNDER_500M: 'Di bawah Rp 500 jt',
-	M500_1B: 'Rp 500 jt – 1 M',
-	B1_5: 'Rp 1 – 5 M',
-	B5_20B: 'Rp 5 – 20 M',
-	ABOVE_20B: 'Di atas Rp 20 M'
-};
-
-export const riskProfileLabel: Record<RiskProfile, string> = {
-	CONSERVATIVE: 'Konservatif',
-	MODERATE: 'Moderat',
-	AGGRESSIVE: 'Agresif',
-	UNKNOWN: 'Belum ditentukan'
-};
-
-export const investmentInstrumentLabel: Record<InvestmentInstrument, string> = {
-	EQUITY: 'Ekuitas',
-	PROFIT_SHARE: 'Bagi hasil',
-	FIXED_RETURN: 'Imbal hasil tetap',
-	OPEN: 'Terbuka'
-};
-
 export const attachmentKindLabel: Record<AttachmentKind, string> = {
 	LAND_PHOTO: 'Foto lahan',
 	DOCUMENT: 'Dokumen',
 	OTHER: 'Lainnya'
 };
 
-export const designCategoryLabel: Record<DesignCategory, string> = {
-	RESIDENTIAL: 'Hunian',
-	COMMERCIAL: 'Komersial',
-	RENOVATION: 'Renovasi',
-	INTERIOR: 'Interior'
-};
-
-export const designStatusLabel: Record<DesignStatus, string> = {
+export const unitPublishStatusLabel: Record<UnitPublishStatus, string> = {
 	DRAFT: 'Draf',
 	PUBLISHED: 'Terbit',
 	ARCHIVED: 'Diarsipkan'
 };
 
-export const designStatusTone: Record<DesignStatus, string> = {
+export const unitPublishStatusTone: Record<UnitPublishStatus, string> = {
 	DRAFT: 'badge-ghost',
 	PUBLISHED: 'badge-success',
 	ARCHIVED: 'badge-outline'
+};
+
+export const unitSalesStatusLabel: Record<UnitSalesStatus, string> = {
+	AVAILABLE: 'Tersedia',
+	INDENT: 'Indent',
+	SOLD: 'Terjual'
+};
+
+export const unitSalesStatusTone: Record<UnitSalesStatus, string> = {
+	AVAILABLE: 'badge-success',
+	INDENT: 'badge-warning',
+	SOLD: 'badge-error'
 };
 
 export const projectStatusLabel: Record<ProjectStatus, string> = {

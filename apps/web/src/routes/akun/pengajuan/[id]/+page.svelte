@@ -7,9 +7,8 @@
 
 	const lead = $derived(data.lead);
 	const typeLabel: Record<string, string> = {
-		BUY_DESIGN: 'Pembelian unit',
+		BUY_UNIT: 'Pembelian unit',
 		LAND_OFFER: 'Penawaran lahan',
-		INVEST: 'Informasi investasi',
 		GENERAL: 'Pertanyaan umum'
 	};
 
@@ -48,7 +47,7 @@
 			<p class="text-sm text-brand-gray-600">Dikirim {formatDate(lead.createdAt)}</p>
 		</div>
 		<h1 class="mt-3 text-3xl md:text-4xl">
-			{lead.design?.title ?? `Pengajuan ${lead.reference}`}
+			{lead.unit?.title ?? `Pengajuan ${lead.reference}`}
 		</h1>
 	</header>
 
@@ -140,8 +139,8 @@
 				</div>
 			</dl>
 
-			{#if lead.design}
-				<a class="btn btn-outline btn-sm mt-5 w-full" href="/rumah/{lead.design.slug}">
+			{#if lead.unit}
+				<a class="btn btn-outline btn-sm mt-5 w-full" href="/rumah/{lead.unit.slug}">
 					Lihat unit
 				</a>
 			{/if}

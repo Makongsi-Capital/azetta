@@ -5,7 +5,7 @@ test('detail unit menampilkan judul, harga, dan unit terkait', async ({ page }) 
 
 	await expect(page.locator('h1')).toHaveText('Azetta Residence A1');
 	await expect(page.getByText('Rp 850 jt').first()).toBeVisible();
-	await expect(page.locator('a[href="/rumah/azetta-residence-b2"]').first()).toBeVisible();
+	await expect(page.locator('a[href="/rumah/azetta-residence-a6"]').first()).toBeVisible();
 });
 
 test('detail proyek menampilkan unit di proyek tersebut', async ({ page }) => {

@@ -12,7 +12,7 @@ const STATUSES = [
 	'LOST',
 	'SPAM'
 ] as const;
-const TYPES = ['BUY_DESIGN', 'LAND_OFFER', 'INVEST', 'GENERAL'] as const;
+const TYPES = ['BUY_UNIT', 'LAND_OFFER', 'GENERAL'] as const;
 
 export const load: PageServerLoad = async ({ request, fetch }) => {
 	const cookie = request.headers.get('cookie');

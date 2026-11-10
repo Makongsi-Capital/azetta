@@ -130,80 +130,132 @@ async function main() {
 		});
 	}
 
-	const designCount = await prisma.propertyDesign.count();
-	if (designCount === 0) {
-		const designs = [
-			{
-				slug: 'azetta-residence-a1',
-				title: 'Azetta Residence A1',
-				subtitle: 'Tipe 45 dengan taman belakang',
-				description:
-					'<p>Unit dua lantai dengan ruang keluarga terbuka dan taman belakang 12 m2. Cocok untuk keluarga muda yang membutuhkan ruang kerja di rumah.</p>',
-				category: 'RESIDENTIAL' as const,
-				style: 'Modern tropis',
-				floors: 2,
-				bedrooms: 3,
-				bathrooms: 2,
-				carports: 1,
-				buildingAreaM2: 90,
-				landAreaMinM2: 96,
-				estimatedBuildCostMin: 720_000_000n,
-				estimatedBuildCostMax: 850_000_000n,
-				priceFrom: 850_000_000n,
-				status: 'PUBLISHED' as const,
-				featured: true,
-				publishedAt: daysAgo(120),
-				seoTitle: 'Azetta Residence A1 — Tipe 45',
-				seoDescription: 'Unit tipe 45 dua lantai di Sleman Utara.'
-			},
-			{
-				slug: 'azetta-residence-b2',
-				title: 'Azetta Residence B2',
-				subtitle: 'Tipe 54 corner',
-				description:
-					'<p>Unit sudut dengan carport dua mobil, dapur terbuka, dan balkon utama menghadap taman cluster.</p>',
-				category: 'RESIDENTIAL' as const,
-				style: 'Minimalis',
-				floors: 2,
-				bedrooms: 4,
-				bathrooms: 3,
-				carports: 2,
-				buildingAreaM2: 110,
-				landAreaMinM2: 120,
-				estimatedBuildCostMin: 950_000_000n,
-				estimatedBuildCostMax: 1_100_000_000n,
-				priceFrom: 1_250_000_000n,
-				status: 'PUBLISHED' as const,
-				featured: false,
-				publishedAt: daysAgo(80),
-				seoTitle: 'Azetta Residence B2 — Tipe 54',
-				seoDescription: 'Unit tipe 54 corner di Azetta Residence.'
-			},
-			{
-				slug: 'azetta-garden-c1',
-				title: 'Azetta Garden C1',
-				subtitle: 'Draf tipe 36',
-				description: '<p>Rumah satu lantai untuk pasangan muda dengan taman depan.</p>',
-				category: 'RESIDENTIAL' as const,
-				style: 'Skandinavia',
-				floors: 1,
-				bedrooms: 2,
-				bathrooms: 1,
-				carports: 1,
-				buildingAreaM2: 36,
-				landAreaMinM2: 72,
-				priceFrom: 620_000_000n,
-				status: 'DRAFT' as const,
-				featured: false
-			}
-		];
+	// 12 unit contoh di dua proyek aktif; upsert agar seed idempoten.
+	const projectIds = new Map(
+		(await prisma.project.findMany({ select: { id: true, slug: true } })).map((project) => [
+			project.slug,
+			project.id
+		])
+	);
+	const residenceId = projectIds.get('azetta-residence');
+	const gardenId = projectIds.get('azetta-garden');
+	if (!residenceId || !gardenId) throw new Error('Proyek seed tidak ditemukan.');
 
-		for (const design of designs) {
-			const created = await prisma.propertyDesign.create({ data: design });
-			await prisma.propertyDesignMedia.createMany({
+	const unitTypes = [
+		{
+			typeName: 'Tipe 45',
+			floors: 2,
+			bedrooms: 3,
+			bathrooms: 2,
+			carports: 1,
+			buildingAreaM2: 90,
+			landAreaM2: 96,
+			priceFrom: 850_000_000n,
+			costMin: 720_000_000n,
+			costMax: 850_000_000n
+		},
+		{
+			typeName: 'Tipe 54',
+			floors: 2,
+			bedrooms: 4,
+			bathrooms: 3,
+			carports: 2,
+			buildingAreaM2: 110,
+			landAreaM2: 120,
+			priceFrom: 1_250_000_000n,
+			costMin: 950_000_000n,
+			costMax: 1_100_000_000n
+		},
+		{
+			typeName: 'Tipe 36',
+			floors: 1,
+			bedrooms: 2,
+			bathrooms: 1,
+			carports: 1,
+			buildingAreaM2: 36,
+			landAreaM2: 72,
+			priceFrom: 620_000_000n,
+			costMin: 480_000_000n,
+			costMax: 560_000_000n
+		},
+		{
+			typeName: 'Tipe 60',
+			floors: 2,
+			bedrooms: 4,
+			bathrooms: 3,
+			carports: 2,
+			buildingAreaM2: 120,
+			landAreaM2: 132,
+			priceFrom: 1_450_000_000n,
+			costMin: 1_050_000_000n,
+			costMax: 1_250_000_000n
+		}
+	];
+	const salesStatuses = [
+		'AVAILABLE',
+		'AVAILABLE',
+		'INDENT',
+		'SOLD',
+		'AVAILABLE',
+		'INDENT'
+	] as const;
+	const seedUnits = [
+		...Array.from({ length: 6 }, (_, index) => ({
+			projectId: residenceId,
+			projectTitle: 'Azetta Residence',
+			unitCode: `A${index + 1}`,
+			type: unitTypes[index % 3],
+			salesStatus: salesStatuses[index],
+			published: true,
+			featured: index === 0,
+			daysAgo: 120 - index * 10
+		})),
+		...Array.from({ length: 6 }, (_, index) => ({
+			projectId: gardenId,
+			projectTitle: 'Azetta Garden',
+			unitCode: `B${index + 1}`,
+			type: unitTypes[(index + 1) % 3],
+			salesStatus: salesStatuses[(index + 3) % 6],
+			published: index < 5,
+			featured: index === 1,
+			daysAgo: 80 - index * 7
+		}))
+	];
+
+	for (const unit of seedUnits) {
+		const slug = `${unit.projectTitle.toLowerCase().replace(/\s+/g, '-')}-${unit.unitCode.toLowerCase()}`;
+		const data = {
+			slug,
+			unitCode: unit.unitCode,
+			typeName: unit.type.typeName,
+			title: `${unit.projectTitle} ${unit.unitCode}`,
+			subtitle: `${unit.type.typeName} di ${unit.projectTitle}`,
+			description: `<p>Unit ${unit.unitCode} ${unit.type.typeName} dengan luas bangunan ${unit.type.buildingAreaM2} m2, ${unit.type.bedrooms} kamar tidur, dan ${unit.type.bathrooms} kamar mandi. Cocok untuk keluarga muda yang membutuhkan ruang kerja di rumah.</p>`,
+			projectId: unit.projectId,
+			floors: unit.type.floors,
+			bedrooms: unit.type.bedrooms,
+			bathrooms: unit.type.bathrooms,
+			carports: unit.type.carports,
+			buildingAreaM2: unit.type.buildingAreaM2,
+			landAreaM2: unit.type.landAreaM2,
+			priceFrom: unit.type.priceFrom,
+			estimatedBuildCostMin: unit.type.costMin,
+			estimatedBuildCostMax: unit.type.costMax,
+			publishStatus: unit.published ? ('PUBLISHED' as const) : ('DRAFT' as const),
+			salesStatus: unit.salesStatus,
+			featured: unit.featured,
+			publishedAt: unit.published ? daysAgo(unit.daysAgo) : null,
+			seoTitle: `${unit.projectTitle} ${unit.unitCode} — ${unit.type.typeName}`,
+			seoDescription: `Unit ${unit.type.typeName} di ${unit.projectTitle}, Sleman.`
+		};
+
+		const created = await prisma.unit.upsert({ where: { slug }, update: data, create: data });
+		if ((await prisma.unitMedia.count({ where: { unitId: created.id } })) === 0) {
+			await prisma.unitMedia.createMany({
 				data: [
 					{
-						designId: created.id,
+						unitId: created.id,
+						kind: 'PHOTO' as const,
 						url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9',
 						storageKey: 'seed/cover-1',
 						alt: 'Tampak depan unit',
@@ -211,43 +263,17 @@ async function main() {
 						sortOrder: 0
 					},
 					{
-						designId: created.id,
+						unitId: created.id,
+						kind: 'FLOOR_PLAN' as const,
 						url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
-						storageKey: 'seed/gallery-1',
-						alt: 'Ruang keluarga',
+						storageKey: 'seed/floor-plan-1',
+						alt: 'Denah unit',
 						isCover: false,
 						sortOrder: 1
 					}
 				]
 			});
-			const tag = await prisma.designTag.upsert({
-				where: { slug: 'modern' },
-				update: {},
-				create: { slug: 'modern', name: 'Modern' }
-			});
-			await prisma.designTagOnDesign.create({ data: { designId: created.id, tagId: tag.id } });
 		}
-	}
-
-	// Tautkan unit contoh ke proyeknya agar halaman publik punya konteks proyek dan kota.
-	const projectIds = new Map(
-		(await prisma.project.findMany({ select: { id: true, slug: true } })).map((project) => [
-			project.slug,
-			project.id
-		])
-	);
-	const designProject: Record<string, string> = {
-		'azetta-residence-a1': 'azetta-residence',
-		'azetta-residence-b2': 'azetta-residence',
-		'azetta-garden-c1': 'azetta-garden'
-	};
-	for (const [designSlug, projectSlug] of Object.entries(designProject)) {
-		const projectId = projectIds.get(projectSlug);
-		if (!projectId) continue;
-		await prisma.propertyDesign.updateMany({
-			where: { slug: designSlug, projectId: null },
-			data: { projectId }
-		});
 	}
 
 	const articleCount = await prisma.article.count();
@@ -329,10 +355,10 @@ async function main() {
 	}
 
 	if ((await prisma.lead.count()) === 0) {
-		const design = await prisma.propertyDesign.findFirst({ where: { status: 'PUBLISHED' } });
+		const unit = await prisma.unit.findFirst({ where: { publishStatus: 'PUBLISHED' } });
 		const seedLeads = [
 			{
-				type: 'BUY_DESIGN' as const,
+				type: 'BUY_UNIT' as const,
 				status: 'NEW' as const,
 				priority: 'HIGH' as const,
 				name: 'Budi Santoso',
@@ -341,7 +367,7 @@ async function main() {
 				city: 'Bandung',
 				message: 'Apakah unit A1 masih tersedia? Bisa KPR?',
 				userId: customer.id,
-				designId: design?.id ?? null,
+				unitId: unit?.id ?? null,
 				createdAt: daysAgo(1)
 			},
 			{
@@ -368,7 +394,7 @@ async function main() {
 				firstContactedAt: daysAgo(4)
 			},
 			{
-				type: 'BUY_DESIGN' as const,
+				type: 'BUY_UNIT' as const,
 				status: 'WON' as const,
 				priority: 'NORMAL' as const,
 				name: 'Dewi Lestari',
@@ -392,7 +418,7 @@ async function main() {
 		];
 
 		for (const [index, lead] of seedLeads.entries()) {
-			const prefix = { BUY_DESIGN: 'DS', LAND_OFFER: 'LD', INVEST: 'IV', GENERAL: 'GN' }[lead.type];
+			const prefix = { BUY_UNIT: 'BU', LAND_OFFER: 'LD', GENERAL: 'GN' }[lead.type];
 			await prisma.lead.create({
 				data: {
 					...lead,

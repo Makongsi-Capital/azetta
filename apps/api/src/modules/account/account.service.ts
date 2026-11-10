@@ -53,7 +53,7 @@ export async function listMyLeads(userId: string) {
 	const rows = await prisma.lead.findMany({
 		where: { userId, deletedAt: null, status: { not: 'SPAM' } },
 		orderBy: { createdAt: 'desc' },
-		include: { design: { select: { slug: true, title: true } } }
+		include: { unit: { select: { slug: true, title: true } } }
 	});
 	return ok(
 		rows.map((lead) => ({
@@ -63,7 +63,7 @@ export async function listMyLeads(userId: string) {
 			status: lead.status,
 			statusLabel: STATUS_LABEL[lead.status] ?? lead.status,
 			message: lead.message,
-			design: lead.design,
+			unit: lead.unit,
 			createdAt: lead.createdAt,
 			updatedAt: lead.updatedAt
 		}))
@@ -74,9 +74,8 @@ export async function getMyLead(userId: string, id: string) {
 	const lead = await prisma.lead.findFirst({
 		where: { id, userId, deletedAt: null },
 		include: {
-			design: { select: { slug: true, title: true } },
+			unit: { select: { slug: true, title: true } },
 			landSubmission: true,
-			investmentInterest: true,
 			attachments: true,
 			activities: {
 				where: { type: { in: ['STATUS_CHANGE', 'SYSTEM'] } },
@@ -93,9 +92,8 @@ export async function getMyLead(userId: string, id: string) {
 		status: lead.status,
 		statusLabel: STATUS_LABEL[lead.status] ?? lead.status,
 		message: lead.message,
-		design: lead.design,
+		unit: lead.unit,
 		landSubmission: lead.landSubmission,
-		investmentInterest: lead.investmentInterest,
 		attachments: lead.attachments,
 		timeline: lead.activities.map((activity) => ({
 			type: activity.type,

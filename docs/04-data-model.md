@@ -130,6 +130,7 @@ Unit rumah yang dijual. Selalu terikat pada satu `Project` (lihat [§3.6](#36-pr
 | `buildingAreaM2` | int | ✗ | 20–2.000 |
 | `landAreaM2` | int | ✗ | 20–10.000 |
 | `priceFrom` | bigint | ✓ | Harga indikatif "mulai dari" untuk tipe ini; kosong → "Hubungi kami" |
+| `estimatedBuildCostMin` / `estimatedBuildCostMax` | bigint | ✓ | **Internal saja** — estimasi biaya bangun (Q8); tidak pernah dikirim ke API publik |
 | `publishStatus` | enum | ✗ | `DRAFT`/`PUBLISHED`/`ARCHIVED` |
 | `salesStatus` | enum | ✗ | `AVAILABLE`/`INDENT`/`SOLD` — terpisah dari status publish |
 | `featured` | bool | ✗ | Tampil di beranda |
@@ -452,6 +453,10 @@ model Unit {
 
   /// Harga indikatif "mulai dari" untuk tipe ini
   priceFrom BigInt?
+
+  /// Internal saja — tidak pernah dikirim ke API publik (Q8)
+  estimatedBuildCostMin BigInt?
+  estimatedBuildCostMax BigInt?
 
   publishStatus UnitPublishStatus @default(DRAFT)
   salesStatus   UnitSalesStatus   @default(AVAILABLE)

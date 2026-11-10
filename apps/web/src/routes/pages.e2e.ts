@@ -45,6 +45,6 @@ test('akun menampilkan pengajuan pengguna', async ({ page }) => {
 	await page.getByRole('button', { name: 'Masuk' }).click();
 
 	await expect(page).toHaveURL('/akun');
-	await expect(page.getByText('AZT-DS-2611-SEED0')).toBeVisible();
+	await expect(page.getByText('AZT-BU-2611-SEED0')).toBeVisible();
 	await expect(page.locator('a[href^="/akun/pengajuan/"]').first()).toBeVisible();
 });

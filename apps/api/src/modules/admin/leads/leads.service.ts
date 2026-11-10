@@ -42,10 +42,9 @@ const ACTIVITY_TYPES = [
 ];
 
 const leadInclude = {
-	design: { select: { id: true, title: true } },
+	unit: { select: { id: true, title: true } },
 	assignedTo: { select: { id: true, name: true } },
 	landSubmission: true,
-	investmentInterest: true,
 	attachments: true,
 	activities: {
 		orderBy: { createdAt: 'desc' as const },
@@ -147,7 +146,7 @@ export async function exportLeadsCsv(actor: StaffActor, query: Query) {
 	const where = buildFilters(query, actor.id);
 	const rows = await prisma.lead.findMany({
 		where,
-		include: { design: { select: { title: true } }, assignedTo: { select: { name: true } } },
+		include: { unit: { select: { title: true } }, assignedTo: { select: { name: true } } },
 		orderBy: { createdAt: 'desc' }
 	});
 
@@ -161,7 +160,7 @@ export async function exportLeadsCsv(actor: StaffActor, query: Query) {
 		'phone',
 		'email',
 		'city',
-		'designTitle',
+		'unitTitle',
 		'assignedTo',
 		'source',
 		'utmSource',
@@ -183,7 +182,7 @@ export async function exportLeadsCsv(actor: StaffActor, query: Query) {
 			lead.phone,
 			lead.email,
 			lead.city,
-			lead.design?.title,
+			lead.unit?.title,
 			lead.assignedTo?.name,
 			lead.source,
 			lead.utmSource,
@@ -221,7 +220,7 @@ export async function createLead(
 	const type = pickEnum(String(payload.type ?? 'GENERAL'), TYPES) ?? 'GENERAL';
 	const priority = pickEnum(String(payload.priority ?? 'NORMAL'), PRIORITIES) ?? 'NORMAL';
 	const phoneNormalized = phone.replace(/\D/g, '').replace(/^0/, '62');
-	const prefix = { BUY_DESIGN: 'DS', LAND_OFFER: 'LD', INVEST: 'IV', GENERAL: 'GN' }[type];
+	const prefix = { BUY_UNIT: 'BU', LAND_OFFER: 'LD', GENERAL: 'GN' }[type];
 	const now = new Date();
 	const reference = `AZT-${prefix}-${String(now.getFullYear()).slice(2)}${String(now.getMonth() + 1).padStart(2, '0')}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 

@@ -15,9 +15,8 @@
 		status === 'WON' ? 'badge-success' : status === 'LOST' ? 'badge-outline' : 'badge-info';
 
 	const typeLabel: Record<string, string> = {
-		BUY_DESIGN: 'Pembelian unit',
+		BUY_UNIT: 'Pembelian unit',
 		LAND_OFFER: 'Penawaran lahan',
-		INVEST: 'Informasi investasi',
 		GENERAL: 'Pertanyaan umum'
 	};
 </script>
@@ -95,7 +94,7 @@
 									{typeLabel[lead.type] ?? lead.type}
 								</span>
 								<div class="mr-auto min-w-0">
-									<p class="text-sm font-bold">{lead.design?.title ?? lead.reference}</p>
+									<p class="text-sm font-bold">{lead.unit?.title ?? lead.reference}</p>
 									<p class="text-xs text-brand-gray-600">
 										{lead.reference} · dikirim {formatDate(lead.createdAt)}
 									</p>

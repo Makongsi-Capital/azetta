@@ -175,8 +175,8 @@
 
 					<div class="mt-6">
 						<LeadForm
-							type="BUY_DESIGN"
-							designId={unit.id}
+							type="BUY_UNIT"
+							unitId={unit.id}
 							submitLabel="Kirim pertanyaan"
 							messagePlaceholder="Saya ingin melihat unit {unit.title} dan menanyakan skema pembayaran."
 							{form}

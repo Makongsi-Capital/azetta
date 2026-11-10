@@ -287,7 +287,7 @@ export const deletionRequests: DeletionRequest[] = [
 // Lead & CRM
 // ============================================================
 
-export type LeadType = 'BUY_DESIGN' | 'LAND_OFFER' | 'INVEST' | 'GENERAL';
+export type LeadType = 'BUY_UNIT' | 'LAND_OFFER' | 'GENERAL';
 export type LeadStatus =
 	'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL' | 'NEGOTIATION' | 'WON' | 'LOST' | 'SPAM';
 export type LeadPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
@@ -298,9 +298,6 @@ export type ActivityType =
 export type OwnershipStatus = 'SHM' | 'SHGB' | 'AJB' | 'GIRIK' | 'LETTER_C' | 'OTHER';
 export type ExpectedScheme = 'BAGI_HASIL' | 'SEWA' | 'JUAL' | 'BELUM_TAHU';
 export type StartTimeline = 'IMMEDIATE' | 'M3_6' | 'M6_12' | 'OVER_12' | 'UNKNOWN';
-export type BudgetRange = 'UNDER_500M' | 'M500_1B' | 'B1_5' | 'B5_20B' | 'ABOVE_20B';
-export type RiskProfile = 'CONSERVATIVE' | 'MODERATE' | 'AGGRESSIVE' | 'UNKNOWN';
-export type InvestmentInstrument = 'EQUITY' | 'PROFIT_SHARE' | 'FIXED_RETURN' | 'OPEN';
 export type AttachmentKind = 'LAND_PHOTO' | 'DOCUMENT' | 'OTHER';
 
 export interface LeadActivity {
@@ -324,15 +321,6 @@ export interface LandSubmission {
 	notes: string | null;
 }
 
-export interface InvestmentInterest {
-	budgetRange: BudgetRange;
-	preferredLocations: string[];
-	horizonMonths: number | null;
-	riskProfile: RiskProfile;
-	instrument: InvestmentInstrument | null;
-	notes: string | null;
-}
-
 export interface LeadAttachment {
 	id: number;
 	kind: AttachmentKind;
@@ -353,8 +341,8 @@ export interface Lead {
 	email: string | null;
 	city: string | null;
 	message: string | null;
-	designId: number | null;
-	designTitle: string | null;
+	unitId: number | null;
+	unitTitle: string | null;
 	source: LeadSource;
 	assignedToId: string | null;
 	assignedToName: string | null;
@@ -366,7 +354,6 @@ export interface Lead {
 	createdAt: string;
 	updatedAt: string;
 	landSubmission: LandSubmission | null;
-	investmentInterest: InvestmentInterest | null;
 	attachments: LeadAttachment[];
 	activities: LeadActivity[];
 	customerNote: string | null;
@@ -398,8 +385,8 @@ export const leads: Lead[] = [
 		city: 'Sleman',
 		message:
 			'Lahan dekat ring road Utara, ingin ditawarkan untuk kerja sama bagi hasil. Sertifikat atas nama sendiri.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'ORGANIC_SEARCH',
 		assignedToId: null,
 		assignedToName: null,
@@ -422,7 +409,6 @@ export const leads: Lead[] = [
 			startTimeline: 'M3_6',
 			notes: 'Akses jalan aspal 6 meter, dekat kampus.'
 		},
-		investmentInterest: null,
 		attachments: [
 			{
 				id: 1,
@@ -455,7 +441,7 @@ export const leads: Lead[] = [
 	{
 		id: 'ld-02',
 		reference: 'AZT-LD-2611-M3P8T',
-		type: 'BUY_DESIGN',
+		type: 'BUY_UNIT',
 		status: 'NEW',
 		priority: 'NORMAL',
 		name: 'Budi Santoso',
@@ -463,8 +449,8 @@ export const leads: Lead[] = [
 		email: 'budi.santoso@example.com',
 		city: 'Bandung',
 		message: 'Tertarik Tipe 45, minta simulasi KPR dan jadwal survei akhir pekan.',
-		designId: 1,
-		designTitle: 'Azetta Residence A1 — Tipe 45',
+		unitId: 1,
+		unitTitle: 'Azetta Residence A1',
 		source: 'ADS',
 		assignedToId: 'u-2',
 		assignedToName: 'Dimas Anggara',
@@ -476,51 +462,14 @@ export const leads: Lead[] = [
 		createdAt: at(0, 8, 47),
 		updatedAt: at(0, 8, 47),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [createdActivity(at(0, 8, 47), '/rumah/azetta-residence-a1')],
 		customerNote: null
 	},
 	{
-		id: 'ld-03',
-		reference: 'AZT-LD-2611-R5N1B',
-		type: 'INVEST',
-		status: 'NEW',
-		priority: 'HIGH',
-		name: 'Hendra Wijaya',
-		phone: '081355566677',
-		email: 'hendra.wijaya@example.com',
-		city: 'Jakarta Selatan',
-		message: 'Ingin diversifikasi ke proyek residensial di Yogyakarta dengan tenor 2 tahun.',
-		designId: null,
-		designTitle: null,
-		source: 'WHATSAPP',
-		assignedToId: 'u-1',
-		assignedToName: 'Rina Pratama',
-		estimatedValue: 2_500_000_000,
-		lostReason: null,
-		firstContactedAt: null,
-		lastContactedAt: null,
-		nextFollowUpAt: at(-1, 15, 0),
-		createdAt: at(0, 8, 10),
-		updatedAt: at(0, 8, 10),
-		landSubmission: null,
-		investmentInterest: {
-			budgetRange: 'B5_20B',
-			preferredLocations: ['Yogyakarta', 'Solo'],
-			horizonMonths: 24,
-			riskProfile: 'MODERATE',
-			instrument: 'PROFIT_SHARE',
-			notes: 'Lebih memilih proyek yang sudah berjalan.'
-		},
-		attachments: [],
-		activities: [createdActivity(at(0, 8, 10), '/investasi')],
-		customerNote: null
-	},
-	{
 		id: 'ld-04',
 		reference: 'AZT-LD-2611-C9D4H',
-		type: 'BUY_DESIGN',
+		type: 'BUY_UNIT',
 		status: 'NEW',
 		priority: 'NORMAL',
 		name: 'Maya Kartika',
@@ -528,8 +477,8 @@ export const leads: Lead[] = [
 		email: 'maya.kartika@example.com',
 		city: 'Surabaya',
 		message: 'Mencari unit dengan 3 kamar tidur untuk keluarga, budget maksimal Rp 1,2 M.',
-		designId: 2,
-		designTitle: 'Azetta Residence B2 — Tipe 54',
+		unitId: 2,
+		unitTitle: 'Azetta Residence B2',
 		source: 'WEBSITE',
 		assignedToId: null,
 		assignedToName: null,
@@ -541,7 +490,6 @@ export const leads: Lead[] = [
 		createdAt: at(0, 7, 35),
 		updatedAt: at(0, 7, 35),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [createdActivity(at(0, 7, 35), '/rumah/azetta-residence-b2')],
 		customerNote: null
@@ -557,8 +505,8 @@ export const leads: Lead[] = [
 		email: 'agus.prasetyo@example.com',
 		city: 'Yogyakarta',
 		message: 'Ada lahan warisan 1.200 m² di Bantul, ingin tahu skema kerja sama.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'REFERRAL',
 		assignedToId: 'u-1',
 		assignedToName: 'Rina Pratama',
@@ -581,7 +529,6 @@ export const leads: Lead[] = [
 			startTimeline: 'OVER_12',
 			notes: 'Masih dibahas bersama ahli waris.'
 		},
-		investmentInterest: null,
 		attachments: [
 			{
 				id: 4,
@@ -606,8 +553,8 @@ export const leads: Lead[] = [
 		email: 'rina.marlina@example.com',
 		city: 'Semarang',
 		message: 'Menanyakan lowongan kerja sama untuk kontraktor lokal.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'SOCIAL',
 		assignedToId: null,
 		assignedToName: null,
@@ -619,7 +566,6 @@ export const leads: Lead[] = [
 		createdAt: at(0, 6, 5),
 		updatedAt: at(0, 6, 5),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [createdActivity(at(0, 6, 5), '/kontak')],
 		customerNote: null
@@ -627,7 +573,7 @@ export const leads: Lead[] = [
 	{
 		id: 'ld-07',
 		reference: 'AZT-LD-2611-B4S9E',
-		type: 'BUY_DESIGN',
+		type: 'BUY_UNIT',
 		status: 'CONTACTED',
 		priority: 'HIGH',
 		name: 'Fajar Nugroho',
@@ -635,8 +581,8 @@ export const leads: Lead[] = [
 		email: 'fajar.nugroho@example.com',
 		city: 'Bekasi',
 		message: 'Sudah melihat unit di situs, ingin tahu ketersediaan dan promo.',
-		designId: 4,
-		designTitle: 'Azetta Signature D1 — Tipe 70',
+		unitId: 4,
+		unitTitle: 'Azetta Signature D1',
 		source: 'ADS',
 		assignedToId: 'u-2',
 		assignedToName: 'Dimas Anggara',
@@ -648,7 +594,6 @@ export const leads: Lead[] = [
 		createdAt: at(1, 9, 20),
 		updatedAt: at(1, 10, 15),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [
 			createdActivity(at(1, 9, 20), '/rumah/azetta-signature-d1'),
@@ -673,8 +618,8 @@ export const leads: Lead[] = [
 		email: 'dewi.lestari@example.com',
 		city: 'Bantul',
 		message: 'Lahan 600 m² dekat pasar, ingin ditawarkan dengan skema jual putus.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'ORGANIC_SEARCH',
 		assignedToId: 'u-1',
 		assignedToName: 'Rina Pratama',
@@ -697,7 +642,6 @@ export const leads: Lead[] = [
 			startTimeline: 'IMMEDIATE',
 			notes: 'Bangunan lama masih berdiri, siap dibongkar.'
 		},
-		investmentInterest: null,
 		attachments: [
 			{
 				id: 5,
@@ -715,55 +659,9 @@ export const leads: Lead[] = [
 		customerNote: null
 	},
 	{
-		id: 'ld-09',
-		reference: 'AZT-LD-2610-N1R7Q',
-		type: 'INVEST',
-		status: 'QUALIFIED',
-		priority: 'URGENT',
-		name: 'Taufik Hidayat',
-		phone: '081211122233',
-		email: 'taufik.hidayat@example.com',
-		city: 'Jakarta Pusat',
-		message: 'Investor berpengalaman, ingin masuk ke proyek yang sedang berjalan.',
-		designId: null,
-		designTitle: null,
-		source: 'EVENT',
-		assignedToId: 'u-2',
-		assignedToName: 'Dimas Anggara',
-		estimatedValue: 4_000_000_000,
-		lostReason: null,
-		firstContactedAt: at(3, 10, 0),
-		lastContactedAt: at(1, 14, 30),
-		nextFollowUpAt: at(-1, 14, 0),
-		createdAt: at(3, 9, 15),
-		updatedAt: at(1, 14, 30),
-		landSubmission: null,
-		investmentInterest: {
-			budgetRange: 'B5_20B',
-			preferredLocations: ['Yogyakarta', 'Semarang'],
-			horizonMonths: 36,
-			riskProfile: 'AGGRESSIVE',
-			instrument: 'EQUITY',
-			notes: 'Ingin laporan progres bulanan dan akses ke proyek prioritas.'
-		},
-		attachments: [],
-		activities: [
-			createdActivity(at(3, 9, 15), '/investasi'),
-			act('STATUS_CHANGE', 'Status NEW → CONTACTED.', 'Dimas Anggara', at(3, 10, 0)),
-			act(
-				'MEETING',
-				'Meeting daring 45 menit, membahas proyeksi dan struktur ekuitas.',
-				'Dimas Anggara',
-				at(1, 14, 30)
-			),
-			act('STATUS_CHANGE', 'Status CONTACTED → QUALIFIED.', 'Dimas Anggara', at(1, 14, 35))
-		],
-		customerNote: 'Kirim deck investasi terbaru sebelum follow-up.'
-	},
-	{
 		id: 'ld-10',
 		reference: 'AZT-LD-2610-P3H8C',
-		type: 'BUY_DESIGN',
+		type: 'BUY_UNIT',
 		status: 'QUALIFIED',
 		priority: 'HIGH',
 		name: 'Nabila Putri',
@@ -771,8 +669,8 @@ export const leads: Lead[] = [
 		email: 'nabila.putri@example.com',
 		city: 'Bekasi',
 		message: 'Sudah survei lokasi, tinggal membahas skema pembayaran.',
-		designId: 2,
-		designTitle: 'Azetta Residence B2 — Tipe 54',
+		unitId: 2,
+		unitTitle: 'Azetta Residence B2',
 		source: 'REFERRAL',
 		assignedToId: 'u-1',
 		assignedToName: 'Rina Pratama',
@@ -784,7 +682,6 @@ export const leads: Lead[] = [
 		createdAt: at(4, 10, 30),
 		updatedAt: at(2, 16, 20),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [
 			createdActivity(at(4, 10, 30), '/rumah/azetta-residence-b2'),
@@ -806,8 +703,8 @@ export const leads: Lead[] = [
 		email: 'andi.saputra@example.com',
 		city: 'Bogor',
 		message: 'Menanyakan kerja sama penyediaan material bangunan.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'OTHER',
 		assignedToId: 'u-2',
 		assignedToName: 'Dimas Anggara',
@@ -819,7 +716,6 @@ export const leads: Lead[] = [
 		createdAt: at(5, 9, 0),
 		updatedAt: at(3, 11, 30),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [
 			createdActivity(at(5, 9, 0), '/kontak'),
@@ -832,7 +728,7 @@ export const leads: Lead[] = [
 	{
 		id: 'ld-12',
 		reference: 'AZT-LD-2610-F5G1N',
-		type: 'BUY_DESIGN',
+		type: 'BUY_UNIT',
 		status: 'NEGOTIATION',
 		priority: 'URGENT',
 		name: 'Lina Permata',
@@ -840,8 +736,8 @@ export const leads: Lead[] = [
 		email: 'lina.permata@example.com',
 		city: 'Depok',
 		message: 'Sudah sepakat unit, sedang negosiasi biaya administrasi dan waktu serah terima.',
-		designId: 4,
-		designTitle: 'Azetta Signature D1 — Tipe 70',
+		unitId: 4,
+		unitTitle: 'Azetta Signature D1',
 		source: 'REFERRAL',
 		assignedToId: 'u-1',
 		assignedToName: 'Rina Pratama',
@@ -853,7 +749,6 @@ export const leads: Lead[] = [
 		createdAt: at(6, 8, 0),
 		updatedAt: at(1, 10, 0),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [
 			createdActivity(at(6, 8, 0), '/rumah/azetta-signature-d1'),
@@ -881,8 +776,8 @@ export const leads: Lead[] = [
 		email: 'rudi.hartono@example.com',
 		city: 'Yogyakarta',
 		message: 'Lahan 1.500 m² di Ring Road Selatan, sepakat bagi hasil 35:65.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'REFERRAL',
 		assignedToId: 'u-2',
 		assignedToName: 'Dimas Anggara',
@@ -905,7 +800,6 @@ export const leads: Lead[] = [
 			startTimeline: 'IMMEDIATE',
 			notes: 'Sudah tanda tangan kesepakatan awal.'
 		},
-		investmentInterest: null,
 		attachments: [],
 		activities: [
 			createdActivity(at(13, 8, 30), '/kerja-sama-lahan'),
@@ -919,7 +813,7 @@ export const leads: Lead[] = [
 	{
 		id: 'ld-14',
 		reference: 'AZT-LD-2610-A8C3R',
-		type: 'BUY_DESIGN',
+		type: 'BUY_UNIT',
 		status: 'LOST',
 		priority: 'LOW',
 		name: 'Siti Aminah',
@@ -927,8 +821,8 @@ export const leads: Lead[] = [
 		email: 'siti.aminah@example.com',
 		city: 'Semarang',
 		message: 'Menunda pembelian sampai tahun depan.',
-		designId: 3,
-		designTitle: 'Azetta Garden C3 — Tipe 36',
+		unitId: 3,
+		unitTitle: 'Azetta Garden C3',
 		source: 'WEBSITE',
 		assignedToId: 'u-1',
 		assignedToName: 'Rina Pratama',
@@ -940,7 +834,6 @@ export const leads: Lead[] = [
 		createdAt: at(10, 8, 10),
 		updatedAt: at(7, 15, 0),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [
 			createdActivity(at(10, 8, 10), '/rumah/azetta-garden-c3'),
@@ -951,51 +844,9 @@ export const leads: Lead[] = [
 		customerNote: null
 	},
 	{
-		id: 'ld-15',
-		reference: 'AZT-LD-2610-U9E5K',
-		type: 'INVEST',
-		status: 'WON',
-		priority: 'HIGH',
-		name: 'Bayu Prakoso',
-		phone: '081355588800',
-		email: 'bayu.prakoso@example.com',
-		city: 'Surabaya',
-		message: 'Investasi Rp 1,5 M pada proyek Azetta Garden.',
-		designId: null,
-		designTitle: null,
-		source: 'EVENT',
-		assignedToId: 'u-2',
-		assignedToName: 'Dimas Anggara',
-		estimatedValue: 1_500_000_000,
-		lostReason: null,
-		firstContactedAt: at(21, 9, 0),
-		lastContactedAt: at(12, 10, 0),
-		nextFollowUpAt: null,
-		createdAt: at(22, 8, 0),
-		updatedAt: at(12, 10, 0),
-		landSubmission: null,
-		investmentInterest: {
-			budgetRange: 'B1_5',
-			preferredLocations: ['Yogyakarta'],
-			horizonMonths: 18,
-			riskProfile: 'MODERATE',
-			instrument: 'FIXED_RETURN',
-			notes: 'Dana sudah dicairkan.'
-		},
-		attachments: [],
-		activities: [
-			createdActivity(at(22, 8, 0), '/investasi'),
-			act('STATUS_CHANGE', 'Status NEW → CONTACTED.', 'Dimas Anggara', at(21, 9, 0)),
-			act('MEETING', 'Presentasi proyek dan due diligence.', 'Dimas Anggara', at(16, 13, 0)),
-			act('STATUS_CHANGE', 'Status CONTACTED → QUALIFIED.', 'Dimas Anggara', at(16, 13, 30)),
-			act('STATUS_CHANGE', 'Status QUALIFIED → WON.', 'Dimas Anggara', at(12, 10, 0))
-		],
-		customerNote: null
-	},
-	{
 		id: 'ld-16',
 		reference: 'AZT-LD-2609-S1M7Q',
-		type: 'BUY_DESIGN',
+		type: 'BUY_UNIT',
 		status: 'SPAM',
 		priority: 'LOW',
 		name: 'Kartika Sari',
@@ -1003,8 +854,8 @@ export const leads: Lead[] = [
 		email: null,
 		city: null,
 		message: 'Pesan berulang tanpa isi.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'WEBSITE',
 		assignedToId: null,
 		assignedToName: null,
@@ -1016,7 +867,6 @@ export const leads: Lead[] = [
 		createdAt: at(16, 2, 15),
 		updatedAt: at(16, 2, 15),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [
 			createdActivity(at(16, 2, 15), '/kontak'),
@@ -1035,8 +885,8 @@ export const leads: Lead[] = [
 		email: 'joko.susilo@example.com',
 		city: 'Klaten',
 		message: 'Minta informasi kantor pemasaran dan jam kunjungan.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'ORGANIC_SEARCH',
 		assignedToId: null,
 		assignedToName: null,
@@ -1048,7 +898,6 @@ export const leads: Lead[] = [
 		createdAt: at(20, 11, 45),
 		updatedAt: at(20, 11, 45),
 		landSubmission: null,
-		investmentInterest: null,
 		attachments: [],
 		activities: [createdActivity(at(20, 11, 45), '/kontak')],
 		customerNote: null
@@ -1064,8 +913,8 @@ export const leads: Lead[] = [
 		email: 'wulan.sari@example.com',
 		city: 'Sleman',
 		message: 'Menawarkan lahan 950 m² di Pakem untuk proyek baru.',
-		designId: null,
-		designTitle: null,
+		unitId: null,
+		unitTitle: null,
 		source: 'SOCIAL',
 		assignedToId: 'u-1',
 		assignedToName: 'Rina Pratama',
@@ -1088,7 +937,6 @@ export const leads: Lead[] = [
 			startTimeline: 'M6_12',
 			notes: 'Kontur miring, perlu kajian struktur.'
 		},
-		investmentInterest: null,
 		attachments: [],
 		activities: [
 			createdActivity(at(29, 8, 15), '/kerja-sama-lahan'),
@@ -1102,27 +950,30 @@ export const leads: Lead[] = [
 // Katalog unit
 // ============================================================
 
-export type DesignCategory = 'RESIDENTIAL' | 'COMMERCIAL' | 'RENOVATION' | 'INTERIOR';
-export type DesignStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type UnitPublishStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type UnitSalesStatus = 'AVAILABLE' | 'INDENT' | 'SOLD';
 
-export interface DesignUnit {
+export interface UnitItem {
 	id: number;
 	slug: string;
+	unitCode: string;
+	typeName: string;
 	title: string;
 	subtitle: string | null;
 	description: string;
-	category: DesignCategory;
-	style: string;
+	projectId: number;
+	projectTitle: string;
 	floors: number;
 	bedrooms: number;
 	bathrooms: number;
 	carports: number;
 	buildingAreaM2: number;
-	landAreaMinM2: number;
+	landAreaM2: number;
 	estimatedBuildCostMin: number | null;
 	estimatedBuildCostMax: number | null;
 	priceFrom: number | null;
-	status: DesignStatus;
+	publishStatus: UnitPublishStatus;
+	salesStatus: UnitSalesStatus;
 	featured: boolean;
 	viewCount: number;
 	publishedAt: string | null;
@@ -1132,29 +983,31 @@ export interface DesignUnit {
 	updatedAt: string;
 	cover: string;
 	gallery: string[];
-	tags: string[];
 }
 
-export const units: DesignUnit[] = [
+export const units: UnitItem[] = [
 	{
 		id: 1,
 		slug: 'azetta-residence-a1',
+		unitCode: 'A1',
+		typeName: 'Tipe 45',
+		projectId: 1,
+		projectTitle: 'Azetta Residence',
+		salesStatus: 'AVAILABLE',
 		title: 'Azetta Residence A1',
 		subtitle: 'Tipe 45 dengan taman belakang',
 		description:
 			'<p>Unit dua lantai dengan ruang keluarga terbuka dan taman belakang 12 m². Cocok untuk keluarga muda yang membutuhkan ruang kerja di rumah.</p>',
-		category: 'RESIDENTIAL',
-		style: 'Modern tropis',
 		floors: 2,
 		bedrooms: 3,
 		bathrooms: 2,
 		carports: 1,
 		buildingAreaM2: 90,
-		landAreaMinM2: 96,
+		landAreaM2: 96,
 		estimatedBuildCostMin: 720_000_000,
 		estimatedBuildCostMax: 850_000_000,
 		priceFrom: 850_000_000,
-		status: 'PUBLISHED',
+		publishStatus: 'PUBLISHED',
 		featured: true,
 		viewCount: 1240,
 		publishedAt: at(120, 9, 0),
@@ -1168,28 +1021,30 @@ export const units: DesignUnit[] = [
 			photo('1600596542815-ffad4c1539a9'),
 			photo('1600585154340-be6161a56a0c'),
 			photo('1600607687939-ce8a6c25118c')
-		],
-		tags: ['2 lantai', 'taman', 'siap huni']
+		]
 	},
 	{
 		id: 2,
 		slug: 'azetta-residence-b2',
+		unitCode: 'B2',
+		typeName: 'Tipe 54',
+		projectId: 1,
+		projectTitle: 'Azetta Residence',
+		salesStatus: 'INDENT',
 		title: 'Azetta Residence B2',
 		subtitle: 'Tipe 54 untuk keluarga besar',
 		description:
 			'<p>Denah lebar dengan empat kamar tidur dan dua carport. Area servis terpisah dari area keluarga.</p>',
-		category: 'RESIDENTIAL',
-		style: 'Modern minimalis',
 		floors: 2,
 		bedrooms: 4,
 		bathrooms: 2,
 		carports: 2,
 		buildingAreaM2: 108,
-		landAreaMinM2: 120,
+		landAreaM2: 120,
 		estimatedBuildCostMin: 950_000_000,
 		estimatedBuildCostMax: 1_150_000_000,
 		priceFrom: 1_150_000_000,
-		status: 'PUBLISHED',
+		publishStatus: 'PUBLISHED',
 		featured: true,
 		viewCount: 980,
 		publishedAt: at(98, 10, 30),
@@ -1199,28 +1054,30 @@ export const units: DesignUnit[] = [
 		createdAt: at(110, 9, 15),
 		updatedAt: at(3, 11, 0),
 		cover: photo('1600585154340-be6161a56a0c'),
-		gallery: [photo('1600585154340-be6161a56a0c'), photo('1600585154526-990dced4db0d')],
-		tags: ['4 kamar', 'carport ganda']
+		gallery: [photo('1600585154340-be6161a56a0c'), photo('1600585154526-990dced4db0d')]
 	},
 	{
 		id: 3,
 		slug: 'azetta-garden-c3',
+		unitCode: 'C3',
+		typeName: 'Tipe 36',
+		projectId: 2,
+		projectTitle: 'Azetta Garden',
+		salesStatus: 'AVAILABLE',
 		title: 'Azetta Garden C3',
 		subtitle: 'Tipe 36 satu lantai',
 		description:
 			'<p>Unit satu lantai dengan taman bersama dan akses langsung ke area komunal. Efisien untuk pasangan muda.</p>',
-		category: 'RESIDENTIAL',
-		style: 'Scandinavian',
 		floors: 1,
 		bedrooms: 2,
 		bathrooms: 1,
 		carports: 1,
 		buildingAreaM2: 72,
-		landAreaMinM2: 84,
+		landAreaM2: 84,
 		estimatedBuildCostMin: 520_000_000,
 		estimatedBuildCostMax: 620_000_000,
 		priceFrom: 620_000_000,
-		status: 'PUBLISHED',
+		publishStatus: 'PUBLISHED',
 		featured: false,
 		viewCount: 645,
 		publishedAt: at(64, 9, 0),
@@ -1230,28 +1087,30 @@ export const units: DesignUnit[] = [
 		createdAt: at(80, 8, 30),
 		updatedAt: at(12, 9, 45),
 		cover: photo('1600585154526-990dced4db0d'),
-		gallery: [photo('1600585154526-990dced4db0d')],
-		tags: ['satu lantai', 'taman komunal']
+		gallery: [photo('1600585154526-990dced4db0d')]
 	},
 	{
 		id: 4,
 		slug: 'azetta-signature-d1',
+		unitCode: 'D1',
+		typeName: 'Tipe 70',
+		projectId: 3,
+		projectTitle: 'Azetta Signature',
+		salesStatus: 'SOLD',
 		title: 'Azetta Signature D1',
 		subtitle: 'Tipe 70 dengan rooftop',
 		description:
 			'<p>Unit premium dengan rooftop dan area kerja khusus. Material fasad dipilih untuk perawatan rendah.</p>',
-		category: 'RESIDENTIAL',
-		style: 'Kontemporer',
 		floors: 2,
 		bedrooms: 4,
 		bathrooms: 3,
 		carports: 2,
 		buildingAreaM2: 140,
-		landAreaMinM2: 150,
+		landAreaM2: 150,
 		estimatedBuildCostMin: 1_600_000_000,
 		estimatedBuildCostMax: 1_850_000_000,
 		priceFrom: 1_850_000_000,
-		status: 'PUBLISHED',
+		publishStatus: 'PUBLISHED',
 		featured: true,
 		viewCount: 1580,
 		publishedAt: at(45, 9, 0),
@@ -1265,28 +1124,30 @@ export const units: DesignUnit[] = [
 			photo('1512917774080-9991f1c4c750'),
 			photo('1613490493576-7fde63acd811'),
 			photo('1600047509807-ba8f99d2cdde')
-		],
-		tags: ['rooftop', 'premium', '4 kamar']
+		]
 	},
 	{
 		id: 5,
 		slug: 'azetta-compact-e1',
+		unitCode: 'E1',
+		typeName: 'Tipe 30',
+		projectId: 1,
+		projectTitle: 'Azetta Residence',
+		salesStatus: 'AVAILABLE',
 		title: 'Azetta Compact E1',
 		subtitle: 'Tipe 30 untuk lahan sempit',
 		description:
 			'<p>Rancangan satu lantai dengan pencahayaan alami maksimal pada lahan 72 m². Sedang dalam penyusunan gambar kerja.</p>',
-		category: 'RESIDENTIAL',
-		style: 'Minimalis',
 		floors: 1,
 		bedrooms: 2,
 		bathrooms: 1,
 		carports: 1,
 		buildingAreaM2: 60,
-		landAreaMinM2: 72,
+		landAreaM2: 72,
 		estimatedBuildCostMin: 420_000_000,
 		estimatedBuildCostMax: 480_000_000,
 		priceFrom: 480_000_000,
-		status: 'DRAFT',
+		publishStatus: 'DRAFT',
 		featured: false,
 		viewCount: 0,
 		publishedAt: null,
@@ -1295,28 +1156,30 @@ export const units: DesignUnit[] = [
 		createdAt: at(9, 13, 0),
 		updatedAt: at(2, 10, 30),
 		cover: photo('1568605114967-8130f3a36994'),
-		gallery: [photo('1568605114967-8130f3a36994')],
-		tags: ['lahan sempit', 'efisien']
+		gallery: [photo('1568605114967-8130f3a36994')]
 	},
 	{
 		id: 6,
-		slug: 'azetta-shophouse-s1',
-		title: 'Azetta Shophouse S1',
-		subtitle: 'Ruko tiga lantai di Commercial Park',
+		slug: 'azetta-residence-f1',
+		unitCode: 'F1',
+		typeName: 'Tipe 60',
+		projectId: 1,
+		projectTitle: 'Azetta Residence',
+		salesStatus: 'INDENT',
+		title: 'Azetta Residence F1',
+		subtitle: 'Tipe 60 dua lantai',
 		description:
-			'<p>Unit komersial tiga lantai dengan parkir depan. Modul struktur memungkinkan penggabungan dua unit.</p>',
-		category: 'COMMERCIAL',
-		style: 'Industrial modern',
+			'<p>Unit dua lantai dengan carport ganda dan ruang keluarga luas di Azetta Residence.</p>',
 		floors: 3,
 		bedrooms: 0,
 		bathrooms: 3,
 		carports: 2,
 		buildingAreaM2: 240,
-		landAreaMinM2: 160,
+		landAreaM2: 160,
 		estimatedBuildCostMin: 2_100_000_000,
 		estimatedBuildCostMax: 2_400_000_000,
 		priceFrom: 2_400_000_000,
-		status: 'DRAFT',
+		publishStatus: 'DRAFT',
 		featured: false,
 		viewCount: 0,
 		publishedAt: null,
@@ -1325,28 +1188,29 @@ export const units: DesignUnit[] = [
 		createdAt: at(5, 9, 0),
 		updatedAt: at(0, 9, 15),
 		cover: photo('1541888946425-d81bb19240f5'),
-		gallery: [photo('1541888946425-d81bb19240f5')],
-		tags: ['komersial', 'investasi']
+		gallery: [photo('1541888946425-d81bb19240f5')]
 	},
 	{
 		id: 7,
-		slug: 'azetta-renovasi-r1',
-		title: 'Azetta Renovasi R1',
-		subtitle: 'Paket renovasi rumah lama',
-		description:
-			'<p>Paket renovasi fasad dan penataan ulang ruang tamu untuk rumah lama di area kota.</p>',
-		category: 'RENOVATION',
-		style: 'Adaptif',
+		slug: 'azetta-garden-g1',
+		unitCode: 'G1',
+		typeName: 'Tipe 45',
+		projectId: 2,
+		projectTitle: 'Azetta Garden',
+		salesStatus: 'AVAILABLE',
+		title: 'Azetta Garden G1',
+		subtitle: 'Tipe 45 siap huni',
+		description: '<p>Unit tipe 45 di Azetta Garden dengan taman belakang dan dapur terbuka.</p>',
 		floors: 1,
 		bedrooms: 3,
 		bathrooms: 2,
 		carports: 1,
 		buildingAreaM2: 110,
-		landAreaMinM2: 120,
+		landAreaM2: 120,
 		estimatedBuildCostMin: 300_000_000,
 		estimatedBuildCostMax: 350_000_000,
 		priceFrom: 350_000_000,
-		status: 'ARCHIVED',
+		publishStatus: 'ARCHIVED',
 		featured: false,
 		viewCount: 210,
 		publishedAt: at(220, 9, 0),
@@ -1355,28 +1219,29 @@ export const units: DesignUnit[] = [
 		createdAt: at(240, 8, 0),
 		updatedAt: at(30, 11, 30),
 		cover: photo('1570129477492-45c003edd2be'),
-		gallery: [photo('1570129477492-45c003edd2be')],
-		tags: ['renovasi']
+		gallery: [photo('1570129477492-45c003edd2be')]
 	},
 	{
 		id: 8,
-		slug: 'azetta-interior-loft-i1',
-		title: 'Azetta Interior Loft I1',
-		subtitle: 'Paket interior unit loft',
-		description:
-			'<p>Paket interior lengkap untuk unit loft 96 m², termasuk dapur, ruang kerja, dan penyimpanan tersembunyi.</p>',
-		category: 'INTERIOR',
-		style: 'Japandi',
+		slug: 'azetta-garden-h1',
+		unitCode: 'H1',
+		typeName: 'Tipe 54',
+		projectId: 2,
+		projectTitle: 'Azetta Garden',
+		salesStatus: 'AVAILABLE',
+		title: 'Azetta Garden H1',
+		subtitle: 'Tipe 54 corner',
+		description: '<p>Unit sudut tipe 54 dengan balkon utama menghadap taman cluster.</p>',
 		floors: 2,
 		bedrooms: 2,
 		bathrooms: 2,
 		carports: 0,
 		buildingAreaM2: 96,
-		landAreaMinM2: 0,
+		landAreaM2: 96,
 		estimatedBuildCostMin: 220_000_000,
 		estimatedBuildCostMax: 260_000_000,
 		priceFrom: 260_000_000,
-		status: 'PUBLISHED',
+		publishStatus: 'PUBLISHED',
 		featured: false,
 		viewCount: 380,
 		publishedAt: at(38, 9, 30),
@@ -1385,8 +1250,7 @@ export const units: DesignUnit[] = [
 		createdAt: at(50, 9, 0),
 		updatedAt: at(8, 14, 0),
 		cover: photo('1605276374104-dee2a0ed3cd6'),
-		gallery: [photo('1605276374104-dee2a0ed3cd6')],
-		tags: ['interior', 'japandi']
+		gallery: [photo('1605276374104-dee2a0ed3cd6')]
 	}
 ];
 
@@ -2138,7 +2002,7 @@ export const leadsByStatus: { status: LeadStatus; count: number }[] = (
 }));
 
 export const leadsByType: { type: LeadType; count: number }[] = (
-	['BUY_DESIGN', 'LAND_OFFER', 'INVEST', 'GENERAL'] as LeadType[]
+	['BUY_UNIT', 'LAND_OFFER', 'GENERAL'] as LeadType[]
 ).map((type) => ({ type, count: leads.filter((lead) => lead.type === type).length }));
 
 /** Tren 30 hari terakhir, dihitung dari tanggal pembuatan lead contoh. */
@@ -2160,7 +2024,7 @@ export function findLead(id: string): Lead | undefined {
 	return leads.find((lead) => lead.id === id);
 }
 
-export function findUnit(id: number): DesignUnit | undefined {
+export function findUnit(id: number): UnitItem | undefined {
 	return units.find((unit) => unit.id === id);
 }
 

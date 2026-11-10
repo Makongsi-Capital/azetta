@@ -31,11 +31,11 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 export const actions: Actions = {
 	default: async ({ request, url }) => {
 		const form = await request.formData();
-		const designId = Number(form.get('designId'));
+		const unitId = Number(form.get('unitId'));
 		return submitLead(form, {
 			cookie: request.headers.get('cookie'),
-			type: 'BUY_DESIGN',
-			designId: Number.isInteger(designId) && designId > 0 ? designId : undefined,
+			type: 'BUY_UNIT',
+			unitId: Number.isInteger(unitId) && unitId > 0 ? unitId : undefined,
 			landingPath: url.pathname
 		});
 	}

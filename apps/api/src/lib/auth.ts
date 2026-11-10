@@ -18,7 +18,15 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		disableSignUp: false,
+		requireEmailVerification: false,
 		minPasswordLength: 8
+	},
+	databaseHooks: {
+		user: {
+			create: {
+				before: async (user) => ({ data: { ...user, emailVerified: true } })
+			}
+		}
 	},
 	user: {
 		additionalFields: {

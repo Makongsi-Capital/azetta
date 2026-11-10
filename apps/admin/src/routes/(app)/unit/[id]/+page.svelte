@@ -2,7 +2,7 @@
 	import PageHeader from '#lib/components/admin/PageHeader.svelte';
 	import StatusBadge from '#lib/components/admin/StatusBadge.svelte';
 	import UnitForm from '#lib/components/admin/UnitForm.svelte';
-	import { designStatusLabel, designStatusTone } from '#lib/labels.js';
+	import { unitPublishStatusLabel, unitPublishStatusTone } from '#lib/labels.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -16,10 +16,10 @@
 <PageHeader eyebrow="Katalog" title={data.unit.title} description="/{data.unit.slug}">
 	{#snippet actions()}
 		<StatusBadge
-			label={designStatusLabel[data.unit.status]}
-			tone={designStatusTone[data.unit.status]}
+			label={unitPublishStatusLabel[data.unit.publishStatus]}
+			tone={unitPublishStatusTone[data.unit.publishStatus]}
 		/>
-		{#if data.unit.status === 'PUBLISHED'}
+		{#if data.unit.publishStatus === 'PUBLISHED'}
 			<a
 				class="btn btn-ghost btn-sm"
 				href="https://azetta.id/rumah/{data.unit.slug}"
@@ -33,4 +33,4 @@
 	{/snippet}
 </PageHeader>
 
-<UnitForm unit={data.unit} mode="edit" />
+<UnitForm unit={data.unit} projects={data.projects} mode="edit" />

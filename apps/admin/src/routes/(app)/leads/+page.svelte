@@ -47,7 +47,7 @@
 		phone: '',
 		email: '',
 		city: '',
-		type: 'BUY_DESIGN',
+		type: 'BUY_UNIT',
 		priority: 'NORMAL',
 		message: ''
 	});
@@ -174,8 +174,8 @@
 			email: manualForm.email || null,
 			city: manualForm.city || null,
 			message: manualForm.message || null,
-			designId: null,
-			designTitle: null,
+			unitId: null,
+			unitTitle: null,
 			source: 'OTHER',
 			assignedToId: currentUser.id,
 			assignedToName: currentUser.name,
@@ -187,7 +187,6 @@
 			createdAt: MOCK_NOW.toISOString(),
 			updatedAt: MOCK_NOW.toISOString(),
 			landSubmission: null,
-			investmentInterest: null,
 			attachments: [],
 			activities: [
 				{
@@ -209,7 +208,7 @@
 			phone: '',
 			email: '',
 			city: '',
-			type: 'BUY_DESIGN',
+			type: 'BUY_UNIT',
 			priority: 'NORMAL',
 			message: ''
 		};

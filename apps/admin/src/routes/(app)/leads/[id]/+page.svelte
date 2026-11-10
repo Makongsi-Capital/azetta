@@ -15,9 +15,7 @@
 	import {
 		activityTypeIcon,
 		activityTypeLabel,
-		budgetRangeLabel,
 		expectedSchemeLabel,
-		investmentInstrumentLabel,
 		leadPriorityLabel,
 		leadPriorityTone,
 		leadSourceLabel,
@@ -25,7 +23,6 @@
 		leadStatusTone,
 		leadTypeLabel,
 		ownershipStatusLabel,
-		riskProfileLabel,
 		startTimelineLabel
 	} from '#lib/labels.js';
 	import { attachmentKindLabel } from '#lib/labels.js';
@@ -246,19 +243,19 @@
 						{estimatedValue ? formatRupiah(estimatedValue) : '—'}
 					</dd>
 				</div>
-				{#if lead.designTitle}
+				{#if lead.unitTitle}
 					<div class="sm:col-span-2">
 						<dt class="text-xs text-brand-gray-600">Unit yang diminati</dt>
 						<dd class="mt-0.5 text-sm">
-							{#if lead.designId}
+							{#if lead.unitId}
 								<a
 									class="font-bold underline decoration-brand-line underline-offset-4"
-									href="/unit/{lead.designId}"
+									href="/unit/{lead.unitId}"
 								>
-									{lead.designTitle}
+									{lead.unitTitle}
 								</a>
 							{:else}
-								{lead.designTitle}
+								{lead.unitTitle}
 							{/if}
 						</dd>
 					</div>
@@ -320,48 +317,6 @@
 						<div class="sm:col-span-2">
 							<dt class="text-xs text-brand-gray-600">Catatan</dt>
 							<dd class="mt-1 text-sm">{land.notes}</dd>
-						</div>
-					{/if}
-				</dl>
-			</Panel>
-		{/if}
-
-		{#if lead.investmentInterest}
-			{@const investment = lead.investmentInterest}
-			<Panel title="Minat investasi">
-				<dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-					<div>
-						<dt class="text-xs text-brand-gray-600">Rentang anggaran</dt>
-						<dd class="mt-0.5 text-sm font-bold">{budgetRangeLabel[investment.budgetRange]}</dd>
-					</div>
-					<div>
-						<dt class="text-xs text-brand-gray-600">Horizon</dt>
-						<dd class="mt-0.5 text-sm">
-							{investment.horizonMonths ? `${investment.horizonMonths} bulan` : '—'}
-						</dd>
-					</div>
-					<div>
-						<dt class="text-xs text-brand-gray-600">Lokasi diminati</dt>
-						<dd class="mt-0.5 text-sm">
-							{investment.preferredLocations.join(', ') || '—'}
-						</dd>
-					</div>
-					<div>
-						<dt class="text-xs text-brand-gray-600">Profil risiko</dt>
-						<dd class="mt-0.5 text-sm">{riskProfileLabel[investment.riskProfile]}</dd>
-					</div>
-					<div>
-						<dt class="text-xs text-brand-gray-600">Instrumen</dt>
-						<dd class="mt-0.5 text-sm">
-							{investment.instrument
-								? investmentInstrumentLabel[investment.instrument]
-								: 'Belum ditentukan'}
-						</dd>
-					</div>
-					{#if investment.notes}
-						<div class="sm:col-span-2">
-							<dt class="text-xs text-brand-gray-600">Catatan</dt>
-							<dd class="mt-1 text-sm">{investment.notes}</dd>
 						</div>
 					{/if}
 				</dl>

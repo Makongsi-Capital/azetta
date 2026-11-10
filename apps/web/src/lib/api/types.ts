@@ -2,7 +2,7 @@
 
 export type SalesStatus = 'AVAILABLE' | 'INDENT' | 'SOLD';
 export type ProjectStatus = 'PLANNED' | 'ONGOING' | 'COMPLETED';
-export type LeadType = 'BUY_DESIGN' | 'LAND_OFFER' | 'INVEST' | 'GENERAL';
+export type LeadType = 'BUY_UNIT' | 'LAND_OFFER' | 'GENERAL';
 
 export interface ApiProjectRef {
 	slug: string;
@@ -32,12 +32,11 @@ export interface ApiUnitMedia {
 export interface ApiUnit {
 	id: number;
 	slug: string;
+	unitCode: string;
 	typeName: string;
 	title: string;
 	subtitle: string | null;
 	project: ApiProjectRef | null;
-	style: string;
-	category: string;
 	floors: number;
 	bedrooms: number;
 	bathrooms: number;
@@ -133,7 +132,7 @@ export interface ApiLead {
 	status: string;
 	statusLabel: string;
 	message: string | null;
-	design: { slug: string; title: string } | null;
+	unit: { slug: string; title: string } | null;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -146,7 +145,6 @@ export interface ApiLeadTimelineItem {
 
 export interface ApiLeadDetail extends ApiLead {
 	landSubmission: Record<string, unknown> | null;
-	investmentInterest: Record<string, unknown> | null;
 	attachments: { id: number; fileName: string; kind: string; url?: string }[];
 	timeline: ApiLeadTimelineItem[];
 }

@@ -121,7 +121,7 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 
 | ID | Skenario | Harapan |
 |----|----------|---------|
-| TC-ACC-01 | Registrasi email baru | Akun dibuat `role=customer`; email verifikasi terkirim; belum bisa melihat pengajuan |
+| TC-ACC-01 | Registrasi email baru | Akun dibuat `role=customer` dan langsung `emailVerified=true` (MVP, v1.7); dapat langsung melihat pengajuan sendiri |
 | TC-ACC-02 | Registrasi email yang sudah terdaftar | Pesan seragam; tidak membocorkan keberadaan akun; email konfirmasi tidak dikirim berulang |
 | TC-ACC-03 | Klik tautan verifikasi | `emailVerified=true`; `/akun` dapat diakses |
 | TC-ACC-04 | Tautan verifikasi kedaluwarsa (24 jam) | Pesan jelas + tombol kirim ulang |
@@ -129,7 +129,7 @@ Target otomasi: **≥ 70% baris** untuk `apps/api/src/modules` dan `packages/con
 | TC-ACC-06 | Lupa sandi untuk email tidak terdaftar | Respons tetap "Jika email terdaftar…"; tidak ada email terkirim |
 | TC-ACC-07 | Reset sandi dengan token valid | Kata sandi berubah; semua sesi lain dicabut |
 | TC-ACC-08 | Akses `/akun` tanpa login | Redirect `/masuk?next=/akun` |
-| TC-ACC-09 | Akses `/akun` sebelum verifikasi | Banner verifikasi; daftar pengajuan tidak dirender |
+| TC-ACC-09 | Akses `/akun` sebelum verifikasi | **Ditunda untuk MVP** (verifikasi email dimatikan sementara, lihat v1.7). Diganti uji regresi: akun baru langsung `emailVerified=true` dan dapat membuka `/akun` tanpa banner verifikasi |
 | TC-ACC-10 | Dua akun, masing-masing punya pengajuan | Tidak ada data yang saling terlihat; membuka ID milik orang lain → 404 |
 | TC-ACC-11 | Submit lead saat login | `userId` terisi; pengajuan muncul di `/akun` |
 | TC-ACC-12 | Submit lead tanpa akun, lalu daftar dengan email sama | Pengajuan otomatis tertaut setelah verifikasi |

@@ -12,7 +12,7 @@
 
 	interface Props {
 		type: LeadType;
-		designId?: number;
+		unitId?: number;
 		submitLabel?: string;
 		messagePlaceholder?: string;
 		withCity?: boolean;
@@ -22,7 +22,7 @@
 
 	let {
 		type,
-		designId,
+		unitId,
 		submitLabel = 'Kirim',
 		messagePlaceholder = 'Ceritakan kebutuhan Anda',
 		withCity = false,
@@ -58,8 +58,8 @@
 		}}
 	>
 		<input type="hidden" name="type" value={type} />
-		{#if designId !== undefined}
-			<input type="hidden" name="designId" value={designId} />
+		{#if unitId !== undefined}
+			<input type="hidden" name="unitId" value={unitId} />
 		{/if}
 		<div class="hidden" aria-hidden="true">
 			<label

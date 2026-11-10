@@ -4,16 +4,17 @@
 	import MediaUpload from '#lib/components/admin/MediaUpload.svelte';
 	import Panel from '#lib/components/admin/Panel.svelte';
 	import { formatDate, formatRupiah, slugify } from '#lib/format.js';
-	import { designCategoryLabel, designStatusLabel } from '#lib/labels.js';
+	import { unitPublishStatusLabel, unitSalesStatusLabel } from '#lib/labels.js';
 	import { submitAction } from '#lib/action.js';
-	import type { DesignUnit } from '#lib/mock/admin.js';
+	import type { UnitItem } from '#lib/mock/admin.js';
 
 	interface Props {
-		unit?: DesignUnit;
+		unit?: UnitItem;
+		projects: { id: number; title: string }[];
 		mode: 'create' | 'edit';
 	}
 
-	let { unit, mode }: Props = $props();
+	let { unit, projects, mode }: Props = $props();
 
 	// Nilai awal formulir sengaja diambil sekali; perubahan prop tidak menimpa editan pengguna.
 	const initial = untrack(() => unit);
@@ -21,9 +22,11 @@
 	let title = $state(initial?.title ?? '');
 	let slug = $state(initial?.slug ?? '');
 	let subtitle = $state(initial?.subtitle ?? '');
-	let category = $state<string>(initial?.category ?? 'RESIDENTIAL');
-	let style = $state(initial?.style ?? '');
-	let status = $state<string>(initial?.status ?? 'DRAFT');
+	let unitCode = $state(initial?.unitCode ?? '');
+	let typeName = $state(initial?.typeName ?? '');
+	let projectId = $state(initial?.projectId ?? projects[0]?.id ?? 0);
+	let publishStatus = $state<string>(initial?.publishStatus ?? 'DRAFT');
+	let salesStatus = $state<string>(initial?.salesStatus ?? 'AVAILABLE');
 	let featured = $state(initial?.featured ?? false);
 
 	let floors = $state(initial?.floors ?? 1);
@@ -31,7 +34,7 @@
 	let bathrooms = $state(initial?.bathrooms ?? 0);
 	let carports = $state(initial?.carports ?? 0);
 	let buildingAreaM2 = $state(initial?.buildingAreaM2 ?? 0);
-	let landAreaMinM2 = $state(initial?.landAreaMinM2 ?? 0);
+	let landAreaM2 = $state(initial?.landAreaM2 ?? 0);
 
 	let priceFrom = $state(initial?.priceFrom ?? 0);
 	let estimatedBuildCostMin = $state(initial?.estimatedBuildCostMin ?? 0);
@@ -41,7 +44,6 @@
 	let cover = $state(initial?.cover ?? '');
 	let gallery = $state<string[]>([...(initial?.gallery ?? [])]);
 	let newImage = $state('');
-	let tags = $state(initial?.tags.join(', ') ?? '');
 
 	let seoTitle = $state(initial?.seoTitle ?? '');
 	let seoDescription = $state(initial?.seoDescription ?? '');
@@ -82,7 +84,7 @@
 		notice = '';
 		errorMessage = '';
 
-		if (status === 'PUBLISHED' && !canPublish) {
+		if (publishStatus === 'PUBLISHED' && !canPublish) {
 			errorMessage = 'Lengkapi checklist publikasi sebelum menerbitkan unit.';
 			return;
 		}
@@ -91,23 +93,24 @@
 		body.set('title', title);
 		body.set('slug', slug || title);
 		body.set('subtitle', subtitle);
-		body.set('category', category);
-		body.set('style', style);
-		body.set('status', status);
+		body.set('unitCode', unitCode);
+		body.set('typeName', typeName);
+		body.set('projectId', String(projectId));
+		body.set('publishStatus', publishStatus);
+		body.set('salesStatus', salesStatus);
 		body.set('featured', String(featured));
 		body.set('floors', String(floors));
 		body.set('bedrooms', String(bedrooms));
 		body.set('bathrooms', String(bathrooms));
 		body.set('carports', String(carports));
 		body.set('buildingAreaM2', String(buildingAreaM2));
-		body.set('landAreaMinM2', String(landAreaMinM2));
+		body.set('landAreaM2', String(landAreaM2));
 		body.set('priceFrom', String(priceFrom));
 		body.set('estimatedBuildCostMin', String(estimatedBuildCostMin));
 		body.set('estimatedBuildCostMax', String(estimatedBuildCostMax));
 		body.set('description', description);
 		body.set('cover', cover);
 		for (const url of gallery) body.append('gallery', url);
-		body.set('tags', tags);
 		body.set('seoTitle', seoTitle);
 		body.set('seoDescription', seoDescription);
 
@@ -173,17 +176,32 @@
 
 					<div class="grid gap-4 sm:grid-cols-2">
 						<fieldset class="fieldset">
-							<legend class="fieldset-legend">Kategori *</legend>
-							<select class="select w-full" bind:value={category}>
-								{#each Object.entries(designCategoryLabel) as [value, label] (value)}
-									<option {value}>{label}</option>
+							<legend class="fieldset-legend">Kode unit *</legend>
+							<input class="input w-full" required placeholder="A1" bind:value={unitCode} />
+							<p class="mt-1 text-xs text-brand-gray-600">Unik per proyek.</p>
+						</fieldset>
+
+						<fieldset class="fieldset">
+							<legend class="fieldset-legend">Nama tipe *</legend>
+							<input class="input w-full" required placeholder="Tipe 45" bind:value={typeName} />
+						</fieldset>
+
+						<fieldset class="fieldset sm:col-span-2">
+							<legend class="fieldset-legend">Proyek *</legend>
+							<select class="select w-full" required bind:value={projectId}>
+								{#each projects as project (project.id)}
+									<option value={project.id}>{project.title}</option>
 								{/each}
 							</select>
 						</fieldset>
 
 						<fieldset class="fieldset">
-							<legend class="fieldset-legend">Gaya</legend>
-							<input class="input w-full" placeholder="Modern tropis" bind:value={style} />
+							<legend class="fieldset-legend">Status ketersediaan *</legend>
+							<select class="select w-full" bind:value={salesStatus}>
+								{#each Object.entries(unitSalesStatusLabel) as [value, label] (value)}
+									<option {value}>{label}</option>
+								{/each}
+							</select>
 						</fieldset>
 					</div>
 				</div>
@@ -212,8 +230,8 @@
 						<input class="input w-full" type="number" min="0" bind:value={buildingAreaM2} />
 					</fieldset>
 					<fieldset class="fieldset">
-						<legend class="fieldset-legend">Luas lahan min. (m²)</legend>
-						<input class="input w-full" type="number" min="0" bind:value={landAreaMinM2} />
+						<legend class="fieldset-legend">Luas lahan (m²)</legend>
+						<input class="input w-full" type="number" min="0" bind:value={landAreaM2} />
 					</fieldset>
 				</div>
 			</Panel>
@@ -292,16 +310,6 @@
 							/>
 						</div>
 					</div>
-
-					<fieldset class="fieldset">
-						<legend class="fieldset-legend">Tag</legend>
-						<input
-							class="input w-full"
-							placeholder="2 lantai, taman, siap huni"
-							bind:value={tags}
-						/>
-						<p class="mt-1 text-xs text-brand-gray-600">Pisahkan dengan koma.</p>
-					</fieldset>
 				</div>
 			</Panel>
 		</div>
@@ -311,8 +319,8 @@
 				<div class="grid gap-4">
 					<fieldset class="fieldset">
 						<legend class="fieldset-legend">Status</legend>
-						<select class="select w-full" bind:value={status}>
-							{#each Object.entries(designStatusLabel) as [value, label] (value)}
+						<select class="select w-full" bind:value={publishStatus}>
+							{#each Object.entries(unitPublishStatusLabel) as [value, label] (value)}
 								<option {value}>{label}</option>
 							{/each}
 						</select>
