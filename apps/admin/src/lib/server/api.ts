@@ -1,5 +1,14 @@
 const API_BASE = (process.env.PUBLIC_API_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 
+/** Better Auth menolak POST ber-cookie tanpa `Origin` tepercaya. */
+const API_ORIGIN = (() => {
+	try {
+		return new URL(API_BASE).origin;
+	} catch {
+		return API_BASE;
+	}
+})();
+
 export interface ApiUser {
 	id: string;
 	name: string;
@@ -54,6 +63,7 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
 		headers.set('content-type', 'application/json');
 	}
 	if (options.cookie) headers.set('cookie', options.cookie);
+	headers.set('origin', API_ORIGIN);
 
 	const response = await fetcher(`${API_BASE}${path}`, {
 		method: options.method ?? 'GET',
@@ -89,6 +99,7 @@ export async function apiRequestRaw<T>(
 		headers.set('content-type', 'application/json');
 	}
 	if (options.cookie) headers.set('cookie', options.cookie);
+	headers.set('origin', API_ORIGIN);
 
 	const response = await fetcher(`${API_BASE}${path}`, {
 		method: options.method ?? 'GET',

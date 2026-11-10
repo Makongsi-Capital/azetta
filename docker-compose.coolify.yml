@@ -8,6 +8,7 @@
 #   OBJECT_STORAGE_*                  kredensial S3/R2
 #   TURNSTILE_SECRET_KEY, PUBLIC_TURNSTILE_SITE_KEY
 #   RESEND_API_KEY, MAIL_FROM, SALES_NOTIFY_EMAIL
+#   WEB_ORIGIN, ADMIN_ORIGIN         origin publik, mis. https://azetta.id & https://admin.azetta.id
 #   ADMIN_EMAIL_SEED, ADMIN_PASSWORD_SEED   (wajib: seed produksi hanya membuat akun ini)
 #
 # Variabel SERVICE_* adalah "magic variable" Coolify: domain web/admin dibuat otomatis
@@ -26,6 +27,9 @@ x-app-env: &app-env
   BETTER_AUTH_URL: http://api:3000
   BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
   COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+  # Origin publik web/admin; wajib agar Better Auth menerima panggilan auth dari server.
+  WEB_ORIGIN: ${WEB_ORIGIN:-}
+  ADMIN_ORIGIN: ${ADMIN_ORIGIN:-}
   IP_HASH_SALT: ${SERVICE_HEX_32_IPHASHSALT}
   OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:?}
   OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-}

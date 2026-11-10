@@ -8,7 +8,7 @@ export const load: PageServerLoad = ({ locals }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, url }) => {
+	default: async ({ request }) => {
 		const form = await request.formData();
 		const email = String(form.get('email') ?? '').trim();
 
@@ -19,7 +19,8 @@ export const actions: Actions = {
 		try {
 			await apiRequestRaw('/api/auth/forget-password', {
 				method: 'POST',
-				body: { email, redirectTo: `${url.origin}/masuk` }
+				// Path relatif lolos validasi redirectURL Better Auth tanpa perlu origin publik.
+				body: { email, redirectTo: '/masuk' }
 			});
 		} catch (error) {
 			if (error instanceof ApiRequestError && error.status === 400) {

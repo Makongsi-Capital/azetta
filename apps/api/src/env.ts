@@ -11,6 +11,8 @@ const EnvSchema = Type.Object({
 	BETTER_AUTH_SECRET: Type.String({ minLength: 32 }),
 	BETTER_AUTH_URL: Type.String({ minLength: 1 }),
 	COOKIE_DOMAIN: Type.String({ default: '' }),
+	WEB_ORIGIN: Type.String({ default: '' }),
+	ADMIN_ORIGIN: Type.String({ default: '' }),
 	IP_HASH_SALT: Type.String({ minLength: 1 }),
 	OBJECT_STORAGE_ENDPOINT: Type.Optional(Type.String()),
 	OBJECT_STORAGE_REGION: Type.Optional(Type.String()),

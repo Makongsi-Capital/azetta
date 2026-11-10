@@ -7,6 +7,18 @@ export function apiBaseUrl(): string {
 	return (PUBLIC_API_BASE_URL || DEFAULT_BASE).replace(/\/$/, '');
 }
 
+/**
+ * Better Auth menolak POST ber-cookie tanpa `Origin` tepercaya. Pengiriman cookie
+ * hanya terjadi di server, jadi origin API dikirim eksplisit dari sana.
+ */
+function apiOrigin(): string {
+	try {
+		return new URL(apiBaseUrl()).origin;
+	} catch {
+		return DEFAULT_BASE;
+	}
+}
+
 export interface ListMeta {
 	page: number;
 	perPage: number;
@@ -81,6 +93,8 @@ async function send(path: string, options: ApiOptions) {
 	const isFormData = options.body instanceof FormData;
 	if (options.body !== undefined && !isFormData) headers.set('content-type', 'application/json');
 	if (options.cookie) headers.set('cookie', options.cookie);
+	// Di browser header ini diabaikan oleh fetch; yang penting panggilan dari server.
+	headers.set('origin', apiOrigin());
 
 	const response = await fetcher(buildUrl(path, options.query), {
 		method: options.method ?? 'GET',

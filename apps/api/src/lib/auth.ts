@@ -7,14 +7,27 @@ import { getEnv } from '../env';
 
 const env = getEnv();
 
+/**
+ * Better Auth menolak POST yang membawa cookie bila `Origin` tidak tepercaya.
+ * Klien web/admin memanggil API dari server, jadi origin aplikasi harus didaftarkan
+ * selain baseURL API itu sendiri.
+ */
+const trustedOrigins = [
+	...new Set(
+		[env.BETTER_AUTH_URL, env.WEB_ORIGIN, env.ADMIN_ORIGIN]
+			.map((value) => (value ?? '').trim().replace(/\/+$/, ''))
+			.filter((value) => value.length > 0)
+	)
+];
+
 export const auth = betterAuth({
 	appName: 'Azetta',
 	baseURL: env.BETTER_AUTH_URL,
 	basePath: '/api/auth',
 	secret: env.BETTER_AUTH_SECRET,
 	database: prismaAdapter(prisma, { provider: 'postgresql' }),
-	// Tidak ada request browser langsung ke API (semua lewat server web/admin),
-	// jadi trustedOrigins cukup default Better Auth (baseURL).
+	// Tidak ada request browser langsung ke API (semua lewat server web/admin).
+	trustedOrigins,
 	emailAndPassword: {
 		enabled: true,
 		disableSignUp: false,

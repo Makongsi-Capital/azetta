@@ -89,6 +89,8 @@ Aturan:
 | `BETTER_AUTH_SECRET` | ✅ | 32+ byte acak | Rotasi = semua sesi logout |
 | `BETTER_AUTH_URL` | ✅ | `https://api.azetta.id` | Basis URL auth |
 | `COOKIE_DOMAIN` | ✅ | `.azetta.id` | Produksi; kosong saat lokal |
+| `WEB_ORIGIN` | ✅ | `https://azetta.id` | Origin publik web; masuk `trustedOrigins` Better Auth |
+| `ADMIN_ORIGIN` | ✅ | `https://admin.azetta.id` | Origin publik admin; masuk `trustedOrigins` Better Auth |
 | `IP_HASH_SALT` | ✅ | acak | Untuk `ipHash` |
 | `OBJECT_STORAGE_ENDPOINT` | ⚠️ | `https://is3.cloudhost.id` | Endpoint S3-compatible (kosong = AWS) |
 | `OBJECT_STORAGE_REGION` | ⚠️ | `auto` | Region klien S3 |
