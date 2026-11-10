@@ -9,6 +9,16 @@ function isAssetRequest(pathname: string): boolean {
 	);
 }
 
+const PRIVATE_PREFIXES = [
+	'/akun',
+	'/masuk',
+	'/daftar',
+	'/lupa-sandi',
+	'/reset-sandi',
+	'/verifikasi-email',
+	'/theme'
+];
+
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 
@@ -26,5 +36,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.user = user;
 	}
 
-	return resolve(event);
+	const response = await resolve(event);
+
+	response.headers.set('x-content-type-options', 'nosniff');
+	response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
+	response.headers.set('x-frame-options', 'SAMEORIGIN');
+	response.headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=()');
+
+	if (PRIVATE_PREFIXES.some((prefix) => event.url.pathname.startsWith(prefix))) {
+		response.headers.set('x-robots-tag', 'noindex, nofollow');
+	}
+
+	return response;
 };

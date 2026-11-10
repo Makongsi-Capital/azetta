@@ -75,6 +75,7 @@ merge ke main
 
 Aturan:
 
+- **Status CI saat ini:** `.github/workflows/ci.yml` menjalankan install → generate Prisma → typecheck → lint → format check → unit test → build pada setiap PR dan push ke `main`. Integration test (Postgres service) dan E2E Playwright belum otomatis karena memerlukan database ter-seed + API berjalan; jalankan manual di staging sampai job-nya dibuat.
 - **Migrasi sebelum aplikasi baru** (expand/contract) agar versi lama tetap berjalan saat rollout.
 - Rilis hanya dari `main`; branch lain hanya ke staging.
 - Setiap rilis diberi tag versi (`v1.2.0`) dan catatan perubahan.
