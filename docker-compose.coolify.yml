@@ -31,6 +31,16 @@
 # Catatan: image runner memakai adapter-bun; `ORIGIN` tidak dibaca, origin
 # diturunkan dari header Host/X-Forwarded-* yang dipasang proxy Coolify
 # (lihat PROTOCOL_HEADER di service web/admin).
+#
+# DB ada di luar stack ini, jadi migrator/api ikut network destination Coolify (`coolify`)
+# lewat deklarasi `networks:` di bawah. Biarkan Advanced → Docker compose → Predefined
+# network = "Isolated network only": komunikasi internal (web/admin → api) tetap memakai
+# network stack ini, sedangkan akses DB memakai network eksternal.
+#
+# Nama service `api` BISA bentrok di network `coolify` yang dipakai bersama. Karena itu
+# api diberi alias unik `azetta-api-${COMPOSE_PROJECT_NAME}` dan web/admin memanggil
+# alias itu, bukan `api`. Kalau destination network Coolify Anda bukan `coolify`, set
+# COOLIFY_DESTINATION_NETWORK (lihat coolify-env.txt).
 
 services:
   migrator:
@@ -39,6 +49,9 @@ services:
       context: .
       dockerfile: Dockerfile
       target: migrator
+    networks:
+      - default
+      - coolify
     environment:
       NODE_ENV: production
       # Migrator menjalankan `prisma migrate deploy` lalu seed.ts, yang mengimpor
@@ -46,7 +59,7 @@ services:
       # sisanya memakai default schema (COOKIE_DOMAIN, WEB_ORIGIN, PORT, dll).
       DATABASE_URL: ${DATABASE_URL:?}
       BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
-      BETTER_AUTH_URL: http://api:3000
+      BETTER_AUTH_URL: http://azetta-api-${COMPOSE_PROJECT_NAME:-local}:3000
       IP_HASH_SALT: ${SERVICE_HEX_32_IPHASHSALT}
       OBJECT_STORAGE_ACCESS_KEY_ID: ${OBJECT_STORAGE_ACCESS_KEY_ID:?}
       OBJECT_STORAGE_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_SECRET_ACCESS_KEY:?}
@@ -65,6 +78,13 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner-api
+    # Network `coolify` untuk menjangkau DB; alias unik agar tidak bentrok dengan
+    # stack lain yang juga punya service `api` di network bersama.
+    networks:
+      default:
+      coolify:
+        aliases:
+          - azetta-api-${COMPOSE_PROJECT_NAME:-local}
     # API memanggil ensureBootstrapAdmin() saat boot (query tabel `user`), jadi
     # migrasi + seed harus selesai dulu. Tanpa ini API crash dan admin/web
     # (yang menunggu api healthy) ikut gagal.
@@ -77,14 +97,16 @@ services:
       # DB hidup di luar stack ini (tapi satu network), jadi URL-nya datang dari env.
       DATABASE_URL: ${DATABASE_URL:?}
       # API hanya dipanggil server-side dari web/admin → cukup URL internal.
-      BETTER_AUTH_URL: http://api:3000
+      # Samakan dengan alias unik di blok `networks` agar Origin yang dikirim
+      # web/admin masuk trustedOrigins Better Auth.
+      BETTER_AUTH_URL: http://azetta-api-${COMPOSE_PROJECT_NAME:-local}:3000
       BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
       # Kosong = cookie host-only (web & admin punya sesi masing-masing).
       # Isi (mis. .azetta.id) hanya bila satu sesi ingin dipakai lintas subdomain.
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
       # Origin publik web/admin untuk trustedOrigins Better Auth. Dengan PUBLIC_API_BASE_URL
-      # internal di bawah, klien web/admin mengirim Origin http://api:3000 yang sudah sama
-      # dengan BETTER_AUTH_URL, jadi nilainya opsional.
+      # internal (alias unik di bawah), klien web/admin mengirim Origin yang sama dengan
+      # BETTER_AUTH_URL, jadi nilainya opsional.
       WEB_ORIGIN: ${WEB_ORIGIN:-}
       ADMIN_ORIGIN: ${ADMIN_ORIGIN:-}
       IP_HASH_SALT: ${SERVICE_HEX_32_IPHASHSALT}
@@ -128,11 +150,14 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner-admin
+    networks:
+      - default
+      - coolify
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: '3000'
-      PUBLIC_API_BASE_URL: http://api:3000
+      PUBLIC_API_BASE_URL: http://azetta-api-${COMPOSE_PROJECT_NAME:-local}:3000
       PROTOCOL_HEADER: x-forwarded-proto
       # Upload media lewat /api/media; adapter-bun default hanya 512K sehingga
       # berkas valid (hingga OBJECT_STORAGE_MAX_UPLOAD_BYTES) ditolak sebelum ke API.
@@ -151,11 +176,14 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner-web
+    networks:
+      - default
+      - coolify
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: '3000'
-      PUBLIC_API_BASE_URL: http://api:3000
+      PUBLIC_API_BASE_URL: http://azetta-api-${COMPOSE_PROJECT_NAME:-local}:3000
       PUBLIC_TURNSTILE_SITE_KEY: ${PUBLIC_TURNSTILE_SITE_KEY:?}
       PROTOCOL_HEADER: x-forwarded-proto
       # Form lead mengirim maksimal 5 foto × 5 MB sekaligus (LeadForm.svelte);
@@ -165,3 +193,10 @@ services:
       SERVICE_URL_WEB_3000: /
     expose:
       - '3000'
+
+networks:
+  # Destination network Coolify (tempat database berada). Ganti lewat
+  # COOLIFY_DESTINATION_NETWORK bila destination Anda bukan `coolify`.
+  coolify:
+    external: true
+    name: ${COOLIFY_DESTINATION_NETWORK:-coolify}
