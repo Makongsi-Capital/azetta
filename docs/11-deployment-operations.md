@@ -108,6 +108,8 @@ Aturan:
 
 Semua divalidasi saat boot (`apps/api/src/env.ts`); aplikasi menolak start bila ada yang hilang. Variabel `PUBLIC_*` untuk SvelteKit diekspos ke klien — **jangan** pernah menaruh rahasia di sana.
 
+> **Coolify:** seluruh env di atas hanya dipakai saat runtime. Set **Build time** = *Not available during build* untuk setiap variabel (termasuk `SERVICE_PASSWORD_*`/`SERVICE_HEX_*` yang dibuat otomatis). Bila tidak, Coolify menyuntikkan ratusan `ARG` ke semua stage Dockerfile dan deploy gagal dengan `Argument list too long`; `NODE_ENV=production` juga membuat `bun install` melewati devDependencies. Template [`coolify-env.txt`](../coolify-env.txt) sudah memuat direktif `# coolify: buildtime=false`.
+
 ## 5. Database: migrasi & backup
 
 ### 5.1 Migrasi

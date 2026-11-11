@@ -11,7 +11,7 @@
 #   ADMIN_EMAIL_SEED, ADMIN_PASSWORD_SEED   (cukup saat deploy pertama; boleh dihapus setelahnya)
 #
 # Opsional:
-#   OBJECT_STORAGE_MAX_UPLOAD_BYTES   default 10 MB (lihat catatan di x-app-env)
+#   OBJECT_STORAGE_MAX_UPLOAD_BYTES   default 10 MB (lihat catatan di service `api`)
 #   WEB_ORIGIN, ADMIN_ORIGIN         origin publik web/admin. Hanya relevan bila
 #                                    PUBLIC_API_BASE_URL mengarah ke origin publik; dengan
 #                                    URL internal di bawah, BETTER_AUTH_URL sudah tepercaya.
@@ -22,42 +22,15 @@
 # dan diarahkan ke port 3000 container. Kalau lebih suka mengatur domain lewat tab
 # Domains, hapus dua baris SERVICE_URL_* di bawah.
 #
+# Semua env aplikasi hanya dipakai saat runtime. Di Coolify set "Build time" =
+# "Not available during build" untuk setiap variabel (atau `# coolify: buildtime=false`
+# di Developer view). Bila tidak, Coolify menyuntikkan ARG ke semua stage dan
+# menggandakan Dockerfile per service sampai perintah deploy melebihi batas argumen
+# ("Argument list too long").
+#
 # Catatan: image runner memakai adapter-bun; `ORIGIN` tidak dibaca, origin
 # diturunkan dari header Host/X-Forwarded-* yang dipasang proxy Coolify
 # (lihat PROTOCOL_HEADER di service web/admin).
-
-x-app-env: &app-env
-  NODE_ENV: production
-  PORT: '3000'
-  # DB hidup di luar stack ini (tapi satu network), jadi URL-nya datang dari env.
-  DATABASE_URL: ${DATABASE_URL:?}
-  # API hanya dipanggil server-side dari web/admin → cukup URL internal.
-  BETTER_AUTH_URL: http://api:3000
-  BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
-  # Kosong = cookie host-only (web & admin punya sesi masing-masing).
-  # Isi (mis. .azetta.id) hanya bila satu sesi ingin dipakai lintas subdomain.
-  COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
-  # Origin publik web/admin untuk trustedOrigins Better Auth. Dengan PUBLIC_API_BASE_URL
-  # internal di bawah, klien web/admin mengirim Origin http://api:3000 yang sudah sama
-  # dengan BETTER_AUTH_URL, jadi nilainya opsional.
-  WEB_ORIGIN: ${WEB_ORIGIN:-}
-  ADMIN_ORIGIN: ${ADMIN_ORIGIN:-}
-  IP_HASH_SALT: ${SERVICE_HEX_32_IPHASHSALT}
-  OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:?}
-  OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-}
-  OBJECT_STORAGE_ACCESS_KEY_ID: ${OBJECT_STORAGE_ACCESS_KEY_ID:?}
-  OBJECT_STORAGE_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_SECRET_ACCESS_KEY:?}
-  OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:?}
-  OBJECT_STORAGE_PUBLIC_URL: ${OBJECT_STORAGE_PUBLIC_URL:?}
-  # Batas unggah efektif; 10 MB agar konsisten dengan `.env.example`, dokumentasi,
-  # dan janji UI "maksimal 5 MB per foto" pada form lead web (API memakai nilai terkecil).
-  OBJECT_STORAGE_MAX_UPLOAD_BYTES: ${OBJECT_STORAGE_MAX_UPLOAD_BYTES:-10485760}
-  TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?}
-  RESEND_API_KEY: ${RESEND_API_KEY:?}
-  MAIL_FROM: ${MAIL_FROM:?}
-  SALES_NOTIFY_EMAIL: ${SALES_NOTIFY_EMAIL:?}
-  ADMIN_EMAIL_SEED: ${ADMIN_EMAIL_SEED:-}
-  ADMIN_PASSWORD_SEED: ${ADMIN_PASSWORD_SEED:-}
 
 services:
   migrator:
@@ -67,7 +40,24 @@ services:
       dockerfile: Dockerfile
       target: migrator
     environment:
-      <<: *app-env
+      NODE_ENV: production
+      # Migrator menjalankan `prisma migrate deploy` lalu seed.ts, yang mengimpor
+      # apps/api/src/env.ts. Hanya variabel wajib + kredensial seed yang dibutuhkan;
+      # sisanya memakai default schema (COOKIE_DOMAIN, WEB_ORIGIN, PORT, dll).
+      DATABASE_URL: ${DATABASE_URL:?}
+      BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
+      BETTER_AUTH_URL: http://api:3000
+      IP_HASH_SALT: ${SERVICE_HEX_32_IPHASHSALT}
+      OBJECT_STORAGE_ACCESS_KEY_ID: ${OBJECT_STORAGE_ACCESS_KEY_ID:?}
+      OBJECT_STORAGE_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_SECRET_ACCESS_KEY:?}
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:?}
+      OBJECT_STORAGE_PUBLIC_URL: ${OBJECT_STORAGE_PUBLIC_URL:?}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?}
+      RESEND_API_KEY: ${RESEND_API_KEY:?}
+      MAIL_FROM: ${MAIL_FROM:?}
+      SALES_NOTIFY_EMAIL: ${SALES_NOTIFY_EMAIL:?}
+      ADMIN_EMAIL_SEED: ${ADMIN_EMAIL_SEED:-}
+      ADMIN_PASSWORD_SEED: ${ADMIN_PASSWORD_SEED:-}
 
   api:
     restart: unless-stopped
@@ -75,11 +65,45 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner-api
-    # depends_on:
-    #   migrator:
-    #     condition: service_completed_successfully
+    # API memanggil ensureBootstrapAdmin() saat boot (query tabel `user`), jadi
+    # migrasi + seed harus selesai dulu. Tanpa ini API crash dan admin/web
+    # (yang menunggu api healthy) ikut gagal.
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
     environment:
-      <<: *app-env
+      NODE_ENV: production
+      PORT: '3000'
+      # DB hidup di luar stack ini (tapi satu network), jadi URL-nya datang dari env.
+      DATABASE_URL: ${DATABASE_URL:?}
+      # API hanya dipanggil server-side dari web/admin → cukup URL internal.
+      BETTER_AUTH_URL: http://api:3000
+      BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
+      # Kosong = cookie host-only (web & admin punya sesi masing-masing).
+      # Isi (mis. .azetta.id) hanya bila satu sesi ingin dipakai lintas subdomain.
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      # Origin publik web/admin untuk trustedOrigins Better Auth. Dengan PUBLIC_API_BASE_URL
+      # internal di bawah, klien web/admin mengirim Origin http://api:3000 yang sudah sama
+      # dengan BETTER_AUTH_URL, jadi nilainya opsional.
+      WEB_ORIGIN: ${WEB_ORIGIN:-}
+      ADMIN_ORIGIN: ${ADMIN_ORIGIN:-}
+      IP_HASH_SALT: ${SERVICE_HEX_32_IPHASHSALT}
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:?}
+      OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-}
+      OBJECT_STORAGE_ACCESS_KEY_ID: ${OBJECT_STORAGE_ACCESS_KEY_ID:?}
+      OBJECT_STORAGE_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_SECRET_ACCESS_KEY:?}
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:?}
+      OBJECT_STORAGE_PUBLIC_URL: ${OBJECT_STORAGE_PUBLIC_URL:?}
+      # Batas unggah efektif; 10 MB agar konsisten dengan `.env.example`, dokumentasi,
+      # dan janji UI "maksimal 5 MB per foto" pada form lead web (API memakai nilai terkecil).
+      OBJECT_STORAGE_MAX_UPLOAD_BYTES: ${OBJECT_STORAGE_MAX_UPLOAD_BYTES:-10485760}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?}
+      RESEND_API_KEY: ${RESEND_API_KEY:?}
+      MAIL_FROM: ${MAIL_FROM:?}
+      SALES_NOTIFY_EMAIL: ${SALES_NOTIFY_EMAIL:?}
+      # Dipakai ensureBootstrapAdmin() saat startup.
+      ADMIN_EMAIL_SEED: ${ADMIN_EMAIL_SEED:-}
+      ADMIN_PASSWORD_SEED: ${ADMIN_PASSWORD_SEED:-}
     expose:
       - '3000'
     healthcheck:

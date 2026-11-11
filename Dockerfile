@@ -13,7 +13,9 @@ COPY apps/api/package.json          ./apps/api/package.json
 COPY apps/web/package.json          ./apps/web/package.json
 COPY apps/admin/package.json        ./apps/admin/package.json
 
-RUN bun install --frozen-lockfile
+# Coolify menandai env compose sebagai build-time secara default; NODE_ENV=production
+# akan membuat Bun melewati devDependencies. Paksa development untuk tahap build.
+RUN NODE_ENV=development bun install --frozen-lockfile
 
 
 # ── Prisma CodeGen (Generated once, shared by API, Admin, & Web) ───────────
