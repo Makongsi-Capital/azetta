@@ -182,7 +182,7 @@ bun run build
 | Auth | Better Auth | Sesi di DB, plugin admin, adapter Prisma, dukungan TypeScript penuh | Auth.js (lebih terikat Next), implementasi sendiri (rawan celah) |
 | ORM | Prisma | Skema deklaratif, migrasi jelas, tipe kuat | Drizzle (lebih ringan, tapi ekosistem migrasi kurang terintegrasi) |
 | DB | PostgreSQL 16 | Transaksi, tipe JSONB, full-text, andal | MySQL (tidak dipilih: butuh JSONB & FTS) |
-| Web publik | SvelteKit 3 + `adapter-node` | SSR, routing berbasis file, form actions, ukuran bundel kecil | Next.js (lebih berat, ekosistem besar) |
+| Web publik | SvelteKit 3 + `adapter-bun` | SSR, routing berbasis file, form actions, ukuran bundel kecil, runtime sama dengan API (Bun) | Next.js (lebih berat, ekosistem besar) |
 | Admin | SvelteKit 3 (app terpisah) | Isolasi origin & bundel, guard di server | Route group `/(admin)` di app yang sama (risiko bocor bundel & konfigurasi) |
 | CSS | Tailwind CSS 4 + daisyUI 5 | Komponen siap pakai, tema mudah diubah | CSS-in-JS, Bootstrap |
 | Tipografi | Arial (sistem) dengan cadangan Liberation Sans/Helvetica | Tanpa webfont: nol permintaan font, tanpa CLS font, sesuai Brand Guidelines §04 | Poppins/Inter self-hosted (+2 berkas font) |
