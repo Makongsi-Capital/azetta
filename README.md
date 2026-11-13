@@ -41,7 +41,9 @@ menolak akun dengan peran `customer`.
 Pemeriksaan cepat:
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3000/health   # api
+curl http://localhost:5173/health   # web
+curl http://localhost:5174/health   # admin
 ```
 
 ## Perintah

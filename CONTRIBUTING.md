@@ -25,7 +25,7 @@ bun run db:migrate                        # terapkan migrasi yang ada
 bun run dev                               # api :3000, web :5173, admin :5174
 ```
 
-Pemeriksaan cepat: `curl http://localhost:3000/health`.
+Pemeriksaan cepat: `curl http://localhost:3000/health` (api), `curl http://localhost:5173/health` (web), `curl http://localhost:5174/health` (admin).
 
 Jangan pernah meng-commit `.env`, kredensial, atau isi `packages/db/src/generated/`.
 

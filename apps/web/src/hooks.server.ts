@@ -9,6 +9,8 @@ function isAssetRequest(pathname: string): boolean {
 	);
 }
 
+const PROBE_PATHS = new Set(['/health']);
+
 const PRIVATE_PREFIXES = [
 	'/akun',
 	'/masuk',
@@ -22,7 +24,7 @@ const PRIVATE_PREFIXES = [
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 
-	if (!isAssetRequest(event.url.pathname)) {
+	if (!isAssetRequest(event.url.pathname) && !PROBE_PATHS.has(event.url.pathname)) {
 		const { user, setCookies } = await fetchSession(
 			event.request.headers.get('cookie'),
 			event.fetch

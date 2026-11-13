@@ -178,19 +178,19 @@ Kanal alert: WhatsApp/Slack grup teknis + email. Setiap alert harus punya pemili
 
 ### 7.1 Health check
 
-`GET /health` (tanpa auth, tidak di-cache):
+Setiap aplikasi punya `GET /health` (tanpa auth, `Cache-Control: no-store`) dan memakainya
+sebagai Docker healthcheck:
 
-```json
-{
-  "status": "ok",
-  "version": "v1.0.0",
-  "checks": { "database": "ok", "storage": "ok" },
-  "uptimeSeconds": 86400
-}
-```
+| Aplikasi | Port dev | Respons `200`                            |
+| -------- | -------- | ---------------------------------------- |
+| `api`    | 3000     | `{ "status": "ok", "env": "production" }` |
+| `web`    | 5173     | `{ "status": "ok", "app": "web" }`        |
+| `admin`  | 5174     | `{ "status": "ok", "app": "admin" }`      |
 
-- `200` bila semua `ok`; `503` bila DB tidak dapat dijangkau.
-- Tidak menampilkan nama host, versi DB, atau informasi internal lain.
+- Healthcheck `web`/`admin` sengaja hanya memeriksa proses HTTP-nya sendiri (liveness) dan
+  tidak memanggil API, supaya restart `api` tidak membuat keduanya ikut ditandai tidak sehat.
+  Ketergantungan pada API ditangani `depends_on: api: condition: service_healthy`.
+- Endpoint ini tidak menampilkan nama host, versi DB, atau informasi internal lain.
 
 ## 8. Logging
 

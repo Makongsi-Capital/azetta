@@ -4,6 +4,7 @@ import { fetchSession, parseSetCookie, signOut } from '#lib/server/api.js';
 
 const STAFF_ROLES = new Set(['admin', 'super_admin']);
 const PUBLIC_PATHS = new Set(['/login']);
+const PROBE_PATHS = new Set(['/health']);
 
 function isAssetRequest(pathname: string): boolean {
 	return (
@@ -28,7 +29,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	event.locals.user = null;
 
-	if (!isAssetRequest(pathname)) {
+	if (!isAssetRequest(pathname) && !PROBE_PATHS.has(pathname)) {
 		const { user, setCookies } = await fetchSession(event.request.headers.get('cookie'));
 
 		for (const header of setCookies) {
